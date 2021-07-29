@@ -25,7 +25,8 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-        <li><a href="#installation">Current version</a></li>
+        <li><a href="#current version">Current version</a></li>
+        <li><a href="#Data characterization study links">Data characterization study links</a></li> 
       </ul>
     </li>
     <li><a href="#license">License</a></li>
@@ -60,7 +61,7 @@ ConcePTION CDM tables:
 ***f.*** Assessing medication use in the study population.     
 ***g.*** Assessing vaccine exposure in the study population.
 
-***Level 3 checks will quantify population and person time in each data source for the source and study population as a whole as well as for subpopulations of interest. Examples of this type of check include: counts of codes extracted to identify each event and exposure of interest, counts of medication prescription and vaccine admistrations etc *** 
+***Level 3 checks will quantify population and person time in each data source for the source and study population as a whole as well as for subpopulations of interest. Examples of this type of check include: counts of codes extracted to identify each event and exposure of interest, counts of medication prescription and vaccine administrations etc.*** 
 
 **The level 3 checks are divided in 8 major steps:**   
 
@@ -90,7 +91,13 @@ R version 4.1.0 (2021-05-18)
 4. Inside the main folder create a folder named `CDMInstances`, which will be used to store the .csv files representing the CDM tables(if you already have done so for Level 1/2 checks skip this step).      
 5. Inside the `CDMInstances` folder create a folder with the name of your project and inside the latter put all your .csv files(if you already have done so for Level 1/2 checks skip this step).      
 6. In the folder `Level_3_checks_to_be_deployed_v1.0`, go to the script 99_path.R and change the variable Studyname(line 6) to the name of your project. Make sure that the name of the folder you have created in the folder `CDMInstances` and the name of the variable match exactly. Save it.         
-7. Open the to_run.R script and you are ready to run level 3 checks.    
+7. Open the to_run.R script and you are ready to run level 3 checks.  
+
+### Data characterization study links   
+
+[Level 1 checks](https://github.com/vjolahoxhaj/Level-1-checks?organization=vjolahoxhaj&organization=vjolahoxhaj): Checking the integrity of the ETL procedure.     
+[Level 2 checks](https://github.com/IMI-ConcePTION/Level-2-checks): Checking the logical relationship of the CDM tables.    
+[Level 3 checks](https://github.com/IMI-ConcePTION/Level-3-checks): Benchamrking across DAPs and external sources.     
 
 ### Current version
 
@@ -104,8 +111,8 @@ Distributed under the BSD 2-Clause License License. See `LICENSE` for more infor
 <!-- CONTACT -->
 ## Contact
 
-Vjola Hoxhaj - v.hoxhaj@umcutrecht.nl 
-Roel Elbers - R.J.H.Elbers@umcutrecht.nl    
+Vjola Hoxhaj - v.hoxhaj@umcutrecht.nl     
+Roel Elbers - R.J.H.Elbers@umcutrecht.nl       
 
 Project Link: [https://github.com/IMI-ConcePTION/Level-3-checks](https://github.com/IMI-ConcePTION/Level-3-checks)
 
