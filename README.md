@@ -25,8 +25,8 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-        <li><a href="#current version">Current version</a></li>
         <li><a href="#Data characterization study links">Data characterization study links</a></li> 
+        <li><a href="#current version">Current version</a></li>
       </ul>
     </li>
     <li><a href="#license">License</a></li>
