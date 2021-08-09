@@ -173,3 +173,7 @@ write.csv(codelist_pregnancy, paste0(info_dir, "data_characterisation_codelist_p
 rm(codelist_pregnancy)
 
 
+if(subpopulations_present=="Yes"){
+  subpop_names_export<-data.table(DAP=data_access_provider_name, data_source=data_source_name, subpopulations_names=subpopulations_names)
+  write.csv(subpop_names_export, paste0(info_dir, "subpopulations_names.csv"), row.names = F)
+}

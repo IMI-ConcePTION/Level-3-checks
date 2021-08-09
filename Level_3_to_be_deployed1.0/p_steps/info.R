@@ -12,6 +12,7 @@ actual_tables$SURVEY_OBSERVATIONS<-list.files(path_dir, pattern="^SURVEY_OBSERVA
 actual_tables$MEDICINES<-list.files(path_dir, pattern="^MEDICINES")
 actual_tables$VACCINES<-list.files(path_dir, pattern="^VACCINES")
 actual_tables$SURVEY_ID<-list.files(path_dir, pattern="^SURVEY_ID")
+actual_tables$EUROCAT<-list.files(path_dir, pattern="^EUORCAT")
 
 if(sum(length(actual_tables$EVENTS), length(actual_tables$MEDICAL_OBSERVATIONS), length(actual_tables$SURVEY_OBSERVATIONS))==0){
   #no diagnoses can be retrieved

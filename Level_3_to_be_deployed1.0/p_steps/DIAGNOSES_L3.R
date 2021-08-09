@@ -4,10 +4,9 @@
 #Date: 06/07/2021
 
 ###############################################################################################
-source(paste0(pre_dir, "create_conceptsets.R")) #for diagnoses
-###############################################################################################
 source(paste0(pre_dir, "DAP_info.R")) 
 source(paste0(pre_dir, "info.R")) 
+source(paste0(pre_dir, "create_conceptsets.R")) #for diagnoses
 ########################################################
 #Create output folders
 ########################################################
