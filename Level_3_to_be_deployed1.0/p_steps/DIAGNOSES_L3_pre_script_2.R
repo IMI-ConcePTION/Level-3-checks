@@ -1580,24 +1580,21 @@ for (condition_ind in 1:length(diagnoses_files)){
   ps<-output[,colnames(output)[str_detect(colnames(output), "Persontime_")]]
   person_years_df<-output[,..ps]
   output[,colnames(output)[str_detect(colnames(output), "Persontime_")]]<-NULL
-  ps<-unlist(lapply(ps, function(x) strsplit(x,"_")))
-  ps<-ps[!ps %in% "Persontime"]
+  ps<-unlist(lapply(ps, function(x) str_replace(x,"Persontime_","")))
   names(person_years_df)<-ps
   person_years_df<-data.table(person_years_df,output[,c("sex_at_instance_creation","meaning","year","Ageband")])
-
   
   person_years_df<-person_years_df[,lapply(.SD,function(x) as.numeric(x)), .SDcols=ps, by=c("sex_at_instance_creation","meaning","year","Ageband")]
   person_years_df<-melt(person_years_df, id.vars=c("sex_at_instance_creation","meaning", "Ageband","year"), measure.vars = colnames(person_years_df)[!colnames(person_years_df) %in% c("sex_at_instance_creation","meaning", "Ageband","year")], variable.name = "combined_diagnoses")        
   setnames(person_years_df,"value","person_years")
   output<-melt(output, id.vars=c("sex_at_instance_creation","meaning", "Ageband","year"), measure.vars = colnames(output)[!colnames(output) %in% c("sex_at_instance_creation","meaning", "Ageband","year")], variable.name = "combined_diagnoses")        
-  output[,c("combined_diagnoses","delete") := tstrsplit(combined_diagnoses, "_")]
-  output[,delete:=NULL]
+  output[,combined_diagnoses:= gsub('.{2}$','',combined_diagnoses)]
   setnames(output,"value","no_records")
   output<-merge(person_years_df,output,by=c("sex_at_instance_creation","meaning", "Ageband","year", "combined_diagnoses"), all=T)
   rm(person_years_df)
   setnames(output, "Ageband", "age_band")
   setnames(output, "sex_at_instance_creation", "sex")
-
+  
   #will be used to count users
   saveRDS(output, paste0(diag_tmp, names(diagnoses_files)[condition_ind], "_rates_rec.rds"))
   rm(output)

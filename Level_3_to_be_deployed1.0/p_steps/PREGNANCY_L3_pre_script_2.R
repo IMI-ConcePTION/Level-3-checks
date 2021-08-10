@@ -1742,7 +1742,7 @@ if(length(pregnancy_files_events$interruption_pregnancy)>0){
 } else {combined_int_ev<-NULL}
 if(length(pregnancy_files_mo$interruption_pregnancy)>0){
   combined_int_mo<-lapply(paste0(preg_m_tmp,pregnancy_files_mo$interruption_pregnancy), readRDS) #combine all files for one pregnancy stage
-  combined_int_mo<-do.call(rbind,combined_start_mo)
+  combined_int_mo<-do.call(rbind,combined_int_mo)
   combined_int_mo[,lag:=time_lag[stage_of_pregnancy == "interruption_pregnancy",time_lag]] #create lag variable based on condition
   combined_int_mo[,pregnancy_code:=NULL][,pregnancy_code_vocabulary:=NULL][,filter_preg:=NULL]
 } else {combined_int_mo<-NULL}
