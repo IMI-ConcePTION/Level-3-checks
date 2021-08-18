@@ -12,9 +12,9 @@ if(SUBP) {
   
 if(!SUBP) SCHEME_03 <- data.frame(subpopulations = c("ALL"),file_in = "ALL_OBS_SPELLS.rds", file_out = "ALL_source_population.rds", folder_out = "tmp2")
 
-# SCHEME_03$nrows <- as.integer(NA)
-# SCHEME_03$ncols <- as.integer(NA)
-# SCHEME_03$ncolsneeded <- 19
+SCHEME_03$nrows <- as.integer(NA)
+SCHEME_03$ncols <- as.integer(NA)
+SCHEME_03$ncolsneeded <- 19
 
 PERSONS <- readRDS(paste0(std_pop_tmp,"PERSONS.rds"))
 
@@ -45,8 +45,8 @@ for(i in 1:nrow(SCHEME_03)){
 
   SOURCE_POPULATION <- SOURCE_POPULATION[!is.na(death_date), date_max := min(date_max,death_date)]
   SOURCE_POPULATION <- SOURCE_POPULATION[, Population := SCHEME_03[["subpopulations"]][i]]
-  #SCHEME_03[i,"nrows"] <- nrow(SOURCE_POPULATION)
-  #SCHEME_03[i,"ncols"] <- ncol(SOURCE_POPULATION)
+  SCHEME_03[i,"nrows"] <- nrow(SOURCE_POPULATION)
+  SCHEME_03[i,"ncols"] <- ncol(SOURCE_POPULATION)
   
   saveRDS(SOURCE_POPULATION,file = paste0(std_pop_tmp,SCHEME_03[["file_out"]][i]))
   

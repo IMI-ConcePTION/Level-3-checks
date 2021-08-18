@@ -16,7 +16,7 @@ if(SUBP) SCHEME_0102 <- subpopulation_meanings[,
                                                  file_out3 = paste0(subpopulations,"_R_01_02_CompareToSourcePlot2.rds"),      
                                                  folder_in = populations_dir, 
                                                  folder_in2 = std_pop_tmp,
-                                                 folder_out = paste0(std_source_pop_dir,subpopulations,"/")) 
+                                                 folder_out = std_source_pop_dir) 
                                                ]
 
 
@@ -67,10 +67,6 @@ for(i in 1:nrow(SCHEME_0102)){
   setorderv(COUNT,c("Year op_start_date", "Ageband op_start_date"))
   
   fwrite(COUNT, file = paste0(SCHEME_0102[["folder_out"]][i],SCHEME_0102[["file_out"]][i]), sep = ";")
-  
-
-  
-  #fwrite(COUNT, file = paste0(SCHEME_0102[["folder_out"]][i],"Masked/",SCHEME_0102[["file_out"]][i]), sep = ";")
   #saveRDS(COUNT, file = paste0(thisdir,SCHEME_0102[["folder_out"]][i],SCHEME_0102[["file_out"]][i]))
   
   rm(COUNT,COUNT_SOURCE,COUNT_STUDY,colls,new)

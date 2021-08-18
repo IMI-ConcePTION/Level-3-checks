@@ -12,7 +12,7 @@ if(SUBP) SCHEME_0103 <- subpopulation_meanings[,
                                                  file_in = paste0(subpopulations,"_study_population.rds"), 
                                                  file_out = paste0(subpopulations,"_R_01_03_STUDYPOP.csv"), 
                                                  folder_in = populations_dir, 
-                                                 folder_out = paste0(std_source_pop_dir,subpopulations,"/"))
+                                                 folder_out = std_source_pop_dir)
                                                
                                                ]
 

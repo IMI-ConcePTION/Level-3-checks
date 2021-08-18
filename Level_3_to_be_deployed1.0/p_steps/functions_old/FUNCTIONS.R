@@ -17,7 +17,6 @@ CreateBands <- function(bands){
       }
 
   bands <- as.data.frame(cbind("band" = bands_list[["band"]],"ST" = bands_list[["ST"]],"END" = bands_list[["END"]]))
-  bands[,1:ncol(bands)] <- lapply(bands[,1:ncol(bands)], as.character)
   
   new <- list()
 
@@ -102,10 +101,10 @@ SeparateRanges <- function(codesheet,code_col,separator,vars){
 }
 
 
-INPUTMATRIX  <- function(d,value,type,var,var.v,cat = NULL,cat.v = NULL, per = F, perdir = "row", mask = T, output = "matrix" ){
+INPUTMATRIX  <- function(d,value,type,var,var.v,cat = NULL,cat.v = NULL, per = F, perdir = "row"){
   
   d <- copy(d)
-  
+
   if(is.null(cat)){
     d[,cat := "ALL"]
     cat <- "cat"
@@ -122,13 +121,12 @@ INPUTMATRIX  <- function(d,value,type,var,var.v,cat = NULL,cat.v = NULL, per = F
     #graph <- d[,.(get(var),get(cat),get(value))]
     graph <- d[,..tmp.v]
     rm(tmp.v)
-  }
+    }
   colnames(graph) <- c("Var","Cat","Val")
-  
+  #graph <- graph[!is.na(Val),]
   graph <- graph[!is.na(graph[["Val"]]),]
-  
-  if(any(duplicated(graph))) stop("Duplicated values in INPUMATRIX") 
-  graph[["Val"]] <- as.numeric(graph[["Val"]])
+  #rm(d)
+  #gc()
   
   temp <- matrix(NA, ncol = length(var.v),nrow = length(cat.v))
   colnames(temp) <- as.character(var.v)
@@ -148,26 +146,8 @@ INPUTMATRIX  <- function(d,value,type,var,var.v,cat = NULL,cat.v = NULL, per = F
     
   } 
   
-  
-  if(mask & !per){
-    temp[temp > 0 & temp < 5] <- 5
-    
-  }
-  
-  if(output == "long"){
-    temp <- as.data.table(temp, keep.rownames = cat)
-    temp <- melt(temp,id.vars = cat ,measure.vars =  colnames(temp)[!colnames(temp) %in% cat], variable.name = var, value.name = value )
-    #temp[, ':=' (eval(cat) = as.character(get(cat)), eval(var) = as.character(get(var)), eval(value) = as.numeric(get(value)))]  
-    temp[, eval(cat) := as.character(get(cat))]  
-    temp[, eval(var) := as.character(get(var))] 
-    temp[, eval(value) := as.numeric(get(value))] 
-    
-  }
-  
-  
-  
   return(temp)
-  rm(d,graph,temp)
+  rm(d,graph)
   gc()
 }
 
@@ -220,23 +200,23 @@ POP_TREE <- function(m, xlabel = 'Percentage', offset = 1, linewidth = 15, cols 
 
 
 
-Line_plot2 <- function(MATRIX, title, x.l, y.l, x.axis = F, color = NULL, leg = T, x.labels = NULL, x.thicks = NULL, x.las = 2, point = F, l.size = 0.9, tck.size = 0.6){
+Line_plot2 <- function(MATRIX, title, x.l, y.l, y.axis = F, color = NULL, leg = T, y.labels = NULL, y.thicks = NULL, y.las = 2){
   
   
   #if(is.null(color)) color <- rainbow(nrow(MATRIX))
   if(is.null(color)) color <- c(2:(nrow(MATRIX)+1))
-  plot(NULL,type="l",xlab = x.l,ylab = y.l,cex.lab = l.size,lwd=3,xlim = c(1,length(colnames(MATRIX))), ylim = c(0,max(MATRIX)), main= title, axes = F)
+  plot(NULL,type="l",xlab = x.l,ylab = y.l,cex.lab = 0.8,lwd=3,xlim = c(1,length(colnames(MATRIX))), ylim = c(0,max(MATRIX)), main= title, axes = F)
   
   #X-axis
-  if(!x.axis) {axis(1,at=1:length(colnames(MATRIX)),labels = colnames(MATRIX), las = x.las,cex.axis = tck.size)}else{
-  axis(1,at=x.thicks,labels = x.labels, las = x.las,cex.axis = tck.size)}
+  if(!y.axis) {axis(1,at=1:length(colnames(MATRIX)),labels = colnames(MATRIX), las=2,cex.axis =0.6)}else{
+  axis(1,at=y.thicks,labels = y.labels, las = y.las,cex.axis = 0.6)}
       
   if(ceiling(max(MATRIX)) < 10) t <- format(seq(from = 0,to = ceiling(max(MATRIX)),length.out = 11),digits = 1)
   if(ceiling(max(MATRIX)) >= 10)t <- format(seq(from = 0,to = ceiling(max(MATRIX)),length.out = 11),digits = 0)
   #axis(2, at = t , labels = as.character(t),cex.axis =0.6 )
   
   #axis(2, at = t , labels = as.character(t),cex.axis =0.6 )
-  axis(2, cex.axis = tck.size )
+  axis(2, cex.axis =0.6 )
   
   #mtext(y.l, side=2, line=2, cex=0.8,las=0, col="black")
   #mtext(x.l, side=1, line=2, cex=0.8,las=0, col="black")
@@ -246,10 +226,9 @@ Line_plot2 <- function(MATRIX, title, x.l, y.l, x.axis = F, color = NULL, leg = 
   for(i in 1:nrow(MATRIX)){
     #if(max(temp[i,]) > 0){
     lines(MATRIX[i,],lwd=2.3,type = 'l',col = color[i])
-    if(point) points(MATRIX[i,],lwd=2.3,type = 'p',col = color[i])
     #}
   }
-  if(leg)legend("right",legend =  rownames(MATRIX), col = color, cex = 0.8,pch=10, box.col = "white",inset = c(-0.15,1, 0))
+  if(leg)legend("right",legend =  rownames(MATRIX), col = color, cex = 0.5,pch=10, box.col = "white",inset = c(-0.1, 0))
   
 }
 

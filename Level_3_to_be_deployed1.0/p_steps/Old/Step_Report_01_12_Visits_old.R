@@ -35,7 +35,7 @@ if(SUBP) SCHEME_0112 <- subpopulation_meanings[,
                                                  file_out = paste0(subpopulations,"_R_01_12_VISITS.csv"), 
                                                  folder_in = populations_dir,
                                                  folder_in2 = std_pop_tmp, 
-                                                 folder_out =paste0(std_source_pop_dir,subpopulations,"/"))
+                                                 folder_out =std_source_pop_dir)
                                                
                                                ]
 
@@ -102,7 +102,7 @@ for(i in 1:nrow(SCHEME_0112)){
   new <- c("Calendar year","Age","PY","Visit meaning","No. of visits","No. of persons with at least one visit","Visit rate, No. of visits/1000 PY")
   setnames(COUNT, order, new)
   
-  #COUNT <- COUNT[, Order := NULL]
+  COUNT <- COUNT[, Order := NULL]
   
   fwrite(COUNT, file = paste0(SCHEME_0112[["folder_out"]][i],SCHEME_0112[["file_out"]][i]), sep = ";")
   

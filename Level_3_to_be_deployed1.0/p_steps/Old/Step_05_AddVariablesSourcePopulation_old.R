@@ -17,9 +17,9 @@ if(SUBP) {
 
 if(!SUBP) SCHEME_05 <- data.frame(subpopulations = c("ALL"),file_in = "ALL_source_population.rds", file_out = "ALL_source_population.rds",folder_in = std_pop_tmp, folder_out = std_pop_tmp)
 
-# SCHEME_05$nrows <- as.integer(NA)
-# SCHEME_05$ncols <- as.integer(NA)
-# SCHEME_05$ncolsneeded <- 23
+SCHEME_05$nrows <- as.integer(NA)
+SCHEME_05$ncols <- as.integer(NA)
+SCHEME_05$ncolsneeded <- 23
 
 for(i in 1:nrow(SCHEME_05)){
   
@@ -30,9 +30,7 @@ for(i in 1:nrow(SCHEME_05)){
   ###################################################################################
   
   print("Add personyears and year start observation period with op_start_date and op_end_date")
-  #SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((op_end_date - op_start_date)/365.25,2) ]
-  SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((min(op_end_date, date_creation,recommended_end_date) - op_start_date)/365.25,2), by = row.names(SOURCE_POPULATION) ]
-  
+  SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((op_end_date - op_start_date)/365.25,2) ]
   SOURCE_POPULATION <- SOURCE_POPULATION[,Year_op := year(op_start_date)]
   
   
@@ -41,8 +39,8 @@ for(i in 1:nrow(SCHEME_05)){
   ###################################################################################
   
   print(paste0("Write Source population table for population ",SCHEME_05[["subpopulations"]][i]," to intermediate"))
-  #SCHEME_05[i,"nrows"] <- nrow(SOURCE_POPULATION)
-  #SCHEME_05[i,"ncols"] <- ncol(SOURCE_POPULATION) 
+  SCHEME_05[i,"nrows"] <- nrow(SOURCE_POPULATION)
+  SCHEME_05[i,"ncols"] <- ncol(SOURCE_POPULATION) 
   saveRDS(SOURCE_POPULATION,file = paste0(SCHEME_05[["folder_out"]][i],SCHEME_05[["file_out"]][i]))
   
   rm(SOURCE_POPULATION)

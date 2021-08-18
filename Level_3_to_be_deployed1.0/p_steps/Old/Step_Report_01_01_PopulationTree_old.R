@@ -12,8 +12,6 @@ Agebands <- CreateBands(seq(from = 0, to = 125, by = 5))
 SOURCE_POPULATION <- merge(x = SOURCE_POPULATION, y = Agebands,by.x = "age_start_study", by.y = "INT", all.x = F, all.y = F)
 setorder(SOURCE_POPULATION,Order)
 
-if(nrow(SOURCE_POPULATION) > 0){
-
 TEMP <- INPUTMATRIX(
   d = SOURCE_POPULATION,
   value = "person_id",
@@ -24,8 +22,6 @@ TEMP <- INPUTMATRIX(
   cat.v = c("F","M"),
   per = T
 )
-
-}else{TEMP <- matrix(NA, nrow = 0, ncol = length(unique(Agebands[["band"]])), dimnames = list(c(),unique(Agebands[["band"]])))}
 
 saveRDS(TEMP, file = paste0(std_source_pop_dir,"R_01_01_POPTREE.rds"))
 fwrite(as.data.table(TEMP, keep.rownames = T), file = paste0(std_source_pop_dir,"R_01_01_POPTREE.csv"),sep = ";" )

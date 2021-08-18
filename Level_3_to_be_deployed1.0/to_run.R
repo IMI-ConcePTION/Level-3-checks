@@ -37,12 +37,34 @@ system.time(source(paste0(pre_dir,"study_source_population_script.R")))
 
 #Create report
 for(i in readRDS(paste0(std_pop_tmp,"SCHEME_06.rds"))[["subpopulations"]]){
+  
+  if(SUBP) {
+    report_dir1 <- paste0(std_source_pop_dir,i)
+    report_dir2 <- paste0(std_source_pop_dir,i,"/Masked")
+    
+  }else{
+    report_dir1 <- substr(std_source_pop_dir,1,nchar(std_source_pop_dir)-1)
+    report_dir2 <- paste0(std_source_pop_dir,"Masked")
+  }
+  
   rmarkdown::render(paste0(pre_dir,"Report_01_StudyPopulation.Rmd"),
-    output_file = paste0(std_source_pop_dir,"Report_01_Study_population",i,".html"),
-    output_dir = std_source_pop_dir
+                    output_file = paste0(report_dir1,"/","Report_01_Study_population_",i,".html"),
+                    output_dir = report_dir1
   )
+  
+  rmarkdown::render(paste0(pre_dir,"Report_02_Dates.Rmd"),
+                    output_file = paste0(report_dir1,"/","Report_02_Dates_",i,".html"),
+                    output_dir = report_dir1
+  )
+  
+  rmarkdown::render(paste0(pre_dir,"Report_03_VisitsLifestyle.Rmd"),
+                    output_file = paste0(report_dir1,"/","Report_03_VisitsLifestyle_",i,".html"),
+                    output_dir = report_dir1
+  )
+  
+  
+  rm(report_dir1,report_dir2)
 }
-
 
 ####################################################
 #Medicine exposure

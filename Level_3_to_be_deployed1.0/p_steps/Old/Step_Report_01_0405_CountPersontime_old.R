@@ -14,7 +14,7 @@ if(SUBP) SCHEME_01_0405 <- subpopulation_meanings[,
                                                     file_out = paste0(subpopulations,"_R_01_04_STUDYPOPPY.csv"), 
                                                     file_out2 = paste0(subpopulations,"_R_01_05_STUDYPOPPY2.csv"),
                                                     folder_in = std_pop_tmp, 
-                                                    folder_out = paste0(std_source_pop_dir,subpopulations,"/"))
+                                                    folder_out = std_source_pop_dir)
                                                   
                                                   ]
 

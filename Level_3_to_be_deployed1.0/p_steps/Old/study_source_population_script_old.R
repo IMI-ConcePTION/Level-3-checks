@@ -89,7 +89,6 @@ if (subpopulations_present=="No"){
 source(paste0(pre_dir,"functions/", "CreateSpells_v_10.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV12.5.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV13.4.R"))
-source(paste0(pre_dir,"functions/", "DRECountThresholdV3.R"))
 source(paste0(pre_dir,"functions/", "FUNCTIONS.R"))
 
 #Set parameters
@@ -98,6 +97,7 @@ source(paste0(pre_dir,"Step_00_SetParameters.R"))
 #Preparation of analyses input tables
 source(paste0(pre_dir,"Step_01_CreateSpells.R"))
 source(paste0(pre_dir,"Step_02_PreparePersonsTable.R"))
+source(paste0(pre_dir,"DeleteThisPart.R"))
 source(paste0(pre_dir, "Step_03_CreateSourceTable.R"))
 source(paste0(pre_dir,"Step_04_CreateStudyPopulation.R"))
 
@@ -115,7 +115,6 @@ source(paste0(pre_dir,"Step_Report_01_0609_AnalyseDates.R"))
 source(paste0(pre_dir,"Step_Report_01_1011_FollowUp.R"))
 source(paste0(pre_dir,"Step_Report_01_12_Visits.R"))
 source(paste0(pre_dir,"Step_Report_01_13_LifeStyle.R"))
-source(paste0(pre_dir,"Step_Report_01_Mask.R"))
 
 
 

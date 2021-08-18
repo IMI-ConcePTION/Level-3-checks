@@ -14,7 +14,7 @@ if(SUBP) SCHEME_1011 <- subpopulation_meanings[,
                                                  file_out = paste0(subpopulations,"_R_01_10_InDatabaseAtAfterBirth.rds"), 
                                                  file_out2 = paste0(subpopulations,"_R_01_11_InDatabaseDuration.csv"),
                                                  folder_in = populations_dir, 
-                                                 folder_out = paste0(std_source_pop_dir,subpopulations,"/"))
+                                                 folder_out = std_source_pop_dir)
                                                
                                                ]
 
@@ -35,12 +35,12 @@ for(i in 1:nrow(SCHEME_1011)){
   
   
   if(nrow(STUDY_POPULATION) > 0){
-  #Weekbands <- CreateBands(seq(from = 0, to = 2+ max(STUDY_POPULATION[["diff_T1_T0_W"]]), by = 2))
-  #STUDY_POPULATION <- merge(x = STUDY_POPULATION, y = Weekbands, by.x = "diff_T1_T0_W",by.y = "INT", all.x = T )
-  #rm(Weekbands)
-  #gc()
-  #setorder(STUDY_POPULATION, Order)
-  setorder(STUDY_POPULATION, diff_T1_T0_W)
+  Weekbands <- CreateBands(seq(from = 0, to = 2+ max(STUDY_POPULATION[["diff_T1_T0_W"]]), by = 2))
+  STUDY_POPULATION <- merge(x = STUDY_POPULATION, y = Weekbands, by.x = "diff_T1_T0_W",by.y = "INT", all.x = T )
+  rm(Weekbands)
+  gc()
+  
+  setorder(STUDY_POPULATION, Order)
   
   TEMP <- INPUTMATRIX(
     
@@ -48,14 +48,12 @@ for(i in 1:nrow(SCHEME_1011)){
     value = "person_id",
     type = "count",
     var = "diff_T1_T0_W",
-    #var.v = c(min(STUDY_POPULATION[["diff_T1_T0_W"]]):max(STUDY_POPULATION[["diff_T1_T0_W"]])),
-    var.v = c(0:max(STUDY_POPULATION[["diff_T1_T0_W"]])),
+    var.v = c(min(STUDY_POPULATION[["diff_T1_T0_W"]]):max(STUDY_POPULATION[["diff_T1_T0_W"]])),
     per = T
   
     )
   
-  #STUDY_POPULATION2 <- STUDY_POPULATION[band == "0-1",]
-  STUDY_POPULATION2 <- STUDY_POPULATION[diff_T1_T0_W < 8,]
+  STUDY_POPULATION2 <- STUDY_POPULATION[band == "0-1",]
   
   }else{ 
     

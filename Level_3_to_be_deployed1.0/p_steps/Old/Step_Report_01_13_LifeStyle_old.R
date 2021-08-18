@@ -7,7 +7,7 @@
 
 Lifestyle <- list(
   
-  Smoking = list(
+  Smoking = c(
   CDM_table = "MEDICAL_OBSERVATIONS",
   CDM_column = "mo_code",
   value = "Z-76800",
@@ -16,7 +16,7 @@ Lifestyle <- list(
   v.date = "mo_date"
   ),
 
-  BMI = list(
+  BMI = c(
     CDM_table = "SURVEY_OBSERVATIONS",
     CDM_column = "so_source_column",
     value = "CAUSAMORTE_ICDX",
@@ -25,7 +25,7 @@ Lifestyle <- list(
     v.date = "so_date"
   ),
   
-  HR = list(
+  HR = c(
     CDM_table = "SURVEY_OBSERVATIONS",
     CDM_column = "so_source_column",
     value = "CAUSAMORTE",
@@ -34,10 +34,10 @@ Lifestyle <- list(
     v.date = "so_date"
   ),
   
-  Creatine = list(
+  Creatine = c(
     CDM_table = "MEDICAL_OBSERVATIONS",
     CDM_column = "mo_source_table",
-    value = c("CREATININA","TEST"),
+    value = "CREATININA",
     c.voc = "mo_source_column" ,
     v.voc = "SDO",
     v.date = "mo_date"
@@ -58,7 +58,7 @@ if(SUBP) SCHEME_0113 <- subpopulation_meanings[,
                                                  
                                                  file_out = paste0(subpopulations,"_R_01_13_LIFESTYLE.csv"),
                                                  folder_in = populations_dir, 
-                                                 folder_out = paste0(std_source_pop_dir,subpopulations,"/"))
+                                                 folder_out = std_source_pop_dir)
                                                
 ]
 
@@ -98,10 +98,7 @@ for(i in TABLES) {
 
 
 for(i in names(Lifestyle)){
-  temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
-  
-  #temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) == eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
-  
+  temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) == eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
   assign(eval(paste0("L.",Lifestyle[[i]][["CDM_table"]])),rbindlist(list(get(paste0("L.",Lifestyle[[i]][["CDM_table"]])),temp), fill = T, use.names=T))
   rm(temp)
   gc()
@@ -132,10 +129,7 @@ for(i in 1:nrow(SCHEME_0113)){
     date.v <- Lifestyle[[j]][["v.date"]]
     col <- Lifestyle[[j]][["CDM_column"]]
     
-    temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
-    
-    #temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) == eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
-    
+    temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) == eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
     temp <- merge(STUDY_POPULATION, temp, by = "person_id", allow.cartesian = T)
     temp <- temp[, eval(date.v) := as.IDate(as.character(get(date.v)),"%Y%m%d")][get(date.v) %between% list(start_follow_up, end_follow_up), ]
     setnames(temp,col,"col")
@@ -155,7 +149,7 @@ for(i in 1:nrow(SCHEME_0113)){
   
   
   
-  if(nrow(COUNT1) > 0){COUNT3 <- merge(x = COUNT1, y = COUNT2, by = c("band","Year_op", "Order"), allow.cartesian = T)[, per := round(NoU/NoU2*100,1)]}else{
+  if(nrow(COUNT1 > 0)){COUNT3 <- merge(x = COUNT1, y = COUNT2, by = c("band","Year_op", "Order"), allow.cartesian = T)[, per := round(NoU/NoU2*100,1)]}else{
     COUNT3 <- data.table(col = as.character(),Year_op = as.character(),band = as.character(),NoU = as.character(),NoU2 = as.character(),per = as.character(),Order = as.character())
     
   }

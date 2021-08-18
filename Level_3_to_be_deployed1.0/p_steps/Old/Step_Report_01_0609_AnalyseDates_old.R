@@ -13,7 +13,7 @@ if(SUBP) SCHEME_01_0609 <- subpopulation_meanings[,
                                                     
                                                     file_out2 = paste0(subpopulations,"_R_01_09_DT_birth_date_day.csv"),
                                                     folder_in = populations_dir, 
-                                                    folder_out = paste0(std_source_pop_dir,subpopulations,"/"))
+                                                    folder_out = std_source_pop_dir)
                                                   
                                                   ]
 
@@ -41,14 +41,11 @@ for(i in 1:nrow(SCHEME_01_0609)){
     
     
     if(j == "birth_date") {
-      if(nrow(TEMP) > 0){
       TEMP <- dcast(TEMP, get(paste0(j,"_year")) ~ get(paste0(j,"_month")), value.var = "count")
-      }else{TEMP <- data.table()[,j := character()]}
     }
     
     if(j != "birth_date") {
       
-      if(nrow(TEMP) > 0){
       TEMP2 <- INPUTMATRIX(
         d = TEMP,
         value = "count",
@@ -57,18 +54,15 @@ for(i in 1:nrow(SCHEME_01_0609)){
         var.v = c(1:12),
         cat = paste0(j,"_year"),
         cat.v = c(min(TEMP[[paste0(j,"_year")]]):max(TEMP[[paste0(j,"_year")]])), 
-        per = F,
-        output = "long"
+        per = F
         
         
       ) 
-      }else{TEMP2 <- data.table()[,paste0(j,"_year") := character()][,paste0(j,"_month") := character()][,No := numeric()]}
       
       saveRDS(TEMP2, file = paste0(SCHEME_01_0609[["folder_out"]][i],SCHEME_01_0609[["file_out"]][i],"_",j,"_PLOT.rds"))
       
-      if(nrow(TEMP) > 0){
+      
       TEMP <- dcast(TEMP, get(paste0(j,"_month")) ~ get(paste0(j,"_year")), value.var = "count")
-      }else{TEMP <- data.table()[,j := character()]}
     }
     TEMP[is.na(TEMP)] <- 0
     if(j == "birth_date") setnames(TEMP,"j","year")
@@ -82,10 +76,7 @@ for(i in 1:nrow(SCHEME_01_0609)){
   }
   
   TEMP <- STUDY_POPULATION[,.(count = sum(!is.na(person_id))), keyby = c("birth_date_day","birth_date_month")]
-  
-  if(nrow(TEMP) > 0){
   TEMP <- dcast(TEMP, birth_date_day ~ birth_date_month, value.var = "count")
-  }else{TEMP <- data.table()[,paste0(j,"_day") := character()]}
   
   TEMP[is.na(TEMP)] <- 0
   setnames(TEMP,"birth_date_day","day")
