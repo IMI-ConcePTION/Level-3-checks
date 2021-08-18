@@ -16,37 +16,12 @@ for (preg_ind in 1:length(pregnancy_files)){
     pregnancy_pop<-readRDS(paste0(preg_pop,pregnancy_files[[preg_ind]]))
     pregnancy_pop<-pregnancy_pop[,c("person_id","birth_date", "end_follow_up","start_follow_up","age_start_follow_up","condition", "pregnancy_code_date")]
   }
-  
   setnames(pregnancy_pop, "condition", "stage_of_pregnancy")
-  #apply lag time
-  time_lag<-data.table(stage_of_pregnancy=c("start_of_pregnancy", "end_of_pregnancy", "ongoing_pregnancy", "interruption_pregnancy"),time_lag=c(6*7,23*7,23*7, 8*7))
-  pregnancy_pop[,lag:=time_lag[stage_of_pregnancy == pregnancy_pop[!duplicated(stage_of_pregnancy),stage_of_pregnancy],time_lag]] #create lag variable based on condition
-  #Step 1: Order the dataset by person_id, stage_of_pregnancy and date of event
-  pregnancy_pop<-pregnancy_pop[order(person_id,stage_of_pregnancy,pregnancy_code_date)]
-  #Step 2: Create date_2(by shifting the first date)
-  pregnancy_pop[,date_1:=shift(pregnancy_code_date)]
-  pregnancy_pop[,date_2:=pregnancy_code_date]
-  #Step 3: Create rowid(whhcih will give the number of rows for each person)
-  pregnancy_pop[,rowid:=rowid(person_id)]
-  #Step 4: If rowid==1 then date_1 should be NA(because every time rowid is 1 we are considering a new person)
-  pregnancy_pop[rowid==1,date_1:=NA]
-  #Step 5: Create date_dif as difference between date 2 and date
-  pregnancy_pop[,date_dif:=date_2-date_1]
-  #Step 6: Remove these rows 
-  pregnancy_pop<-pregnancy_pop[date_dif>lag | is.na(date_dif)]
-  #Step 7: Repeat until there are no more impossible dates in the dataset
-  pregnancy_pop[,date_dif:=date_2-date_1]
-  while(pregnancy_pop[date_dif<=lag,.N]>0){
-    pregnancy_pop<-pregnancy_pop[date_dif>lag | is.na(date_dif)]
-    pregnancy_pop[,date_dif:=date_2-date_1]
-  }
-  pregnancy_pop[,lag:=NULL][,date_1:=NULL][,date_2:=NULL][,rowid:=NULL][,date_dif:=NULL]
-  
   pregnancy_pop[,year:=year(pregnancy_code_date)]
   pregnancy_pop[,comb:=paste(person_id,year, sep="_")]
   pregnancy_pop<-pregnancy_pop[!duplicated(comb)]
   pregnancy_pop[,comb:=NULL]
-  
+
   setkey(pregnancy_pop, person_id, year,birth_date,start_follow_up,age_start_follow_up, end_follow_up)
   preg_stage<-pregnancy_pop[!duplicated(stage_of_pregnancy),stage_of_pregnancy]
   

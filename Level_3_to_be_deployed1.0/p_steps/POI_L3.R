@@ -884,7 +884,7 @@ if (subpopulations_present=="Yes"){
     for (year_ind in min(diagnoses_df[!duplicated(year),year]):year(date_creation)){
       for (con_pres_ind in 1: length(conditions_present)){
         #create filter variable if event_date before end of year then filter:=1
-        saveRDS(diagnoses_df[year<=year_ind & year(start_follow_up)<=year_ind & year(end_follow_up)>=year_ind & condition==conditions_present[con_pres_ind]], paste0(poi_tmp,year_ind,"_",conditions_present[con_pres_ind], "_prevalence.rds"))
+        saveRDS(diagnoses_df[year<=year_ind & year(end_follow_up)>=year_ind & condition==conditions_present[con_pres_ind]], paste0(poi_tmp,year_ind,"_",conditions_present[con_pres_ind], "_prevalence.rds"))
       }
     }
     }
