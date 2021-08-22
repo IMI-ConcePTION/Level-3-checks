@@ -82,18 +82,18 @@ The algorithm steps:
 ![diagnoses_pregnancy steps](diagnoses_pregnancy.png)
 <br>
 
-```{r echo=F, warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(ev_preg_dir, "Masked/")))>0){
 res_1<-fread(paste0(ev_preg_dir,"Masked/", "diagnoses_pregnancy_counts_masked.csv"))
-datatable(res_1, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_1, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(ev_preg_dir,subpopulations_names[a],"/Masked/")))>0){
 res_1<-fread(paste0(ev_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_diagnoses_pregnancy_counts_masked.csv"))
-datatable(res_1, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_1, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -116,18 +116,18 @@ The algorithm steps:
 
 <br>
 
-```{r echo=F, warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(med_preg_dir, "Masked/")))>0){
 res_2<-fread(paste0(med_preg_dir,"Masked/", "medicines_pregnancy_counts_masked.csv"))
-datatable(res_2, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_2, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(med_preg_dir,subpopulations_names[a],"/Masked/")))>0){
 res_2<-fread(paste0(med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_medicines_pregnancy_counts_masked.csv"))
-datatable(res_2, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_2, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -149,18 +149,18 @@ The algorithm steps:
 
 <br>
 
-```{r echo=F,warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(vacc_preg_dir, "Masked/")))>0){
 res_3<-fread(paste0(vacc_preg_dir,"Masked/", "vaccines_pregnancy_counts_masked.csv"))
-datatable(res_3, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_3, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(vacc_preg_dir,subpopulations_names[a],"/Masked/")))>0){
 res_3<-fread(paste0(vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_3, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_3, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -184,18 +184,18 @@ The algorithm steps:
 
 <br>
 
-```{r echo=F,warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(ev_med_dir, "Masked/")))>0){
 res_4<-fread(paste0(ev_med_dir,"Masked/", "events_medicines_counts_masked.csv"))
-datatable(res_4, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_4, options = list(scrollX=T, DT.warn.size=FALSE))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(ev_med_dir,subpopulations_names[a],"/Masked/")))>0){
 res_4<-fread(paste0(ev_med_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_counts_masked.csv"))
-datatable(res_4, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_4, options = list(scrollX=T, DT.warn.size=FALSE))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -219,18 +219,18 @@ The algorithm steps:
 <br>
 
 
-```{r echo=F,warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(ev_vacc_dir, "Masked/")))>0){
 res_5<-fread(paste0(ev_vacc_dir,"Masked/", "events_vaccines_counts_masked.csv"))
-datatable(res_5, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_5, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(ev_vacc_dir,subpopulations_names[a],"/Masked/")))>0){
 res_5<-fread(paste0(ev_vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_counts_masked.csv"))
-datatable(res_5, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_5, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -253,18 +253,18 @@ The algorithm steps:
 ![diagnoses_medicines_pregnancy steps](diagnoses_medicines_pregnancy.png)
 <br> 
 
-```{r echo=F,warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(ev_med_preg_dir, "Masked/")))>0){
 res_6<-fread(paste0(ev_med_preg_dir,"Masked/", "events_medicines_pregnancy_counts_masked.csv"))
-datatable(res_6, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_6, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(ev_med_preg_dir,subpopulations_names[a],"/Masked/")))>0){
 res_6<-fread(paste0(ev_med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_pregnancy_counts_masked.csv"))
-datatable(res_6, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_6, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }
@@ -287,18 +287,18 @@ The algorithm steps:
 ![diagnoses_vaccines_pregnancy steps](diagnoses_vaccines_pregnancy.png)
 <br>
 
-```{r echo=F,warning=FALSE}
+```{r echo=F}
 if (subpopulations_present=="No"){
   if(length(list.files(paste0(ev_vacc_preg_dir, "Masked/")))>0){
 res_7<-fread(paste0(ev_vacc_preg_dir,"Masked/", "events_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_7, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_7, options = list(scrollX=T))
   } else {
  print("This table cannot be produced based on the available data")  
 }
 } else {
   if(length(list.files(paste0(ev_vacc_preg_dir,subpopulations_names[a],"/Masked/")))>0){
 res_7<-fread(paste0(ev_vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_7, options = list(scrollX=T,DT.warn.size=FALSE))
+datatable(res_7, options = list(scrollX=T))
   } else {
   print("This table cannot be produced based on the available data")
 }

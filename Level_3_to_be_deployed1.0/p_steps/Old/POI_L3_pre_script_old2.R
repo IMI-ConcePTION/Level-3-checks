@@ -16,6 +16,7 @@ for (preg_ind in 1:length(pregnancy_files)){
     pregnancy_pop<-readRDS(paste0(preg_pop,pregnancy_files[[preg_ind]]))
     pregnancy_pop<-pregnancy_pop[,c("person_id","birth_date", "end_follow_up","start_follow_up","age_start_follow_up","condition", "pregnancy_code_date")]
   }
+  
   setnames(pregnancy_pop, "condition", "stage_of_pregnancy")
   #apply lag time
   time_lag<-data.table(stage_of_pregnancy=c("start_of_pregnancy", "end_of_pregnancy", "ongoing_pregnancy", "interruption_pregnancy"),time_lag=c(6*7,23*7,23*7, 8*7))
@@ -45,7 +46,7 @@ for (preg_ind in 1:length(pregnancy_files)){
   pregnancy_pop[,comb:=paste(person_id,year, sep="_")]
   pregnancy_pop<-pregnancy_pop[!duplicated(comb)]
   pregnancy_pop[,comb:=NULL]
-
+  
   setkey(pregnancy_pop, person_id, year,birth_date,start_follow_up,age_start_follow_up, end_follow_up)
   preg_stage<-pregnancy_pop[!duplicated(stage_of_pregnancy),stage_of_pregnancy]
   
@@ -202,11 +203,11 @@ if(length(vaccines_files)>0){
 #EVENTS_MEDICINES    #EVENTS_VACCINES
 #############################################################################################
 if(length(conditions_files_chronic)>0){
-for (chr_fl_ind in 1: length(conditions_files_chronic)){
+for (j in 1: length(conditions_files_chronic)){
   #load file
-  diagnoses_df<-readRDS(paste0(poi_tmp, conditions_files_chronic[[chr_fl_ind]]))
+  diagnoses_df<-readRDS(paste0(poi_tmp, conditions_files_chronic[[j]]))
   diagnoses_df[,year:=NULL]
-  diagnoses_df[,year:=unlist(str_split(names(conditions_files_chronic)[chr_fl_ind],"_"))[1]][,year:=as.numeric(year)]
+  diagnoses_df[,year:=unlist(str_split(names(conditions_files_chronic)[j],"_"))[1]][,year:=as.numeric(year)]
   setkey(diagnoses_df,person_id,year,age_start_follow_up)
   
   ###############################################
@@ -230,9 +231,9 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
     
     if(medicines[!is.na(medicinal_product_atc_code),.N]>0){
     if (subpopulations_present=="Yes"){
-      saveRDS(medicines[!is.na(medicinal_product_atc_code)], paste0(ev_med_pop, subpopulations_names[s],"/", subpopulations_names[s], "_",names(conditions_files_chronic)[chr_fl_ind],"_", unlist(str_split(names(medicines_files)[l],"_"))[1],  ".rds" ))
+      saveRDS(medicines[!is.na(medicinal_product_atc_code)], paste0(ev_med_pop, subpopulations_names[s],"/", subpopulations_names[s], "_",names(conditions_files_chronic)[j],"_", unlist(str_split(names(medicines_files)[l],"_"))[1],  ".rds" ))
     } else {
-      saveRDS(medicines[!is.na(medicinal_product_atc_code)], paste0(ev_med_pop, names(conditions_files_chronic)[chr_fl_ind],"_", unlist(str_split(names(medicines_files)[l],"_"))[1], ".rds" ))
+      saveRDS(medicines[!is.na(medicinal_product_atc_code)], paste0(ev_med_pop, names(conditions_files_chronic)[j],"_", unlist(str_split(names(medicines_files)[l],"_"))[1], ".rds" ))
     }
     } 
     
@@ -251,7 +252,7 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
       no_records_sub<-NULL
     }
    if(!is.null(no_records_sub)){
-     no_records_sub[,condition:=unlist(str_split(names(conditions_files_chronic)[chr_fl_ind], "_"))[2]]
+     no_records_sub[,condition:=unlist(str_split(names(conditions_files_chronic)[j], "_"))[2]]
      no_records_sub[is.na(no_records), no_records:=0]
    }
     
@@ -264,7 +265,7 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
   no_records<-do.call(rbind,no_records)
 
   if(!is.null(no_records)){
-  saveRDS(no_records, paste0(poi_tmp, "poi_res4_ev_med_", names(conditions_files_chronic)[chr_fl_ind], ".rds" ))
+  saveRDS(no_records, paste0(poi_tmp, "poi_res4_ev_med_", names(conditions_files_chronic)[j], ".rds" ))
   }
     rm(no_records)
   }
@@ -289,9 +290,9 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
     
     if(vaccines[!is.na(vx_atc),.N]>0){
       if (subpopulations_present=="Yes"){
-        saveRDS(vaccines[!is.na(vx_atc)], paste0(ev_vacc_pop, subpopulations_names[s],"/", subpopulations_names[s], "_",names(conditions_files_chronic)[chr_fl_ind],"_", unlist(str_split(names(vaccines_files)[l],"_"))[1],  ".rds" ))
+        saveRDS(vaccines[!is.na(vx_atc)], paste0(ev_vacc_pop, subpopulations_names[s],"/", subpopulations_names[s], "_",names(conditions_files_chronic)[j],"_", unlist(str_split(names(vaccines_files)[l],"_"))[1],  ".rds" ))
       } else {
-        saveRDS(vaccines[!is.na(vx_atc)], paste0(ev_vacc_pop, names(conditions_files_chronic)[chr_fl_ind],"_", unlist(str_split(names(vaccines_files)[l],"_"))[1], ".rds" ))
+        saveRDS(vaccines[!is.na(vx_atc)], paste0(ev_vacc_pop, names(conditions_files_chronic)[j],"_", unlist(str_split(names(vaccines_files)[l],"_"))[1], ".rds" ))
       }
     }
     if(vaccines[,.N]>0){
@@ -309,7 +310,7 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
       no_records_sub<-NULL
     }
     if(!is.null(no_records_sub)){
-      no_records_sub[,condition:=unlist(str_split(names(conditions_files_chronic)[chr_fl_ind], "_"))[2]]
+      no_records_sub[,condition:=unlist(str_split(names(conditions_files_chronic)[j], "_"))[2]]
       no_records_sub[is.na(no_records), no_records:=0]
     }
     
@@ -321,7 +322,7 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
   
   no_records<-do.call(rbind,no_records)
   if(!is.null(no_records)){
-  saveRDS(no_records, paste0(poi_tmp, "poi_res5_ev_vacc_", names(conditions_files_chronic)[chr_fl_ind], ".rds" ))
+  saveRDS(no_records, paste0(poi_tmp, "poi_res5_ev_vacc_", names(conditions_files_chronic)[j], ".rds" ))
   }
     rm(no_records)
   
@@ -342,12 +343,12 @@ events_vaccines_files<-list.files(paste0(ev_vacc_pop, subpopulations_names[s]))
 }
 
 if (length(events_pregnancy_files)>0){
-for (ev_preg_fl_ind in 1 :length(events_pregnancy_files)){
+for (i in 1 :length(events_pregnancy_files)){
   
   if (subpopulations_present=="Yes"){
-    pregnancy_event<-readRDS(paste0(ev_preg_pop, subpopulations_names[s],"/", events_pregnancy_files[ev_preg_fl_ind]))
+    pregnancy_event<-readRDS(paste0(ev_preg_pop, subpopulations_names[s],"/", events_pregnancy_files[i]))
    } else {
-    pregnancy_event<-readRDS(paste0(ev_preg_pop,events_pregnancy_files[ev_preg_fl_ind]))
+    pregnancy_event<-readRDS(paste0(ev_preg_pop,events_pregnancy_files[i]))
    }
 setkey(pregnancy_event, person_id, year, birth_date,age_start_follow_up, start_follow_up, end_follow_up, condition, truncated_code, event_vocabulary, event_date)
   
@@ -357,11 +358,11 @@ setkey(pregnancy_event, person_id, year, birth_date,age_start_follow_up, start_f
 if (length(events_medicines_files)>0){  
 no_records<-list()
 w<-1
-  for (ev_med_fl_ind in 1: length(events_medicines_files)){
+  for (j in 1: length(events_medicines_files)){
   if (subpopulations_present=="Yes"){
-   medicines_event<-readRDS(paste0(ev_med_pop, subpopulations_names[s],"/", events_medicines_files[ev_med_fl_ind]))
+   medicines_event<-readRDS(paste0(ev_med_pop, subpopulations_names[s],"/", events_medicines_files[j]))
   } else {
-    medicines_event<-readRDS(paste0(ev_med_pop,events_medicines_files[ev_med_fl_ind]))
+    medicines_event<-readRDS(paste0(ev_med_pop,events_medicines_files[j]))
   }
   setkey(medicines_event, person_id, year, birth_date,age_start_follow_up, start_follow_up, end_follow_up, condition, truncated_code, event_vocabulary, event_date)
   
@@ -370,9 +371,9 @@ w<-1
   
   if(medicines_event[,.N]>0){
     if (subpopulations_present=="Yes"){
-      saveRDS(medicines_event, paste0(ev_med_preg_pop, subpopulations_names[s],"/", unlist(str_split(events_pregnancy_files[ev_preg_fl_ind],".rds"))[1],"_", unlist(str_split(events_medicines_files[ev_med_fl_ind],"_"))[3] ))
+      saveRDS(medicines_event, paste0(ev_med_preg_pop, subpopulations_names[s],"/", unlist(str_split(names(events_pregnancy_files)[i],"."))[1],"_", unlist(str_split(events_medicines_files[j],"_"))[4] ))
     } else {
-      saveRDS(medicines_event, paste0(ev_med_preg_pop, unlist(str_split(events_pregnancy_files[ev_preg_fl_ind],".rds"))[1],"_", unlist(str_split(events_medicines_files[ev_med_fl_ind],"_"))[3] ))
+      saveRDS(medicines_event, paste0(ev_med_preg_pop, unlist(str_split(names(events_pregnancy_files)[i],"."))[1],"_", unlist(str_split(events_medicines_files[j],"_"))[4] ))
     }
   }
   
@@ -398,7 +399,7 @@ w<-1
 
 no_records<-do.call(rbind,no_records)
 if(!is.null(no_records)){
-saveRDS(no_records, paste0(poi_tmp, "poi_res6_ev_preg_med_", events_pregnancy_files[ev_preg_fl_ind]))
+saveRDS(no_records, paste0(poi_tmp, "poi_res6_ev_preg_med_", events_pregnancy_files[i]))
 }
 rm(no_records)
 
@@ -410,11 +411,11 @@ rm(no_records)
 if (length(events_vaccines_files)>0){  
   no_records<-list()
   w<-1
-  for (ev_vacc_fl_ind in 1: length(events_vaccines_files)){
+  for (j in 1: length(events_vaccines_files)){
     if (subpopulations_present=="Yes"){
-      vaccines_event<-readRDS(paste0(ev_vacc_pop, subpopulations_names[s],"/", events_vaccines_files[ev_vacc_fl_ind]))
+      vaccines_event<-readRDS(paste0(ev_vacc_pop, subpopulations_names[s],"/", events_vaccines_files[j]))
     } else {
-      vaccines_event<-readRDS(paste0(ev_vacc_pop,events_vaccines_files[ev_vacc_fl_ind]))
+      vaccines_event<-readRDS(paste0(ev_vacc_pop,events_vaccines_files[j]))
     }
     setkey(vaccines_event, person_id, year, birth_date,age_start_follow_up, start_follow_up, end_follow_up, condition, truncated_code, event_vocabulary, event_date)
     
@@ -423,9 +424,9 @@ if (length(events_vaccines_files)>0){
     
     if(vaccines_event[,.N]>0){
       if (subpopulations_present=="Yes"){
-        saveRDS(vaccines_event, paste0(ev_vacc_preg_pop, subpopulations_names[s],"/", unlist(str_split(events_pregnancy_files[ev_preg_fl_ind],".rds"))[1],"_", unlist(str_split(events_vaccines_files[ev_vacc_fl_ind],"_"))[3] ))
+        saveRDS(vaccines_event, paste0(ev_vacc_preg_pop, subpopulations_names[s],"/", unlist(str_split(names(events_pregnancy_files)[i],"."))[1],"_", unlist(str_split(events_vaccines_files[j],"_"))[4] ))
       } else {
-        saveRDS(vaccines_event, paste0(ev_vacc_preg_pop, unlist(str_split(events_pregnancy_files[ev_preg_fl_ind],".rds"))[1],"_", unlist(str_split(events_vaccines_files[ev_vacc_fl_ind],"_"))[3] ))
+        saveRDS(vaccines_event, paste0(ev_vacc_preg_pop, unlist(str_split(names(events_pregnancy_files)[i],"."))[1],"_", unlist(str_split(events_vaccines_files[j],"_"))[4] ))
       }
     }
     
@@ -451,11 +452,13 @@ if (length(events_vaccines_files)>0){
   
   no_records<-do.call(rbind,no_records)
   if(!is.null(no_records)){
-  saveRDS(no_records, paste0(poi_tmp, "poi_res7_ev_preg_vacc_", events_pregnancy_files[ev_preg_fl_ind]))
+  saveRDS(no_records, paste0(poi_tmp, "poi_res7_ev_preg_vacc_", events_pregnancy_files[i]))
   }
   rm(no_records)
   
 }
+  
+  
 }
 }
 
@@ -467,9 +470,9 @@ if (length(events_vaccines_files)>0){
 events_pregnancy<-list.files(poi_tmp, "poi_res1_ev_preg_")
 
 if (length(events_pregnancy)>0){
-
+for (i in 1:length(events_pregnancy)){
 ev_preg<-lapply(paste0(poi_tmp, events_pregnancy), readRDS)
-
+}
 ev_preg<-do.call(rbind,ev_preg)
 setcolorder(ev_preg, c("condition", "year", "no_women", "no_pregnant_women","stage_of_pregnancy", "truncated_code", "event_vocabulary"))
 
@@ -477,9 +480,9 @@ ev_preg<-data.table(ev_preg, data_access_provider=data_access_provider_name, dat
 setnames(ev_preg,"condition", "event_definition")
 
 if (subpopulations_present=="Yes"){
-  write.csv(ev_preg, paste0(ev_preg_dir,subpopulations_names[s],"/", subpopulations_names[s], "_diagnoses_pregnancy_counts.csv"), row.names = F)
+  write.csv(ev_preg, paste0(ev_preg_dir,subpopulations_names[s],"/", subpopulations_names[s], "_diagnoses_df_pregnancy_counts.csv"), row.names = F)
 } else {
-  write.csv(ev_preg, paste0(ev_preg_dir,"diagnoses_pregnancy_counts.csv"), row.names = F)
+  write.csv(ev_preg, paste0(ev_preg_dir,"diagnoses_df_pregnancy_counts.csv"), row.names = F)
 }
 
 #######
@@ -488,9 +491,9 @@ if (subpopulations_present=="Yes"){
 ev_preg[, no_women:= as.character(no_women)][as.numeric(no_women) > 0 & as.numeric(no_women) < 5, no_women := "<5"]
 ev_preg[, no_pregnant_women:= as.character(no_pregnant_women)][as.numeric(no_pregnant_women) > 0 & as.numeric(no_pregnant_women) < 5, no_pregnant_women := "<5"]
 if (subpopulations_present=="Yes"){
-write.csv(ev_preg, paste0(ev_preg_dir,subpopulations_names[s],"/", "Masked/", subpopulations_names[s], "_diagnoses_pregnancy_counts_masked.csv"), row.names = F)
+write.csv(ev_preg, paste0(ev_preg_dir,subpopulations_names[s],"/", "Masked/", subpopulations_names[s], "_diagnoses_df_pregnancy_counts_masked.csv"), row.names = F)
 } else {
-write.csv(ev_preg, paste0(ev_preg_dir,"Masked/", "diagnoses_pregnancy_counts_masked.csv"), row.names = F)
+write.csv(ev_preg, paste0(ev_preg_dir,"Masked/", "diagnoses_df_pregnancy_counts_masked.csv"), row.names = F)
 }
 
 for (i in 1:length(events_pregnancy)){
@@ -507,8 +510,9 @@ rm(ev_preg, events_pregnancy)
 medicines_pregnancy<-list.files(poi_tmp, "poi_res2_med_preg_")
 
 if(length(medicines_pregnancy)>0){
-
-med_preg<-lapply(paste0(poi_tmp, medicines_pregnancy), readRDS)
+for (i in 1:length(medicines_pregnancy)){
+  med_preg<-lapply(paste0(poi_tmp, medicines_pregnancy), readRDS)
+}
 med_preg<-do.call(rbind,med_preg)
 setcolorder(med_preg, c("stage_of_pregnancy", "medicinal_product_atc_code", "year","no_records", "no_women", "no_total_women"))
 setnames(med_preg,"medicinal_product_atc_code", "atc_code")
@@ -548,7 +552,9 @@ rm(med_preg, medicines_pregnancy)
 vaccines_pregnancy<-list.files(poi_tmp, "poi_res3_vacc_preg_")
 
 if(length(vaccines_pregnancy)>0){
+  for (i in 1:length(vaccines_pregnancy)){
     vacc_preg<-lapply(paste0(poi_tmp, vaccines_pregnancy), readRDS)
+  }
   vacc_preg<-do.call(rbind,vacc_preg)
   setcolorder(vacc_preg, c("stage_of_pregnancy", "vx_atc", "year","no_records", "no_women", "no_total_women"))
   setnames(vacc_preg,"vx_atc", "atc_code")
@@ -590,7 +596,9 @@ if(length(vaccines_pregnancy)>0){
 events_medicines<-list.files(poi_tmp, "poi_res4_ev_med_")
 
 if(length(events_medicines)>0){
+  for (i in 1:length(events_medicines)){
     ev_med<-lapply(paste0(poi_tmp, events_medicines), readRDS)
+  }
   ev_med<-do.call(rbind,ev_med)
   setcolorder(ev_med, c("condition", "medicinal_product_atc_code", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_med,"medicinal_product_atc_code", "atc_code")
@@ -632,7 +640,9 @@ if(length(events_medicines)>0){
 events_vaccines<-list.files(poi_tmp, "poi_res5_ev_vacc_")
 
 if(length(events_vaccines)>0){
+  for (i in 1:length(events_vaccines)){
     ev_vacc<-lapply(paste0(poi_tmp, events_vaccines), readRDS)
+  }
   ev_vacc<-do.call(rbind,ev_vacc)
   setcolorder(ev_vacc, c("condition", "vx_atc", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_vacc,"vx_atc", "atc_code")
@@ -674,7 +684,9 @@ if(length(events_vaccines)>0){
 events_medicines_pregnancy<-list.files(poi_tmp, "poi_res6_ev_preg_med_")
 
 if(length(events_medicines_pregnancy)>0){
+  for (i in 1:length(events_medicines_pregnancy)){
     ev_med_preg<-lapply(paste0(poi_tmp, events_medicines_pregnancy), readRDS)
+  }
   ev_med_preg<-do.call(rbind,ev_med_preg)
   setcolorder(ev_med_preg, c("condition","stage_of_pregnancy", "medicinal_product_atc_code", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_med_preg,"medicinal_product_atc_code", "atc_code")
@@ -713,10 +725,12 @@ if(length(events_medicines_pregnancy)>0){
 #EVENTS_PREGNANCY_VACCINES(res7)
 ###################################
 
-events_vaccines_pregnancy<-list.files(poi_tmp, "poi_res7_ev_preg_vacc_")
+events_vaccines_pregnancy<-list.files(poi_tmp, "poi_res6_ev_preg_vacc_")
 
 if(length(events_vaccines_pregnancy)>0){
+  for (i in 1:length(events_vaccines_pregnancy)){
     ev_vacc_preg<-lapply(paste0(poi_tmp, events_vaccines_pregnancy), readRDS)
+  }
   ev_vacc_preg<-do.call(rbind,ev_vacc_preg)
   setcolorder(ev_vacc_preg, c("condition","stage_of_pregnancy", "vx_atc", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_vacc_preg,"vx_atc", "atc_code")
