@@ -4,50 +4,6 @@
 #Date: 15/07/2021
 
 
-
-Lifestyle <- list(
-  
-  Smoking = list(
-  CDM_table = "MEDICAL_OBSERVATIONS",
-  CDM_column = "mo_code",
-  value = "Z-76800",
-  c.voc = "mo_record_vocabulary",
-  v.voc = "SNOMED3",
-  v.date = "mo_date"
-  ),
-
-  BMI = list(
-    CDM_table = "SURVEY_OBSERVATIONS",
-    CDM_column = "so_source_column",
-    value = "CAUSAMORTE_ICDX",
-    c.voc = "so_unit",
-    v.voc = "ICD10",
-    v.date = "so_date"
-  ),
-  
-  HR = list(
-    CDM_table = "SURVEY_OBSERVATIONS",
-    CDM_column = "so_source_column",
-    value = "CAUSAMORTE",
-    c.voc = "so_unit",
-    v.voc = "ICD9",
-    v.date = "so_date"
-  ),
-  
-  Creatine = list(
-    CDM_table = "MEDICAL_OBSERVATIONS",
-    CDM_column = "mo_source_table",
-    value = c("CREATININA","TEST"),
-    c.voc = "mo_source_column" ,
-    v.voc = "SDO",
-    v.date = "mo_date"
-  )
-  
-  
-  
-  
-)
-
 #Lifestyle <- list()
 
 
