@@ -932,4 +932,30 @@ if (subpopulations_present=="Yes"){
 unlink(paste0(tmp,"POI"), recursive = T)
 
 
+############
+
+
+keep_environment<-c("StudyName", "data_access_provider_name", "data_source_name", "subpopulations_names", "subpopulations_present", "subpopulations","SUBP",
+                    "Age_max","Age_min", "min_age_preg","max_age_preg", 
+                    "start_study_date","end_study_date", "lookback_period", "intv","recommended_end_date", "date_creation","start_study_date2","end_study_date2",
+                    "METADATA_subp", "actual_tables", "tmp", "s", "meanings_birth_registry","CountPersonTime2",
+                    "diagnoses","pregnancies","diagnoses_pregnancy_med_vacc","diagnoses_pregnancy_med","diagnoses_pregnancy_vacc","pregnancy_only_med_vacc","pregnancy_only_med","pregnancy_only_vacc",
+                    "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","path_output",
+                    "med_dir","medicines_tmp","medicines_pop", "Rmd_MEDICINES",
+                    "vacc_dir", "vaccines_tmp", "vaccines_pop","Rmd_VACCINES",
+                    "diag_dir", "events_tmp","mo_tmp","so_tmp","diag_tmp", "diag_pop","Rmd_DIAGNOSES", "conditions","diagnoses",
+                    "preg_dir","preg_ev_tmp","preg_m_tmp","preg_s_tmp","preg_si_tmp","preg_tmp", "preg_pop","Rmd_PREGNANCY","pregnancies",
+                    "poi_dir","ev_preg_dir","med_preg_dir","vacc_preg_dir","ev_med_preg_dir","ev_vacc_preg_dir","ev_med_dir","ev_vacc_dir","ev_preg_pop","med_preg_pop","vacc_preg_pop","ev_med_preg_pop","ev_vacc_preg_pop","ev_med_pop","ev_vacc_pop","poi_tmp","Rmd_POI")
+
+
+
+
+list_rm<-ls()[ls() %!in% keep_environment]
+rm(list = list_rm)
+rm(list_rm)
+`%!in%` = Negate(`%in%`)
+
+
+
+
 
