@@ -91,7 +91,13 @@ R version 4.1.0 (2021-05-18)
 4. Inside the main folder create a folder named `CDMInstances`, which will be used to store the .csv files representing the CDM tables(if you already have done so for Level 1/2 checks skip this step).      
 5. Inside the `CDMInstances` folder create a folder with the name of your project and inside the latter put all your .csv files(if you already have done so for Level 1/2 checks skip this step).      
 6. In the folder `Level_3_checks_to_be_deployed_v1.0`, go to the script 99_path.R and change the variable Studyname(line 6) to the name of your project. Make sure that the name of the folder you have created in the folder `CDMInstances` and the name of the variable match exactly. Save it.         
-7. Open the to_run.R script and you are ready to run level 3 checks.  
+7. Open the to_run.R script.  
+
+8. If your data source contains a birth registry, in line 13 you need to specify the meaning variable which means birth in your `SURVEY_OBSERVATIONS` table. The example shows `birth_registry_mother`. This variable will be used to select women who gave birth and classify them as having an `end_of_pregnancy` code. iIf you do not have a birth registry, then replace line 13 with the following: `meanings_birth_registry<-c()`.  
+
+9. To run the Lifestyle script a few variables need to be specified. The information needed is the name of the CDM table where you have saved the information(`CDM_table`), the name of the CDM column where this information is stored(`CDM_column`), the original name of your variable(`value`), the CDM variable where the unit is saved(`c.voc`), the value of the unit(`v.voc`) and the date variable that stores the date of recording(`v.date`). In line 30 you can find an example of how to fill out this information. The information needed refers to smoking, alcohol abuse, folic acid use, BMI and SES. Please fill out the information in line 39. If no data is available, leave it as it is.   
+
+10. After everything is complete, select all by using ctrl+A(Windows) or cmmd+A(Mac) and run.    
 
 ***Folder structure***
 
