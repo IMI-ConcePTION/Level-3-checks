@@ -24,3 +24,5 @@ if(!require(e1071)){install.packages("e1071")}
 suppressPackageStartupMessages(library(e1071))
 if(!require(rlist)){install.packages("rlist")}
 suppressPackageStartupMessages(library(rlist))
+if(!require(colorRamps)){install.packages("colorRamps")}
+suppressPackageStartupMessages(library(colorRamps))

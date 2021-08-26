@@ -9,6 +9,7 @@ path<-path_dir
 
 #Set the path to where you want your report to be saved(make sure that the output folder already exists)
 output_dir<-paste0(projectFolder,"/g_output/")
+path_output<-output_dir
 
 pre_dir<-paste0(projectFolder,"/p_steps/")
 
