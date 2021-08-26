@@ -22,11 +22,6 @@ div.box5 {border-style: solid; border-color: #f5f5f0; border-width: medium; bord
 div.box6 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 div.box7 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 div.box8 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
-div.box9 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
-div.box10 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
-div.box11 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
-div.box12 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
-div.box13 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {background-color: #76b82a; border-color: #76b82a}
 h1 {text-align: center; color: #3c7b8a}
@@ -37,6 +32,7 @@ h2 {text-align: center; color: #76b82a}
 ```
 
 <div class = 'box1'>
+
 
 
 <br> 
@@ -58,15 +54,16 @@ This report is focusing on the follow up time of the subjects. The following top
 
 ```{r echo=F,fig.width=8,fig.height=5}
 
+
+
+
+
 TEMP <- readRDS(paste0(std_source_pop_dir,"R_01_01_POPTREE.rds")) 
 
-if(nrow(TEMP) > 0) {
 datatable(t(TEMP), options = list(scrollX=T))
-} else {
-  print("This table has no information and cannot be displayed.")
-}
 
 if(nrow(TEMP) > 0) {
+
 POP_TREE(
   m = TEMP, 
   xlabel = 'Percentage', 
@@ -83,35 +80,29 @@ POP_TREE(
 
 ```
 
-</div>
-
-<br>
-
-
-<div class = 'box3'>
 
 ## 2. Compare Source versus Study population
       
-<br>
+<div class = 'box9'>
 
-Note that for the comparisons of the follow up time, the actual follow up time (`op_end_date` - `op_start_date`) in the source is compared to the follow up time with consideration of the lookback period and exclusion criteria. `Op_end_date` is cut of at the day of creation in situations where this date is after the `date of creation`.
+Note that for the comparisons of the follow up time, the actual follow up time (op_end_date - op_start_date)       in the source is compared to the follow up time with consideration of the lookback period and exclusion            criteria. Op_end_date is cut of at the day of creation in situations where this date is after the date of          creation.
 
-
+</div>
 &nbsp;
 &nbsp;
+
 
 ```{r echo=F,  fig.show="hold", out.width="50%"}
-TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_02_CompareToSource.csv"), sep = ";")
 
-if(TEMP[,.N]>0){
-  TEMP[, Order := NULL]
-  datatable(TEMP, 
+  
+
+TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_02_CompareToSource.csv"), sep = ";")[, Order := NULL]
+
+datatable(TEMP, 
+          
             rownames = F,
             escape = 1
           )
-} else {
-  print("This table has no information and cannot be displayed.")
-}
 
 ```
 &nbsp;
@@ -119,44 +110,33 @@ if(TEMP[,.N]>0){
 &nbsp;
 &nbsp;
 
-</div>
+<div class = 'box9'>
 
-<br>
-
-<div class = 'box4'>
-
-In the following graphs persontime is shown per year `op_start_date` and per ageband at `op_start_date`.   
+In the following graphs persontime is shown per year op_start_date and per ageband at op_start_date
 
 </div>
 &nbsp;
 &nbsp;
+
 
 
 ```{r echo=F}
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_02_CompareToSource.csv"), sep = ";") 
-
-if(nrow(TEMP) > 0){
 colnames(TEMP) <- c("year","Ageband","Order","NbSource","PYSource","SpellsSource","NbStudy","PYStudy","SpellsStudy")
 TEMP <- TEMP[, year := as.numeric(year)]
 TEMP <- TEMP[year != 9999,]
-} else {
-  print("This table has no information and cannot be displayed.")
-}
 
-if(nrow(TEMP) > 0){
+if(nrow(TEMP) > 0) {
 setorder(TEMP,Order)
 years <- c(min(TEMP[,year]):max(TEMP[,year]))
 stack <- unique(TEMP[["Ageband"]]) 
 colors <- colorRamps::matlab.like(length(stack))
+
 }
+
 
 ```
 
-</div>
-
-<br>
-
-<div class = 'box5'>
 
 ### Absolute
 
@@ -199,26 +179,18 @@ TEMP2 <- INPUTMATRIX(
   
   )
 
+ 
+
 barplot(TEMP2,main = "Study",ylim = c(0,max(TEMP[["PYSource"]])+(0.1*max(TEMP[["PYSource"]]))),xlab = "Year op_start_date", ylab = "Personyears"  , col = colors,cex.axis = 1, cex.names = 1.2)
 
 legend("right",inset = c(-0.1,1, 0),title = "Agebands",legend =  stack, col = colors, cex = 0.8,pch=10, box.col = "white")
 rm(TEMP2)
-} else {
-  print("This table has no information and cannot be displayed.")
 }
 
 
 ```
 
-</div>
-
-<br>
-
-
-<div class = 'box6'>
-
 ### Relative 
-
 ```{r echo=F,  fig.show="hold", out.width="50%"}
 
 if(nrow(TEMP) > 0) {
@@ -264,21 +236,16 @@ barplot(TEMP2, main = "Study",xlab = "Year op_start_date", ylab = "%"  , col = c
 
 legend("right",inset = c(-0.1,1, 0),title = "Agebands",legend =  stack, col = colors, cex = 0.8,pch=10, box.col = "white")
 
+}
+
 
 rm(TEMP2)
-} else {
-  print("This table has no information and cannot be displayed.")
-}
+
 
 
 ```
 
-</div>
-
-<br>
-
 ### Decline
-
 ```{r echo=F,  fig.show="hold", out.width="50%"}
 
 if(nrow(TEMP) > 0) {
@@ -366,9 +333,8 @@ legend("right",inset = c(-0.1,1, 0),title = "Agebands",legend =  stack, col = co
 rm(COUNT2,TEMP3)
 rm(TEMP,years,colors,stack)
 
-} else {
-  print("This table has no information and cannot be displayed.")
 }
+
 
 ```
 
@@ -377,22 +343,15 @@ rm(TEMP,years,colors,stack)
 &nbsp;
 &nbsp;
 
-<div class = 'box7'>
-
-</div>
-
-<br>
-
-<div class = 'box8'>
 
 ## 3. Number of persons and follow up time by age at start follow up and year of start follow up
 
 ```{r echo=F}
+
 #TEMP <- readRDS(paste0(thisdir,"/g_intermediate/STUDYPOP_DIS_ALL.rds")) 
 
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv"), sep = ";") 
 
-if (nrow(TEMP)>0){
 datatable(TEMP, 
           #options = 
             
@@ -416,17 +375,19 @@ datatable(TEMP,
 
 
 rm(TEMP)
-} else {
-  print("This table has no information and cannot be displayed.")
-}
+
+
+
+
 ```
 
 ```{r echo=F,  fig.show="hold", out.width="50%"}
 
-TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv"), sep = ";")
+
+TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv"), sep = ";")[Ageband != "Total",]
 
 if(nrow(TEMP) > 0) {
-TEMP<-TEMP[Ageband != "Total",]
+
 years <- c(min(TEMP[["Year"]]):max(TEMP[["Year"]]))
 stack <- unique(TEMP[["Ageband"]]) 
 colors <- colorRamps::matlab.like(length(stack))  
@@ -530,8 +491,7 @@ Line_plot2(
 
 
 rm(TEMP,TEMP1,TEMP2, years, stack,colors)
-}else{rm(TEMP)
-}
+}else{rm(TEMP)}
 
 ```
 &nbsp;
@@ -539,11 +499,6 @@ rm(TEMP,TEMP1,TEMP2, years, stack,colors)
 &nbsp;
 &nbsp;
 
-</div>
-
-<br>
-
-<div class = 'box9'>
 
 ## 4. Persontime distribution by age, sex and calendar year (CountPersonTime)
 
@@ -552,12 +507,9 @@ rm(TEMP,TEMP1,TEMP2, years, stack,colors)
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_04_STUDYPOPPY.csv"), sep = ";") 
 #TEMP <- readRDS(paste0(thisdir,"/g_intermediate/STUDYPOP_PY_ALL.rds")) 
 
-if(nrow(TEMP)>0){
+
 datatable(TEMP, options = list(scrollX=T))
 rm(TEMP)
-} else {
-  print("This table has no information and cannot be displayed.")
-}
 
 
 
@@ -620,12 +572,6 @@ rm(TEMP,TEMP1,TEMP2,years,stack,colors)
 &nbsp;
 &nbsp;
 
-</div>
-
-<br>
-
-<div class = 'box10'>
-
 ## 5. Persontime by Year Month (CountPersonTime)
 
 ```{r echo=F}
@@ -633,18 +579,19 @@ rm(TEMP,TEMP1,TEMP2,years,stack,colors)
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_05_STUDYPOPPY2.csv"), sep = ";") 
 #TEMP <- readRDS(paste0(thisdir,"/g_intermediate/STUDYPOP_PY2_ALL.rds")) 
 
-if(nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T))
 rm(TEMP)
-} else {
-  print("This table has no information and cannot be displayed.")
-}
+
+
+
 
 ```
 
 ```{r echo=F,fig.width=8,fig.height=5}
 
 #{r echo=F,fig.width=8,fig.height=5}
+
+
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_05_STUDYPOPPY2.csv"))
 
 if(nrow(TEMP) > 0) {
@@ -738,23 +685,13 @@ rm(TEMP,TEMP1)
 &nbsp;
 &nbsp;
 
-</div>
-
-<br>
-
-<div class = 'box11'>
-
 ## 6. Duration for persons to be registered in the study population after birth (weeks)
 
-```{r echo = F, fig.width=8,fig.height=5, echo = F}
+```{R echo = F, fig.width=8,fig.height=5, echo = F}
 
 TEMP <- readRDS(paste0(report_dir1,"/",i,"_R_01_10_InDatabaseAtAfterBirth.rds")) 
 
-if (nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T), rownames = F)
-}else {
-  print("This table has no information and cannot be displayed.")
-}
 
 if(nrow(TEMP) > 0) {
 par(mar = c(4.5,4.5,1,4),mgp = c(3.5,1,0), oma = c(1,1,1,1), xpd = T)
@@ -775,18 +712,15 @@ Line_plot2(
 }
 rm(TEMP)
 
+
+
+
 ```
 
 &nbsp;
 &nbsp;
 &nbsp;
 &nbsp;
-
-</div>
-
-<br>
-
-<div class = 'box12'>
 
 ## 7. Median follow-up for persons that are registered in the study population within 8 weeks after birth by year of birth
 
@@ -798,11 +732,10 @@ Note that if the op_end_date is after the date of creation, the date of creation
 &nbsp;
 &nbsp;
 
-```{r echo = F, fig.width=8,fig.height=5, echo = F}
+```{R echo = F, fig.width=8,fig.height=5, echo = F}
 
 
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";") 
-if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 setnames(TEMP,"No","Median distance in months")
 
@@ -811,9 +744,6 @@ rm(TEMP)
 
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";")
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
-} else {
-  print("This table has no information and cannot be displayed.")
-}
 
 if(nrow(TEMP) > 0) {
 
@@ -845,8 +775,14 @@ Line_plot2(
 
 #rm(TEMP,TEMP2)
 
+
+
+
 ```
 
+
+
+
 &nbsp;
 &nbsp;
 &nbsp;
@@ -854,11 +790,9 @@ Line_plot2(
 &nbsp;
 &nbsp;
 
-</div>
 
-<br>
 
-<div class = 'box13'>
+<div class = 'box9'>
 
 Author: Roel Elbers   
 email: r.j.h.elbers@umcutrecht.nl   
