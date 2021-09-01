@@ -131,7 +131,7 @@ if(length(actual_tables$EVENTS)>0){
       #################################################################
       years_study_events_preg<-df[!duplicated(year), year]#years present in this table
       
-      if(sum(df[!duplicated(pregnancy_code_vocabulary), pregnancy_code_vocabulary] %in% c("ICD10CM","ICD9CM", "ICPC2P"))>0){
+      if(sum(df[!duplicated(pregnancy_code_vocabulary), pregnancy_code_vocabulary] %in% c("ICD10CM","ICD9CM", "ICPC2P", "ICD9", "ICD10"))>0){
         for (i in 1:length(stage_pregnancy_start)){
           for(j in 1:length(stage_pregnancy_start[[i]])){
             z<-1
