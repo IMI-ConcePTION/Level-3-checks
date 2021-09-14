@@ -126,6 +126,7 @@ To run the level 3 checks with subpopulation analysis follow the next steps:
 5. If you want to exclude a specific meaning of a CDM table from a subpopulation, add in `type_of_metadata = exclude_meaning` in the column `tablename` the name of the CDM table, in the column `other` the name of the subpopulation and in the column `values` the meanings to be excluded. Separate meanings by space. Leave the `columnname` column empty. Example of you want to exclude the meaning pc_exclude part of the `EVENTS` table from the subpopulation primary care than you will add `EVENTS` to the column `tablename`, `PC` to the `other` column and `pc_exclude` to the `values` column.    
 6. You are now ready top run a subpopulation analysis.
 
+<img src="images/metadata_example.png" alt="Logo" width="700" height="120">
 
 ### Data characterization study links   
 
