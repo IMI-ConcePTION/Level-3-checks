@@ -1344,7 +1344,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
     #remove all files from tmp
     ############################################################################
     for (i in 1:length(files)){
-      combined_diagnosis_so<-lapply(paste0(smo_tmp,files[[i]]), readRDS)
+      combined_diagnosis_so<-lapply(paste0(so_tmp,files[[i]]), readRDS)
       combined_diagnosis_so<-do.call(rbind,combined_diagnosis_so)
       combined_diagnosis_so[,truncated_code:=substr(event_code,1,5)]
       if (subpopulations_present=="Yes"){
