@@ -95,8 +95,11 @@ POP_TREE(
 <br>
 
 Note that for the comparisons of the follow up time, the actual follow up time (`op_end_date` - `op_start_date`) in the source is compared to the follow up time with consideration of the lookback period and exclusion criteria. `Op_end_date` is cut of at the day of creation in situations where this date is after the `date of creation`.
- <br>
- 
+
+
+&nbsp;
+&nbsp;
+
 ```{r echo=F,  fig.show="hold", out.width="50%"}
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_02_CompareToSource.csv"), sep = ";")
 
@@ -111,11 +114,23 @@ if(TEMP[,.N]>0){
 }
 
 ```
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+</div>
 
 <br>
 
+<div class = 'box4'>
 
 In the following graphs persontime is shown per year `op_start_date` and per ageband at `op_start_date`.   
+
+</div>
+&nbsp;
+&nbsp;
+
 
 ```{r echo=F}
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_02_CompareToSource.csv"), sep = ";") 
@@ -137,8 +152,11 @@ colors <- colorRamps::matlab.like(length(stack))
 
 ```
 
+</div>
 
 <br>
+
+<div class = 'box5'>
 
 ### Absolute
 
@@ -192,9 +210,12 @@ rm(TEMP2)
 
 ```
 
+</div>
 
 <br>
 
+
+<div class = 'box6'>
 
 ### Relative 
 
@@ -252,6 +273,7 @@ rm(TEMP2)
 
 ```
 
+</div>
 
 <br>
 
@@ -350,11 +372,18 @@ rm(TEMP,years,colors,stack)
 
 ```
 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+<div class = 'box7'>
+
 </div>
 
 <br>
 
-<div class = 'box4'>
+<div class = 'box8'>
 
 ## 3. Number of persons and follow up time by age at start follow up and year of start follow up
 
@@ -505,12 +534,16 @@ rm(TEMP,TEMP1,TEMP2, years, stack,colors)
 }
 
 ```
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
 
 </div>
 
 <br>
 
-<div class = 'box5'>
+<div class = 'box9'>
 
 ## 4. Persontime distribution by age, sex and calendar year (CountPersonTime)
 
@@ -534,10 +567,10 @@ rm(TEMP)
 ```{r echo=F,fig.show="hold",out.width="50%"}
 
 
-TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_04_STUDYPOPPY.csv"), sep = ";")
+TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_04_STUDYPOPPY.csv"), sep = ";")[Ageband != "Total",]
 
 if(nrow(TEMP) > 0) {
-TEMP<-TEMP[Ageband != "Total",]
+  
 years <- c(min(TEMP[,Year]):max(TEMP[,Year]))
 stack <- unique(TEMP[["Ageband"]]) 
 colors <- colorRamps::matlab.like(length(stack)) 
@@ -582,12 +615,16 @@ rm(TEMP,TEMP1,TEMP2,years,stack,colors)
 }else{rm(TEMP)}
 
 ```
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
 
 </div>
 
 <br>
 
-<div class = 'box6'>
+<div class = 'box10'>
 
 ## 5. Persontime by Year Month (CountPersonTime)
 
@@ -696,11 +733,16 @@ rm(TEMP,TEMP1)
 
 ```
 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
 </div>
 
 <br>
 
-<div class = 'box7'>
+<div class = 'box11'>
 
 ## 6. Duration for persons to be registered in the study population after birth (weeks)
 
@@ -735,15 +777,26 @@ rm(TEMP)
 
 ```
 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
 </div>
 
 <br>
 
-<div class = 'box8'>
+<div class = 'box12'>
 
 ## 7. Median follow-up for persons that are registered in the study population within 8 weeks after birth by year of birth
 
+<div class = 'box9'>
+
 Note that if the op_end_date is after the date of creation, the date of creation is used instead of op_end date. 
+
+</div>
+&nbsp;
+&nbsp;
 
 ```{r echo = F, fig.width=8,fig.height=5, echo = F}
 
@@ -794,11 +847,18 @@ Line_plot2(
 
 ```
 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
 </div>
 
 <br>
 
-<div class = 'box9'>
+<div class = 'box13'>
 
 Author: Roel Elbers   
 email: r.j.h.elbers@umcutrecht.nl   
