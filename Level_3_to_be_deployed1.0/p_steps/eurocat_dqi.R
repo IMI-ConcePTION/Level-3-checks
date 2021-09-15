@@ -46,9 +46,9 @@ if(length(actual_tables$EUROCAT)>0){
   #Main script
   ####################################################################################################
   
-  source(Step1_FLOWCHART_FB_25.7.R)
-  source(Step2_DQIascert_acc.R)
-  source(Step3_DQIcompleteness.R)
+  source(paste0(pre_dir, "Step1_FLOWCHART_FB_25.7.R"))
+  source(paste0(pre_dir,"Step2_DQIascert_acc.R"))
+  source(paste0(pre_dir,"Step3_DQIcompleteness.R"))
   
   do.call(file.remove, list(list.files(eurocat_tmp, full.names = T)))
   

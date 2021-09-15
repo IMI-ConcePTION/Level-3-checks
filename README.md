@@ -25,10 +25,10 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-        <li><a href="#subpopulation analysis">Subpopulation analysis</a></li>
-        <li><a href="#uploading results">Uploading results</a></li>
-        <li><a href="#Data characterization study links">Data characterization study links</a></li> 
-        <li><a href="#current version">Current version</a></li>
+        <li><a href="#subpopulation">Subpopulation analysis</a></li>
+        <li><a href="#uploading">Uploading results to the online research environment</a></li>
+        <li><a href="#links">Data characterization study links</a></li> 
+        <li><a href="#version">Current version</a></li>
       </ul>
     </li>
     <li><a href="#license">License</a></li>
@@ -116,6 +116,7 @@ Main folder
 
 
 ### Subpopulation analysis
+
 A subpopulation analysis can be performed if your data has different provenance(i.e. different levels of the healthcare system such as hospital data and general practitioner data etc). This analysis helps to identify errors for each specific data sub sample. If you already know that your data quality is similar you can skip this analysis.    
 
 To run the level 3 checks with subpopulation analysis follow the next steps:      
@@ -127,6 +128,10 @@ To run the level 3 checks with subpopulation analysis follow the next steps:
 6. You are now ready top run a subpopulation analysis.
 
 <img src="images/metadata_example.png" alt="Logo" width="700" height="120">
+
+### Uploading results to the online research environment
+
+In development.
 
 ### Data characterization study links   
 
