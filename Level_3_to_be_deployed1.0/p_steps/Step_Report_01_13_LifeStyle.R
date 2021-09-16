@@ -54,8 +54,12 @@ for(i in TABLES) {
 
 
 for(i in names(Lifestyle)){
-  temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
   
+  
+  if(!is.null(Lifestyle[[i]][["c.voc"]])) temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) %in% eval(Lifestyle[[i]][["v.voc"]]),]
+  if(is.null(Lifestyle[[i]][["c.voc"]]))  temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) ,]
+  
+  #temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
   #temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) == eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
   
   assign(eval(paste0("L.",Lifestyle[[i]][["CDM_table"]])),rbindlist(list(get(paste0("L.",Lifestyle[[i]][["CDM_table"]])),temp), fill = T, use.names=T))
@@ -88,8 +92,10 @@ for(i in 1:nrow(SCHEME_0113)){
     date.v <- Lifestyle[[j]][["v.date"]]
     col <- Lifestyle[[j]][["CDM_column"]]
     
-    temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
+    if(!is.null(Lifestyle[[j]][["c.voc"]])) temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) %in% eval(Lifestyle[[j]][["v.voc"]]),]
+    if(is.null(Lifestyle[[j]][["c.voc"]]))  temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) ,]
     
+    #temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
     #temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) == eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
     
     temp <- merge(STUDY_POPULATION, temp, by = "person_id", allow.cartesian = T)

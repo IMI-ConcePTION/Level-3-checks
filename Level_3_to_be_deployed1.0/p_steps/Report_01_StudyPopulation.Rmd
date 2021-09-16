@@ -67,6 +67,9 @@ datatable(t(TEMP), options = list(scrollX=T))
 }
 
 if(nrow(TEMP) > 0) {
+
+TEMP[is.nan(TEMP)] <- 0    
+  
 POP_TREE(
   m = TEMP, 
   xlabel = 'Percentage', 
