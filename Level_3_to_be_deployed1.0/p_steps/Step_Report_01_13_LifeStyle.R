@@ -30,37 +30,26 @@ if(!SUBP) SCHEME_0113 <- data.frame(subpopulations = c("ALL"),
 
 if(length(Lifestyle) > 0){
 
-print('Import and append SURVEY_OBSERVATIONS files')
+print('Import and append relevant files')
 
+#Collect all the CDM tables that are needed to extract lifestyle factors from  
 TABLES <- vector()
-#DATES <- vector()
-
 for(i in 1:length(Lifestyle)){
   TABLES[i] <- Lifestyle[[i]]["CDM_table"]
-  #DATES[i] <- Lifestyle[[i]]["v.date"]
 }
 
+#import and append all relavant CDM tables 
 TABLES <- unique(TABLES)
-#DATES <- unique(DATES)
-
-
-
 for(i in TABLES) {
-  
   assign(eval(i),IMPORT_PATTERN(pat = i, dir = path_dir))
   assign(eval(paste0("L.",i)),get(i)[0])
-  
 }
 
-
+#Select all relevant rows form the tables. May be that this can be done more efficient by constructing 1 expression and then do in once instead of by a loop
 for(i in names(Lifestyle)){
-  
   
   if(!is.null(Lifestyle[[i]][["c.voc"]])) temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) %in% eval(Lifestyle[[i]][["v.voc"]]),]
   if(is.null(Lifestyle[[i]][["c.voc"]]))  temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) ,]
-  
-  #temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) %in% eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
-  #temp <- copy(get(Lifestyle[[i]][["CDM_table"]]))[get(Lifestyle[[i]][["CDM_column"]]) == eval(Lifestyle[[i]][["value"]]) & get(Lifestyle[[i]][["c.voc"]]) == eval(Lifestyle[[i]][["v.voc"]]),]
   
   assign(eval(paste0("L.",Lifestyle[[i]][["CDM_table"]])),rbindlist(list(get(paste0("L.",Lifestyle[[i]][["CDM_table"]])),temp), fill = T, use.names=T))
   rm(temp)
@@ -68,15 +57,17 @@ for(i in names(Lifestyle)){
   
 }
 
+#Delete imported tables. These are replaced by a relavant subset
 for(i in TABLES) rm(list = i)
 gc()
 
 TABLES <- paste0("L.",TABLES)
 
 
-
 Agebands <- CreateBands(seq(from = 12 , to = 55, by = 10))
 
+
+#Merge needed variables (Agebands/sex) to lifestyle factors and construct table with counts. This may be done with a join instead of a loop
 for(i in 1:nrow(SCHEME_0113)){
   
   STUDY_POPULATION <- readRDS(file = paste0(SCHEME_0113[["folder_in"]][i],SCHEME_0113[["file_in"]][i]))[, .(person_id, sex_at_instance_creation, birth_date, start_follow_up, end_follow_up,Year_op, age_start_follow_up,start_follow_up_year)]
@@ -95,16 +86,12 @@ for(i in 1:nrow(SCHEME_0113)){
     if(!is.null(Lifestyle[[j]][["c.voc"]])) temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) %in% eval(Lifestyle[[j]][["v.voc"]]),]
     if(is.null(Lifestyle[[j]][["c.voc"]]))  temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) ,]
     
-    #temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) %in% eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
-    #temp <- copy(get(table))[get(Lifestyle[[j]][["CDM_column"]]) == eval(Lifestyle[[j]][["value"]]) & get(Lifestyle[[j]][["c.voc"]]) == eval(Lifestyle[[j]][["v.voc"]]),]
-    
     temp <- merge(STUDY_POPULATION, temp, by = "person_id", allow.cartesian = T)
     temp <- temp[, eval(date.v) := as.IDate(as.character(get(date.v)),"%Y%m%d")][get(date.v) %between% list(start_follow_up, end_follow_up), ]
     setnames(temp,col,"col")
-    #temp <- temp[, Age_measurement := floor(time_length(interval(birth_date, get(DATES[j])), "year"))]
-    #temp <- temp[, Year_measurement := year(get(DATES[j]))]
     
     if(nrow(temp) > 0){
+    temp[["col"]] <- j  
     COUNT <- temp[,.(NoU = uniqueN(person_id)), keyby = list(Year_op,band,col,Order)]
     COUNT1 <- rbindlist(list(COUNT1,COUNT), fill = T, use.names = T)
     rm(COUNT)
