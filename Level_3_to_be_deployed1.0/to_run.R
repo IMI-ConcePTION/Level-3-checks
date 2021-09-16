@@ -45,50 +45,50 @@ meanings_birth_registry<-c("birth_registry_mother")
 #  v.date = "so_date"
 #)
 
-#Lifestyle <- list()
+Lifestyle <- list()
 
-Lifestyle <- list(
-  Smoking = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  Folic_acid = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  Alcohol = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  BMI = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = c(""),
-    c.voc = "" ,
-    v.voc = "",
-    v.date = ""
-  ),
-  SES = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = c(""),
-    c.voc = "" ,
-    v.voc = "",
-    v.date = ""
-  )
-)
+# Lifestyle <- list(
+#   Smoking = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   Folic_acid = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   Alcohol = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   BMI = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = c(""),
+#     c.voc = "" ,
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   SES = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = c(""),
+#     c.voc = "" ,
+#     v.voc = "",
+#     v.date = ""
+#   )
+# )
 ###############################################
 
 source("packages.R")
