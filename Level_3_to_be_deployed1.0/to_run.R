@@ -21,63 +21,74 @@ meanings_birth_registry<-c("birth_registry_mother")
 #4.CDM_table:name of the CDM table where you saved the information.
 #5.CDM_column: name of the CDM column where you saved the information about the name of the variable of interest.
 #6.value: name of the original variable.
-#7.c.voc: name of the CDM column where you saved the unit representing the variable of interest.
-#8.v.voc: the vocabulary used for the variable of interest.
+#7.c.voc: name of the CDM column where you saved the vocabulary representing the variable of interest.If no vocabulary fill NULL
+#8.v.voc: the vocabulary used for the variable of interest.If no vocabulary fill NULL
 #9.v.date: name of the CDM column which saves the date of recording.
-#10.If you don't have information about a variable then delete that section.
+#10.If you don't have information about a variable then delete that section and use Lifestyle <- list()
 
 #example BMI(saved in MEDICAL_OBSERVATIONS, original name: body_mass_index, unit:kg/m2)
 #  BMI = list(
 #    CDM_table = "MEDICAL_OBSERVATIONS",
 #    CDM_column = "mo_source_column",
 #    value = "body_mass_index",
-#    c.voc = "mo_unit",
-#    v.voc = "kg/m2",
+#    c.voc = "mo_record_vocabulary",
+#    v.voc = "ICD9",
 #    v.date = "mo_date"
 #  )
 
-Lifestyle <- list(
-  Smoking = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  Folic_acid = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  Alcohol = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = "",
-    c.voc = "",
-    v.voc = "",
-    v.date = ""
-  ),
-  BMI = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = c(""),
-    c.voc = "" ,
-    v.voc = "",
-    v.date = ""
-  ),
-  SES = list(
-    CDM_table = "",
-    CDM_column = "",
-    value = c(""),
-    c.voc = "" ,
-    v.voc = "",
-    v.date = ""
-  )
-)
+#Smoking = list(
+#  CDM_table = "SURVEY_OBSERVATIONS",
+#  CDM_column = "so_source_column",
+#  value = c("SMOKING","SMOKESEV"),
+#  c.voc = NULL,
+#  v.voc = NULL,
+#  v.date = "so_date"
+#)
+
+Lifestyle <- list()
+
+# Lifestyle <- list(
+#   Smoking = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   Folic_acid = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   Alcohol = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = "",
+#     c.voc = "",
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   BMI = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = c(""),
+#     c.voc = "" ,
+#     v.voc = "",
+#     v.date = ""
+#   ),
+#   SES = list(
+#     CDM_table = "",
+#     CDM_column = "",
+#     value = c(""),
+#     c.voc = "" ,
+#     v.voc = "",
+#     v.date = ""
+#   )
+# )
 ###############################################
 
 source("packages.R")
