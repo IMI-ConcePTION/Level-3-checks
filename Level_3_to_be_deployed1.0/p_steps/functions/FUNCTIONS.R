@@ -48,7 +48,8 @@ IMPORT_PATTERN <- function(pat,dir){
   temp <- list()
   for(i in 1:length(obs_files)){
     TEMP <- fread(paste0(dir,"/",obs_files[i]), stringsAsFactors = F)
-    
+    #TEMP[, (colnames(TEMP)) := lapply(.SD, as.character), .SDcols = colnames(TEMP)]
+    invisible(lapply(colnames(TEMP), function (x) if (class(TEMP[[x]]) != "character") TEMP[, eval(x) := as.character(get(x)) ]))
     
     if(i == 1) {FILE <- TEMP}
     if(i > 1) {FILE <- rbindlist(list(TEMP,FILE),fill = T, use.names = T)}
