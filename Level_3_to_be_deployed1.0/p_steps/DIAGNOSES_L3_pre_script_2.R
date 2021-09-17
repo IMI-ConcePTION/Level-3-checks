@@ -65,6 +65,8 @@ if(length(actual_tables$EVENTS)>0){
     #remove all records for which the meaning is in excluded meanings
     df<-df[meaning %!in% meanings_exclude_events]
     #merge with the study_population table(there is no missing data in this table)
+    df[,person_id:=as.character(person_id)]
+    study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)]#left join, keeps all people in the study population even if they didn't have an event
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)]
     pers_stdpop_not_events<-df[rowSums(is.na(df[,..colnames_events]))==length(colnames_events), ..std_names_events] #subjects id present in the study population but that do not have an event
@@ -384,6 +386,8 @@ if(length(actual_tables$EVENTS)>0){
   if(empty_event_code.my[,.N]==0){
     tab20_events<-data.table(events_study_population_my, no_empty_code=0)
   } else {
+    events_study_population_my[,meaning:=as.character(meaning)][,year:=as.character(year)]
+    empty_event_code.my[,meaning:=as.character(meaning)][,year:=as.character(year)]
     tab20_events<-merge(events_study_population_my,empty_event_code.my, by=c("meaning","year"), all=T)
     tab20_events[is.na(no_empty_code),no_empty_code:=0]
   }
@@ -528,6 +532,8 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     #remove all records for which the meaning is in excluded meanings
     df<-df[meaning %!in% meanings_exclude_mo]
     #merge with the study_population table(there is no missing data in this table)
+    df[,person_id:=as.character(person_id)]
+    study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)]#left join, keeps all people in the study population even if they didn't have an event
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)]
     pers_stdpop_not_mo<-df[rowSums(is.na(df[,..colnames_mo]))==length(colnames_mo), ..std_names_mo] #subjects id present in the study population but that do not have an event
@@ -849,6 +855,8 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
   if(empty_mo_code.my[,.N]==0){
     tab20_mo<-data.table(mo_study_population_my, no_empty_code=0)
   } else {
+    mo_study_population_my[,meaning:=as.character(meaning)][,year:=as.character(year)]
+    empty_mo_code.my[,meaning:=as.character(meaning)][,year:=as.character(year)]
     tab20_mo<-merge(mo_study_population_my,empty_mo_code.my, by=c("meaning","year"),all=T)
     tab20_mo[is.na(no_empty_code),no_empty_code:=0]
   }
@@ -991,6 +999,8 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
     #remove all records for which the meaning is in excluded meanings
     df<-df[meaning %!in% meanings_exclude_so]
     #merge with the study_population table(there is no missing data in this table)
+    df[,person_id:=as.character(person_id)]
+    study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)]#left join, keeps all people in the study population even if they didn't have an event
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)]
     pers_stdpop_not_so<-df[rowSums(is.na(df[,..colnames_so]))==length(colnames_so), ..std_names_so] #subjects id present in the study population but that do not have an event
@@ -1310,6 +1320,8 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
   if(empty_so_code.my[,.N]==0){
     tab20_so<-data.table(so_study_population_my, no_empty_code=0)
   } else {
+    so_study_population_my[,meaning:=as.character(meaning)][,year:=as.character(year)]
+    empty_so_code.my[,meaning:=as.character(meaning)][,year:=as.character(year)]
     tab20_so<-merge(so_study_population_my,empty_so_code.my, by=c("meaning","year"))
     tab20_so[is.na(no_empty_code),no_empty_code:=0]
   }
@@ -1590,6 +1602,8 @@ for (condition_ind in 1:length(diagnoses_files)){
   output<-melt(output, id.vars=c("sex_at_instance_creation","meaning", "Ageband","year"), measure.vars = colnames(output)[!colnames(output) %in% c("sex_at_instance_creation","meaning", "Ageband","year")], variable.name = "combined_diagnoses")        
   output[,combined_diagnoses:= gsub('.{2}$','',combined_diagnoses)]
   setnames(output,"value","no_records")
+  person_years_df[,sex_at_instance_creation:=as.character(sex_at_instance_creation)][,meaning:=as.character(meaning)][,Ageband:=as.character(Ageband)][,year:=as.character(year)][,combined_diagnoses:=as.character(combined_diagnoses)]
+  output[,sex_at_instance_creation:=as.character(sex_at_instance_creation)][,meaning:=as.character(meaning)][,Ageband:=as.character(Ageband)][,year:=as.character(year)][,combined_diagnoses:=as.character(combined_diagnoses)]
   output<-merge(person_years_df,output,by=c("sex_at_instance_creation","meaning", "Ageband","year", "combined_diagnoses"), all=T)
   rm(person_years_df)
   setnames(output, "Ageband", "age_band")
@@ -1622,6 +1636,8 @@ for (cond_ind in 1:length(diagnoses_files)){
   setnames(tab21_total,"no_records","total_records")
   #counts by event_definition, meaning, vocabulary and truncate_code
   #total by event_definition
+  tab21_counts[,event_definition:=as.character(event_definition)]
+  tab21_total[,event_definition:=as.character(event_definition)]
   tab21_counts<-merge(tab21_counts, tab21_total, by="event_definition")
   rm(tab21_total)
   

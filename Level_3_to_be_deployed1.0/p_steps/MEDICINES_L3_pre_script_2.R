@@ -85,6 +85,8 @@ if(length(actual_tables$MEDICINES)>0){
     #remove all records for which the meaning is in excluded meanings
     df<-df[meaning %!in% meanings_exclude_med]
     #merge with the study_population table(there is no missing data in this table)
+    df[,person_id:=as.character(person_id)]
+    study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)]#left join, keeps all people in the study population even if they didn't have a prescription
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)]
     pers_stdpop_not_med<-df[rowSums(is.na(df[,..colnames]))==length(colnames), ..std_names] #subjects id present in the study population but that do not have a dispensing/prescription
@@ -596,16 +598,28 @@ if(length(actual_tables$MEDICINES)>0){
   
   print("Create table 15.")
   #combine all together
+  meaning_info[,meaning:=as.character(meaning)]
+  med_study_population_meaning_info[,meaning:=as.character(meaning)]
   tab15<-merge(meaning_info,med_study_population_meaning_info,by="meaning")
-  setnames(tab15, "count", "records_study_population")    
+  setnames(tab15, "count", "records_study_population")   
+  tab15[,meaning:=as.character(meaning)]
+  indication_info[,meaning:=as.character(meaning)]
   tab15<-merge(tab15, indication_info, by="meaning")    
   setnames(tab15, "count", "records_no_indication_code") 
+  tab15[,meaning:=as.character(meaning)]
+  prescriber_info[,meaning:=as.character(meaning)]
   tab15<-merge(tab15, prescriber_info, by="meaning")    
   setnames(tab15, "count", "records_no_prescriber_speciality") 
+  tab15[,meaning:=as.character(meaning)]
+  disp_info[,meaning:=as.character(meaning)]
   tab15<-merge(tab15, disp_info, by="meaning")    
   setnames(tab15, "count", "records_no_dispensed_quantity") 
+  tab15[,meaning:=as.character(meaning)]
+  presc_info[,meaning:=as.character(meaning)]
   tab15<-merge(tab15, presc_info, by="meaning")    
   setnames(tab15, "count", "records_no_prescribed_quantity") 
+  tab15[,meaning:=as.character(meaning)]
+  presc_unit_info[,meaning:=as.character(meaning)]
   tab15<-merge(tab15, presc_unit_info, by="meaning")    
   setnames(tab15, "count", "records_no_prescribed_quantity_unit")
   tab15<-rbind(tab15, data.table(meaning="All", 
@@ -1526,6 +1540,8 @@ if(length(actual_tables$MEDICINES)>0){
     tot_rec_f.my<-c(list.files(medicines_tmp,pattern="f_records.my"))
     tot_rec_m.my<-readRDS(paste0(medicines_tmp,tot_rec_m.my))
     tot_rec_f.my<-readRDS(paste0(medicines_tmp,tot_rec_f.my))
+    tot_rec_f.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tot_rec_m.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tot_rec.my<-merge(tot_rec_f.my,tot_rec_m.my,by=c("meaning","year","atc_code_4","atc_code_3","atc_code_1"),all=T)
     tot_rec.my[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
     tot_rec.my[,no_records.x:=NULL][,no_records.y:=NULL]
@@ -1553,6 +1569,8 @@ if(length(actual_tables$MEDICINES)>0){
     tot_rec_f.t<-c(list.files(medicines_tmp,pattern="f_records.t"))
     tot_rec_m.t<-readRDS(paste0(medicines_tmp,tot_rec_m.t))
     tot_rec_f.t<-readRDS(paste0(medicines_tmp,tot_rec_f.t))
+    tot_rec_f.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tot_rec_m.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tot_rec.t<-merge(tot_rec_f.t,tot_rec_m.t,by=c("meaning","year","atc_code_4","atc_code_3","atc_code_1"),all=T)
     tot_rec.t[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
     tot_rec.t[,no_records.x:=NULL][,no_records.y:=NULL]
@@ -1613,14 +1631,21 @@ if(length(actual_tables$MEDICINES)>0){
   ########
   
   if(male_population>0 & female_population>0){
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    males[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,males, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(males)
-    tab12[,year:=as.character(year)]
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,tot_rec.my, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(tot_rec.my)
     tab12[is.na(no_female_users),no_female_users:=0][is.na(no_male_users),no_male_users:=0]
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.m)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.f)
     tab12[is.na(median_rx_female_users),median_rx_female_users:=0][is.na(median_rx_male_users),median_rx_male_users:=0]
@@ -1628,10 +1653,13 @@ if(length(actual_tables$MEDICINES)>0){
     setorderv(tab12,c("meaning","year","atc_code_4","atc_code_3","atc_code_1"))
   }
   if(male_population==0 & female_population>0){
-    tab12[,year:=as.character(year)]
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,tot_rec.my, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(tot_rec.my)
     tab12[is.na(no_female_users),no_female_users:=0]
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.f)
     tab12[is.na(median_rx_female_users),median_rx_female_users:=0]
@@ -1642,9 +1670,12 @@ if(length(actual_tables$MEDICINES)>0){
   if(male_population>0 & female_population==0){
     tab12<-males
     rm(males)
-    tab12[,year:=as.character(year)]
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,tot_rec.my, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(tot_rec.my)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.m)
     tab12[is.na(median_rx_male_users),median_rx_male_users:=0]
@@ -1888,6 +1919,8 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.tot_rec_f.my<-c(list.files(medicines_tmp,pattern="tab13.f_records.my"))
     tab13.tot_rec_m.my<-readRDS(paste0(medicines_tmp,tab13.tot_rec_m.my))
     tab13.tot_rec_f.my<-readRDS(paste0(medicines_tmp,tab13.tot_rec_f.my))
+    tab13.tot_rec_f.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.tot_rec_m.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.tot_rec.my<-merge(tab13.tot_rec_f.my,tab13.tot_rec_m.my,by=c("meaning","year","atc_code_7", "atc_code_3"),all=T)
     tab13.tot_rec.my[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
     tab13.tot_rec.my[,no_records.x:=NULL][,no_records.y:=NULL]
@@ -1915,6 +1948,8 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.tot_rec_f.t<-c(list.files(medicines_tmp,pattern="tab13.f_records.t"))
     tab13.tot_rec_m.t<-readRDS(paste0(medicines_tmp,tab13.tot_rec_m.t))
     tab13.tot_rec_f.t<-readRDS(paste0(medicines_tmp,tab13.tot_rec_f.t))
+    tab13.tot_rec_f.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.tot_rec_m.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.tot_rec.t<-merge(tab13.tot_rec_f.t,tab13.tot_rec_m.t,by=c("meaning","year","atc_code_7","atc_code_3"),all=T)
     rm(tab13.tot_rec_f.t,tab13.tot_rec_m.t)
     tab13.tot_rec.t[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
@@ -1975,14 +2010,21 @@ if(length(actual_tables$MEDICINES)>0){
   ########
   
   if(male_population>0 & female_population>0){
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.males[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.males, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.males)
-    tab13[,year:=as.character(year)]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
     tab13[is.na(no_female_users),no_female_users:=0][is.na(no_male_users),no_male_users:=0]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.med.m)
+    tan13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7","atc_code_3"), all=T)
     rm(tab13.med.f)
     tab13[is.na(median_rx_female_users),median_rx_female_users:=0][is.na(median_rx_male_users),median_rx_male_users:=0]
@@ -1990,10 +2032,13 @@ if(length(actual_tables$MEDICINES)>0){
     setorderv(tab13,c("meaning","year","atc_code_7","atc_code_3"))
   }
   if(male_population==0 & female_population>0){
-    tab13[,year:=as.character(year)]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
     tab13[is.na(no_female_users),no_female_users:=0]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(med.f)
     tab13[is.na(median_rx_female_users),median_rx_female_users:=0]
@@ -2004,9 +2049,12 @@ if(length(actual_tables$MEDICINES)>0){
   if(male_population>0 & female_population==0){
     tab13<-tab13.males
     rm(tab13.males)
-    tab13[,year:=as.character(year)]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.med.m)
     tab13[is.na(median_rx_male_users),median_rx_male_users:=0]
@@ -2157,9 +2205,12 @@ if(length(actual_tables$MEDICINES)>0){
     median[,year:=as.character(year)]
     unlink(paste0(medicines_tmp,"tab14.f_median_my.rds"))
     unlink(paste0(medicines_tmp,"tab14.f_median_t.rds"))
-    
+    tab14[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    users[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab14<-merge(tab14,users, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(users)
+    tab14[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    median[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab14<-merge(tab14,median, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(median)
     setcolorder(tab14,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_female_users","median_rx_female_users"))
@@ -2365,10 +2416,14 @@ while(rec_files <= length(records_files)){
 ####################################################################
 print("Combine number of records and users in one table.")
 no_records<-no_records[,lapply(.SD,sum), by=c("truncated_atc_code","year","age_band"), .SDcols="count_medicines"]
+no_records[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+no_users[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
 no_records<-merge(no_records,no_users, by=c("age_band","year","truncated_atc_code"))
 setnames(no_records,"person_id","no_users")
 rm(no_users)
 no_records_agg<-no_records_agg[,lapply(.SD,sum), by=c("year", "truncated_atc_code"), .SDcols="count_medicines"]
+no_records_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+no_users_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
 no_records_agg<-merge(no_records_agg,no_users_agg, by=c("truncated_atc_code","year"))
 setnames(no_records_agg,"person_id","no_users")
 rm(no_users_agg)
@@ -2397,6 +2452,8 @@ for (i in 1:length(person_files)){
 #rates by age, year and atc code
 #######################################################
 print("Create table 16: Rate of medicine use in females of child bearing age by year, age band and atc code.")
+no_records[,year:=as.character(year)][,age_band:=as.character(age_band)]
+person_years[,year:=as.character(year)][,age_band:=as.character(age_band)]
 no_records<-merge(no_records,person_years, by=c("year", "age_band"), all=T)
 no_records[is.na(count_medicines),count_medicines:=0][is.na(no_users),no_users:=0]
 atc_codes<-unique(na.omit(no_records[["truncated_atc_code"]]))
@@ -2445,6 +2502,8 @@ rm(no_records)
   print("Create table 15: Rate of medicine use in females of child bearing age by year and atc code.")
   #combine person years
   person_years<-person_years[,lapply(.SD,sum), by="year", .SDcols="person_years"]
+  no_records_agg[,year:=as.character(year)]
+  person_years[,year:=as.character(year)]
   no_records_agg<-merge(no_records_agg,person_years, by=c("year"), all=T)
   no_records_agg[is.na(count_medicines),count_medicines:=0][is.na(no_users),no_users:=0]
   atc_codes<-unique(na.omit(no_records_agg[["truncated_atc_code"]]))
