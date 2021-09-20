@@ -5,12 +5,16 @@
 
 
 print('Import and append persons files')
-persons_files<-list.files(path_dir, pattern="^PERSONS")
 
-for (i in 1:length(persons_files)){
-  PERSONS <- lapply(paste0(path_dir,persons_files[[i]]),fread)
-}
-PERSONS<-do.call(rbind,PERSONS)
+#persons_files<-list.files(path_dir, pattern="^PERSONS")
+
+#for (i in 1:length(persons_files)){
+#  PERSONS <- lapply(paste0(path_dir,persons_files[[i]]),fread)
+#}
+#PERSONS<-do.call(rbind,PERSONS)
+
+PERSONS <- IMPORT_PATTERN(pat = "PERSONS", dir = path_dir)
+
 
 print('Remove abbundant variables')
 lapply(c("race","country_of_birth","quality"), function (x) PERSONS <- PERSONS[,eval(x) := NULL])
