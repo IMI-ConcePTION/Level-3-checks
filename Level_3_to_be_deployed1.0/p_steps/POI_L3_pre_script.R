@@ -62,6 +62,8 @@ for (preg_ind in 1:length(pregnancy_files)){
     diagnoses_df[,year:=unlist(str_split(names(conditions_files_chronic)[j],"_"))[1]][,year:=as.numeric(year)]
     setkey(diagnoses_df,person_id,year,birth_date,start_follow_up,age_start_follow_up, end_follow_up)
     #merge databases: left join
+    diagnoses_df[,person_id:=as.character(person_id)][,year:=as.character(year)]
+    pregnancy_pop[,person_id:=as.character(person_id)][,year:=as.character(year)]
     diagnoses_df<-merge(diagnoses_df,pregnancy_pop,all.x=T)
     
     if(diagnoses_df[!is.na(pregnancy_code_date),.N]>0){
@@ -77,6 +79,8 @@ for (preg_ind in 1:length(pregnancy_files)){
       setnames(no_women_sub, "person_id", "no_women")
       no_pregnant_women<-diagnoses_df[!is.na(stage_of_pregnancy), lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year","stage_of_pregnancy"),.SDcols="person_id"]
       setnames(no_pregnant_women,"person_id", "no_pregnant_women")
+      no_women_sub[,year:as.character(year)]
+      no_pregnant_women[,year:=as.character(year)]
       no_women_sub<-merge(no_women_sub,no_pregnant_women, by="year", all=T)
     } else {
       no_women_sub<-NULL
@@ -112,6 +116,8 @@ for (j in 1: length(medicines_files)){
   medicines<-medicines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,c("person_id","year", "medicinal_product_atc_code","age_start_follow_up")]
 
   #merge databases
+  pregnancy_pop[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
+  medicines[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
   medicines<-merge(pregnancy_pop,medicines, by=c("person_id","year", "age_start_follow_up"), all=F) #inner join
  
   if(medicines[!is.na(medicinal_product_atc_code),.N]>0){
@@ -130,8 +136,12 @@ for (j in 1: length(medicines_files)){
     setnames(no_women,"person_id","no_women")  #number of pregnant women
     no_total_women<-medicines[,lapply(.SD, function(x) length(unique(na.omit(x)))), by="year",.SDcols="person_id"]
     setnames(no_total_women,"person_id","no_total_women")
+    no_records[,year:=as.character(year)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)]
+    no_women[,year:=as.character(year)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)]
     no_records<-merge(no_records,no_women,by=c("year", "medicinal_product_atc_code","stage_of_pregnancy"))
     rm(no_women)
+    no_records[,year:=as.character(year)]
+    no_total_women[,,year:=as.character(year)]
     no_records<-merge(no_records,no_total_women,by="year") #number of pregannt women by year
     rm(no_total_women)
 
@@ -163,6 +173,8 @@ if(length(vaccines_files)>0){
     vaccines<-vaccines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,c("person_id","year", "vx_atc","age_start_follow_up")]
     
     #merge databases
+    pregnancy_pop[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
+    vaccines[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
     vaccines<-merge(pregnancy_pop,vaccines, by=c("person_id","year", "age_start_follow_up"), all=F) #inner join
     
     if (vaccines[!is.na(vx_atc),.N]>0){
@@ -180,8 +192,12 @@ if(length(vaccines_files)>0){
       setnames(no_women,"person_id","no_women")
       no_total_women<-vaccines[,lapply(.SD, function(x) length(unique(na.omit(x)))), by="year",.SDcols="person_id"]
       setnames(no_total_women,"person_id","no_total_women")
+      no_records[,year:=as.character(year)][,vx_atc:=as.character(vx_atc)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)]
+      no_women[,year:=as.character(year)][,vx_atc:=as.character(vx_atc)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)]
       no_records<-merge(no_records,no_women,by=c("year", "vx_atc","stage_of_pregnancy"))
       rm(no_women)
+      no_records[,year:=as.character(year)]
+      no_total_women[,year:=as.character(year)]
       no_records<-merge(no_records,no_total_women,by="year")
       rm(no_total_women)
       
@@ -226,6 +242,8 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
     medicines<-medicines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,c("person_id","year", "medicinal_product_atc_code","age_start_follow_up")]
     
     #merge databases
+    diagnoses_df[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
+    medicines[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
     medicines<-merge(diagnoses_df,medicines, by=c("person_id","year", "age_start_follow_up"), all=F) #inner join
     
     if(medicines[!is.na(medicinal_product_atc_code),.N]>0){
@@ -243,8 +261,12 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
       setnames(no_women,"person_id","no_women")  #number of  women with condition
       no_total_women<-medicines[,lapply(.SD, function(x) length(unique(na.omit(x)))), by="year",.SDcols="person_id"]
       setnames(no_total_women,"person_id","no_total_women")
+      no_records_sub[,year:=as.character(year)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)][,condition:=as.character(condition)]
+      no_women[,year:=as.character(year)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)][,condition:=as.character(condition)]
       no_records_sub<-merge(no_records_sub,no_women,by=c("year", "medicinal_product_atc_code","condition"))
       rm(no_women)
+      no_records_sub[,year:=as.character(year)]
+      no_total_women[,year:=as.character(year)]
       no_records_sub<-merge(no_records_sub,no_total_women,by="year") #number of pregannt women by year
       rm(no_total_women)
     } else {
@@ -285,6 +307,8 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
     vaccines<-vaccines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,c("person_id","year", "vx_atc","age_start_follow_up")]
     
     #merge databases
+    diagnoses_df[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
+    vaccines[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.numeric(age_start_follow_up)]
     vaccines<-merge(diagnoses_df,vaccines, by=c("person_id","year", "age_start_follow_up"), all=F) #inner join
     
     if(vaccines[!is.na(vx_atc),.N]>0){
@@ -301,8 +325,12 @@ for (chr_fl_ind in 1: length(conditions_files_chronic)){
       setnames(no_women,"person_id","no_women")  #number of  women with condition
       no_total_women<-vaccines[,lapply(.SD, function(x) length(unique(na.omit(x)))), by="year",.SDcols="person_id"]
       setnames(no_total_women,"person_id","no_total_women")
+      no_records_sub[,year:=as.character(year)][,vx_atc:=as.character(vx_atc)][,condition:=as.character(condition)]
+      no_women[,year:=as.character(year)][,vx_atc:=as.character(vx_atc)][,condition:=as.character(condition)]
       no_records_sub<-merge(no_records_sub,no_women,by=c("year", "vx_atc","condition"))
       rm(no_women)
+      no_records_sub[,year:=as.character(year)]
+      no_total_women[,year:=as.character(year)]
       no_records_sub<-merge(no_records_sub,no_total_women,by="year") #number of pregannt women by year
       rm(no_total_women)
     } else {
@@ -366,6 +394,8 @@ w<-1
   setkey(medicines_event, person_id, year, birth_date,age_start_follow_up, start_follow_up, end_follow_up, condition, truncated_code, event_vocabulary, event_date)
   
   #merge pregnancy_event with medicines_event
+  pregnancy_event[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.character(age_start_follow_up)][,condition:=as.character(condition)][,truncated_code:=as.character(truncated_code)][,event_vocabulary:=as.character(event_vocabulary)]
+  medicines_event[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.character(age_start_follow_up)][,condition:=as.character(condition)][,truncated_code:=as.character(truncated_code)][,event_vocabulary:=as.character(event_vocabulary)]
   medicines_event<-merge(pregnancy_event, medicines_event, all = F)
   
   if(medicines_event[,.N]>0){
@@ -383,8 +413,12 @@ w<-1
     setnames(no_women, "person_id", "no_women")
     no_total_women<-medicines_event[,lapply(.SD, function(x) length(unique(na.omit(x)))),by="year", .SDcols="person_id"]
     setnames(no_total_women,"person_id","no_total_women")
+    no_records_sub[,year:=as.character(year)][,condition:=as.character(condition)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)]
+    no_women[,year:=as.character(year)][,condition:=as.character(condition)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)][,medicinal_product_atc_code:=as.character(medicinal_product_atc_code)]
     no_records_sub<-merge(no_records_sub,no_women,by=c("year","condition","stage_of_pregnancy", "medicinal_product_atc_code"))
     rm(no_women)
+    no_records_sub[,year:=as.character(year)]
+    no_total_women[,year:=as.character(year)]
     no_records_sub<-merge(no_records_sub,no_total_women,by="year") #number of pregannt women by year
     rm(no_total_women)
     } else {
@@ -419,6 +453,8 @@ if (length(events_vaccines_files)>0){
     setkey(vaccines_event, person_id, year, birth_date,age_start_follow_up, start_follow_up, end_follow_up, condition, truncated_code, event_vocabulary, event_date)
     
     #merge pregnancy_event with vaccines_event
+    pregnancy_event[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.character(age_start_follow_up)][,condition:=as.character(condition)][,truncated_code:=as.character(truncated_code)][,event_vocabulary:=as.character(event_vocabulary)]
+    vaccines_event[,person_id:=as.character(person_id)][,year:=as.character(year)][,age_start_follow_up:=as.character(age_start_follow_up)][,condition:=as.character(condition)][,truncated_code:=as.character(truncated_code)][,event_vocabulary:=as.character(event_vocabulary)]
     vaccines_event<-merge(pregnancy_event, vaccines_event, all = F)
     
     if(vaccines_event[,.N]>0){
@@ -436,8 +472,12 @@ if (length(events_vaccines_files)>0){
       setnames(no_women, "person_id", "no_women")
       no_total_women<-vaccines_event[,lapply(.SD, function(x) length(unique(na.omit(x)))),by="year", .SDcols="person_id"]
       setnames(no_total_women,"person_id","no_total_women")
+      no_records_sub[,year:=as.character(year)][,condition:=as.character(condition)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)][,vx_atc:=as.character(vx_atc)]
+      no_women[,year:=as.character(year)][,condition:=as.character(condition)][,stage_of_pregnancy:=as.character(stage_of_pregnancy)][,vx_atc:=as.character(vx_atc)]
       no_records_sub<-merge(no_records_sub,no_women,by=c("year","condition","stage_of_pregnancy", "vx_atc"))
       rm(no_women)
+      no_records_sub[,year:=as.character(year)]
+      no_total_women[,year:=as.character(year)]
       no_records_sub<-merge(no_records_sub,no_total_women,by="year") #number of pregannt women by year
       rm(no_total_women)
     } else {
