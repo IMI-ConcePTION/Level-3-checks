@@ -2015,7 +2015,7 @@ if(length(actual_tables$MEDICINES)>0){
     tab13<-merge(tab13,tab13.males, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.males)
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
     tab13[is.na(no_female_users),no_female_users:=0][is.na(no_male_users),no_male_users:=0]
@@ -2033,7 +2033,7 @@ if(length(actual_tables$MEDICINES)>0){
   }
   if(male_population==0 & female_population>0){
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
     tab13[is.na(no_female_users),no_female_users:=0]
@@ -2050,7 +2050,7 @@ if(length(actual_tables$MEDICINES)>0){
     tab13<-tab13.males
     rm(tab13.males)
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.tot_rec.my, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.tot_rec.my)
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
