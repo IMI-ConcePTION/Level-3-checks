@@ -426,7 +426,7 @@ if(length(actual_tables$EVENTS)>0){
     for (i in 1:length(files)){
       combined_diagnosis_events<-lapply(paste0(events_tmp,files[[i]]), readRDS)
       combined_diagnosis_events<-do.call(rbind,combined_diagnosis_events)
-      combined_diagnosis_events[,truncated_code:=substr(event_code,1,5)]
+      combined_diagnosis_events[,truncated_code:=substr(event_code,1,4)]
       if (subpopulations_present=="Yes"){
         if(combined_diagnosis_events[,.N]>0){
           saveRDS(combined_diagnosis_events, paste0(diag_pop,subpopulations_names[s], "/", names(files)[i],"_events_diagnoses.rds"))
@@ -893,7 +893,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     for (i in 1:length(files)){
       combined_diagnosis_mo<-lapply(paste0(mo_tmp,files[[i]]), readRDS)
       combined_diagnosis_mo<-do.call(rbind,combined_diagnosis_mo)
-      combined_diagnosis_mo[,truncated_code:=substr(event_code,1,5)]
+      combined_diagnosis_mo[,truncated_code:=substr(event_code,1,4)]
       if (subpopulations_present=="Yes"){
         if(combined_diagnosis_mo[,.N]>0){
           saveRDS(combined_diagnosis_mo, paste0(diag_pop,subpopulations_names[s], "/", names(files)[i],"_mo_diagnoses.rds"))
@@ -1358,7 +1358,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
     for (i in 1:length(files)){
       combined_diagnosis_so<-lapply(paste0(so_tmp,files[[i]]), readRDS)
       combined_diagnosis_so<-do.call(rbind,combined_diagnosis_so)
-      combined_diagnosis_so[,truncated_code:=substr(event_code,1,5)]
+      combined_diagnosis_so[,truncated_code:=substr(event_code,1,4)]
       if (subpopulations_present=="Yes"){
         if(combined_diagnosis_so[,.N]>0){
           saveRDS(combined_diagnosis_so, paste0(diag_pop,subpopulations_names[s], "/", names(files)[i],"_so_diagnoses.rds"))
