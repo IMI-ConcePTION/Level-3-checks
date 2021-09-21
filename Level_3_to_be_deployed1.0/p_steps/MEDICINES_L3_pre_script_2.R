@@ -2023,7 +2023,7 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.med.m)
-    tan13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7","atc_code_3"), all=T)
     rm(tab13.med.f)
