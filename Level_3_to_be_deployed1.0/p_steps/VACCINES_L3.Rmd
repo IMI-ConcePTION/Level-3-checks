@@ -64,10 +64,10 @@ In case there is an overlapping subpopulation only subjects in the overlap perio
 
 ```{r echo=F}
 if (subpopulations_present=="No"){
-flowchart<-fread(paste0(vacc_dir,"Masked/", "flowchart_masked.csv"))
+flowchart<-fread(paste0(vacc_dir,"Masked/", "vaccines_flowchart_masked.csv"))
 datatable(flowchart, options = list(scrollX=T))
 } else {
-flowchart<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_flowchart_masked.csv"))
+flowchart<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_flowchart_masked.csv"))
 datatable(flowchart, options = list(scrollX=T))
 }
 ```
@@ -82,10 +82,10 @@ datatable(flowchart, options = list(scrollX=T))
 
 ```{r echo=F}
 if (subpopulations_present=="No"){
-description<-fread(paste0(vacc_dir,"Masked/", "description_masked.csv"))
+description<-fread(paste0(vacc_dir,"Masked/", "vaccines_description_masked.csv"))
 datatable(description, options = list(scrollX=T))
 } else {
-  description<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_description_masked.csv"))
+  description<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_description_masked.csv"))
 datatable(description, options = list(scrollX=T))
 }
 ```

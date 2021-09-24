@@ -319,18 +319,18 @@ if(length(actual_tables$VACCINES)>0){
   
   print("Export flowchart to g_output.")
   if(subpopulations_present=="Yes"){
-    write.csv(flowchart, paste0(vacc_dir,subpopulations_names[s], "/", subpopulations_names[s],"_flowchart.csv"), row.names = F)
+    write.csv(flowchart, paste0(vacc_dir,subpopulations_names[s], "/", subpopulations_names[s],"_vaccines_flowchart.csv"), row.names = F)
   } else {
-    write.csv(flowchart, paste0(vacc_dir, "flowchart.csv"), row.names = F)
+    write.csv(flowchart, paste0(vacc_dir, "vaccines_flowchart.csv"), row.names = F)
   }
   
   #####Apply masking
   print("Masking results for flowchart.")
   flowchart[, COUNT:= as.character(COUNT)][as.numeric(COUNT) > 0 & as.numeric(COUNT) < 5, COUNT := "<5"]
   if(subpopulations_present=="Yes"){
-    write.csv(flowchart, paste0(vacc_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_flowchart_masked.csv"), row.names = F)
+    write.csv(flowchart, paste0(vacc_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_vaccines_flowchart_masked.csv"), row.names = F)
   } else {
-    write.csv(flowchart, paste0(vacc_dir,"Masked/","flowchart_masked.csv"), row.names = F)
+    write.csv(flowchart, paste0(vacc_dir,"Masked/","vaccines_flowchart_masked.csv"), row.names = F)
   }
   
   rm(flowchart)
@@ -444,9 +444,9 @@ if(length(actual_tables$VACCINES)>0){
      no_level3_atc,no_level4_atc,no_level5_atc,no_level6_atc,no_level7_atc)
  
   if(subpopulations_present=="Yes"){
-    write.csv(description, paste0(vacc_dir,subpopulations_names[s], "/", subpopulations_names[s],"_description.csv"), row.names = F)
+    write.csv(description, paste0(vacc_dir,subpopulations_names[s], "/", subpopulations_names[s],"_vaccines_description.csv"), row.names = F)
   } else {
-    write.csv(description, paste0(vacc_dir,"description.csv"), row.names = F)
+    write.csv(description, paste0(vacc_dir,"vaccines_description.csv"), row.names = F)
   }
   
   #Apply masking
@@ -462,9 +462,9 @@ if(length(actual_tables$VACCINES)>0){
   if(as.numeric(description[13, 2])<5 & as.numeric(description[13, 2])>0) {description[13, 2]<-"<5"} 
   
   if(subpopulations_present=="Yes"){
-    write.csv(description, paste0(vacc_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_description_masked.csv"), row.names = F)
+    write.csv(description, paste0(vacc_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_vaccines_description_masked.csv"), row.names = F)
   } else {
-    write.csv(description, paste0(vacc_dir,"Masked/","description_masked.csv"), row.names = F)
+    write.csv(description, paste0(vacc_dir,"Masked/","vaccines_description_masked.csv"), row.names = F)
   }
   
   rm(description)
