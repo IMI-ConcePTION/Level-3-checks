@@ -90,6 +90,7 @@ Lifestyle <- list()
 #   )
 # )
 ###############################################
+
 source("packages.R")
 source("99_path.R")
 source(paste0(pre_dir, "info.R"))
@@ -131,18 +132,10 @@ for(i in readRDS(paste0(std_pop_tmp,"SCHEME_06.rds"))[["subpopulations"]]){
   
   rm(report_dir1,report_dir2)
 }
-source(paste0(pre_dir,"save_environment.R"))
+
 ####################################################
 #Medicine exposure
 ####################################################
-rm(list=ls())
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
-source("99_path.R")
-load(paste0(g_intermediate,"environment.RData"))
 Rmd_MEDICINES<-paste0(pre_dir,"/MEDICINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"MEDICINES_L3.R")))
 
@@ -155,21 +148,11 @@ if(subpopulations_present=="No"){
   }
 }
 }
-source(paste0(pre_dir,"save_environment.R"))
 ##################################################
 #Vaccine exposure
 ##################################################
-rm(list=ls())
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
-source("99_path.R")
-load(paste0(g_intermediate,"environment.RData"))
 Rmd_VACCINES<-paste0(pre_dir,"/VACCINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"VACCINES_L3.R")))
-
 if(length(actual_tables$VACCINES)>0){
 if(subpopulations_present=="No"){
   system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_L3.html")) 
@@ -179,21 +162,12 @@ if(subpopulations_present=="No"){
   }
 }
 }
-source(paste0(pre_dir,"save_environment.R"))
+
 #################################################
 #Diagnoses
 #################################################
-rm(list=ls())
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
-source("99_path.R")
-load(paste0(g_intermediate,"environment.RData"))
 Rmd_DIAGNOSES<-paste0(pre_dir,"/DIAGNOSES_L3.Rmd")
 system.time(source(paste0(pre_dir,"DIAGNOSES_L3.R")))
-
 if(sum(length(actual_tables$EVENTS),length(actual_tables$MEDICAL_OBSERVATIONS),length(actual_tables$SURVEY_OBSERVATIONS))>0){
 if(subpopulations_present=="No"){
 system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), output_file = "DIAGNOSES_L3.html")) 
@@ -203,21 +177,12 @@ system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), 
   }
 }
 }
-source(paste0(pre_dir,"save_environment.R"))
+
 #################################################
 #Pregnancy
 #################################################
-rm(list=ls())
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
-source("99_path.R")
-load(paste0(g_intermediate,"environment.RData"))
 Rmd_PREGNANCY<-paste0(pre_dir,"/PREGNANCY_L3.Rmd")
 source(paste0(pre_dir,"PREGNANCY_L3.R"))
-
 if(sum(length(actual_tables$EVENTS),length(actual_tables$MEDICAL_OBSERVATIONS),length(actual_tables$SURVEY_OBSERVATIONS), length(actual_tables$SURVEY_ID))>0){
 if(subpopulations_present=="No"){
   system.time(render(Rmd_PREGNANCY, output_dir = paste0(output_dir,"PREGNANCY/"), output_file = "PREGNANCY_L3.html")) 
@@ -227,21 +192,11 @@ if(subpopulations_present=="No"){
   }
 }
 }
-source(paste0(pre_dir,"save_environment.R"))
 #################################################
 #Populations of interest
 #################################################
-rm(list=ls())
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
-source("99_path.R")
-load(paste0(g_intermediate,"environment.RData"))
 Rmd_POI<-paste0(pre_dir,"/POI_L3.Rmd")
 system.time(source(paste0(pre_dir,"POI_L3.R")))
-
 if(subpopulations_present=="No"){
   system.time(render(Rmd_POI, output_dir = paste0(output_dir,"POI/"), output_file = "POI_L3.html")) 
 } else {
@@ -249,6 +204,6 @@ if(subpopulations_present=="No"){
     system.time(render(Rmd_POI, output_dir = paste0(output_dir,"POI/"), output_file = paste0(subpopulations_names[a],"_POI_L3.html")))  
   }
 }
-source(paste0(pre_dir,"save_environment.R"))
+
 
 
