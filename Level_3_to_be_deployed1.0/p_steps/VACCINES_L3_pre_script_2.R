@@ -110,7 +110,7 @@ if(length(actual_tables$VACCINES)>0){
     vx_stdpop_no_meaning[[w]]<-df[is.na(meaning),.N] #number of records with empty meaning
     df<-df[!is.na(meaning)] #remove records with empty meaning
     vx_sex_not_specified[[w]]<-df[sex_at_instance_creation =="U" | sex_at_instance_creation == "O",.N] #number of records with unspecified sex
-    df<-df[sex_at_instance_creation != "U" | sex_at_instance_creation != "O"]#remove unspecified sex
+    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     
     #########
     meanings[[w]]<-unique(na.omit(df[, meaning]))

@@ -105,7 +105,7 @@ if(length(actual_tables$EVENTS)>0){
     events_not_vocabularies[[w]]<-df[event_vocabulary %!in% vocabularies_list,.N] #number of records where vocabularies doesn't match the codelist
     df<-df[is.na(event_vocabulary) | event_vocabulary %in% vocabularies_list] #remove records where vocabularies are not of interest
     events_sex_not_specified[[w]]<-df[sex_at_instance_creation =="U" | sex_at_instance_creation == "O",.N] #number of records with unspecified sex
-    df<-df[sex_at_instance_creation != "U" | sex_at_instance_creation != "O"]#remove unspecified sex
+    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     df[person_id %in% persons_event_prior, event_prior:=1]
     df[person_id %!in% persons_event_prior, event_prior:=0]
     #########
@@ -575,7 +575,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     mo_not_vocabularies[[w]]<-df[ event_vocabulary %!in% vocabularies_list,.N] #number of records where vocabularies doesn't match the codelist
     df<-df[is.na( event_vocabulary) |  event_vocabulary %in% vocabularies_list] #remove records where vocabularies are not of interest
     mo_sex_not_specified[[w]]<-df[sex_at_instance_creation =="U" | sex_at_instance_creation == "O",.N] #number of records with unspecified sex
-    df<-df[sex_at_instance_creation != "U" | sex_at_instance_creation != "O"]#remove unspecified sex
+    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     df[person_id %in% persons_event_prior, event_prior:=1]
     df[person_id %!in% persons_event_prior, event_prior:=0]
     #########
@@ -1044,7 +1044,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
     so_not_vocabularies[[w]]<-df[event_vocabulary %!in% vocabularies_list,.N] #number of records where vocabularies doesn't match the codelist
     df<-df[is.na(event_vocabulary) | event_vocabulary %in% vocabularies_list] #remove records where vocabularies are not of interest
     so_sex_not_specified[[w]]<-df[sex_at_instance_creation =="U" | sex_at_instance_creation == "O",.N] #number of records with unspecified sex
-    df<-df[sex_at_instance_creation != "U" | sex_at_instance_creation != "O"]#remove unspecified sex
+    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     df[person_id %in% persons_event_prior, event_prior:=1]
     df[person_id %!in% persons_event_prior, event_prior:=0]
     #########
