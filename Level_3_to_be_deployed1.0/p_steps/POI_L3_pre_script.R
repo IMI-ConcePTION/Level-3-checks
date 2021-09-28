@@ -141,7 +141,7 @@ for (j in 1: length(medicines_files)){
     no_records<-merge(no_records,no_women,by=c("year", "medicinal_product_atc_code","stage_of_pregnancy"))
     rm(no_women)
     no_records[,year:=as.character(year)]
-    no_total_women[,,year:=as.character(year)]
+    no_total_women[,year:=as.character(year)]
     no_records<-merge(no_records,no_total_women,by="year") #number of pregannt women by year
     rm(no_total_women)
 
@@ -634,7 +634,7 @@ if(length(events_medicines)>0){
   ev_med<-do.call(rbind,ev_med)
   setcolorder(ev_med, c("condition", "medicinal_product_atc_code", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_med,"medicinal_product_atc_code", "atc_code")
-  
+  setnames(ev_med,"condition", "event_definition")
   ev_med<-data.table(ev_med, data_access_provider=data_access_provider_name, data_source=data_source_name)
   
   
@@ -676,7 +676,7 @@ if(length(events_vaccines)>0){
   ev_vacc<-do.call(rbind,ev_vacc)
   setcolorder(ev_vacc, c("condition", "vx_atc", "year","no_records", "no_women", "no_total_women"))
   setnames(ev_vacc,"vx_atc", "atc_code")
-  
+  setnames(ev_vacc,"condition", "event_definition")
   ev_vacc<-data.table(ev_vacc, data_access_provider=data_access_provider_name, data_source=data_source_name)
   
   

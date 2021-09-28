@@ -161,6 +161,7 @@ tab20_graph<-tab20[no_records=="<5", no_records:= 0.9]
 tab20_graph<-tab20_graph[,no_records:=as.numeric(no_records)]
 tab20_graph<-tab20[no_empty_code=="<5", no_empty_code:= 0.9]
 tab20_graph<-tab20_graph[,no_empty_code:=as.numeric(no_empty_code)]
+tab20_graph<-tab20_graph[,year:=as.factor(year)]
 } else {
  tab20_graph<-NULL 
 }
@@ -168,7 +169,6 @@ tab20_graph<-tab20_graph[,no_empty_code:=as.numeric(no_empty_code)]
 
 if(!is.null(tab20)){
 # Compute the cumulative percentages (top of each rectangle)
-  tab20_graph[,year:=as.factor(year)]
   
 ggplot(tab20_graph, aes(fill=year, y=percentage_empty_code, x=meaning, label= percentage_empty_code)) + 
   geom_bar(position="stack", stat="identity") +
@@ -180,6 +180,8 @@ ggplot(tab20_graph, aes(fill=year, y=percentage_empty_code, x=meaning, label= pe
         axis.ticks.y = element_blank(),
         axis.text.x=element_text(angle = 90),
         plot.title = element_text(color="#76b82a", face="bold"))
+} else {
+    print("This table cannot be produced based on the available data.")
   }
 
 ```
@@ -261,13 +263,15 @@ fig.tab21[[i]]<-ggplotly(ggplot(tab21_graph[meaning==unique(tab21_graph[,meaning
                legend.text = element_text(size = 7))) 
                                      
 }
-}
+} 
 
 ```
 
 ```{r display_tab21graph, echo=FALSE}
 if(!is.null(tab21_graph)){
 htmltools::tagList(list(fig.tab21))
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -289,9 +293,11 @@ if (tab22[,.N]>0){
   setcolorder(tab22, c("event_definition","sex","meaning","age_band","year","no_records","person_years","rate_per_1000_py"))
 datatable(tab22, options = list(scrollX=T))
 } else {
+  tab22<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab22<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -301,9 +307,11 @@ datatable(tab22, options = list(scrollX=T))
     setcolorder(tab22, c("event_definition","sex","meaning","age_band","year","no_records","person_years","rate_per_1000_py"))
 datatable(tab22, options = list(scrollX=T))
   } else {
+    tab22<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+      tab22<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -319,6 +327,7 @@ tab22_graph_all<-tab22[no_records=="<5", no_records:= 0.9]
 tab22_graph_all<-tab22_graph_all[,no_records:=as.numeric(no_records)]
 tab22_graph_all<-tab22_graph_all[meaning=="All" & age_band=="All"]
 tab22_graph_all<-tab22_graph_all[person_years!=0]
+tab22_graph_all<-tab22_graph_all[,year:=as.factor(year)]
 
 } else {
  tab22_graph_all<-NULL 
@@ -345,6 +354,8 @@ ggplotly(ggplot(tab22_graph_all[no_records!=0.9], aes(x = year, y = rate_per_100
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -373,6 +384,8 @@ ggplotly(ggplot(tab22_graph_all[no_records==0.9], aes(x = year, y = rate_per_100
                legend.text = element_text(size = 7))) 
                                      
 }
+}else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -387,6 +400,7 @@ tab22_graph_age<-tab22_graph_age[,no_records:=as.numeric(no_records)]
 tab22_graph_age<-tab22_graph_age[meaning=="All"]
 tab22_graph_age<-tab22_graph_age[person_years!=0]
 tab22_graph_age<-tab22_graph_age[age_band!="All"]
+tab22_graph_age<-tab22_graph_age[,year:=as.factor(year)]
 
 } else {
  tab22_graph_age<-NULL 
@@ -414,7 +428,9 @@ ggplotly(ggplot(tab22_graph_age[no_records!=0.9], aes(x = year, y = rate_per_100
                                      
 
 }
-}
+}  else {
+    print("This table cannot be produced based on the available data.")
+  }
 
 ```
 
@@ -443,6 +459,8 @@ ggplotly(ggplot(tab22_graph_age[no_records!=0.9], aes(x = year, y = rate_per_100
                                      
 
 }
+}else {
+  print("This table cannot be produced based on the available data.") 
 }
 
 ```
@@ -458,6 +476,7 @@ tab22_graph_age_m<-tab22_graph_age_m[,no_records:=as.numeric(no_records)]
 tab22_graph_age_m<-tab22_graph_age_m[meaning!="All"]
 tab22_graph_age_m<-tab22_graph_age_m[person_years!=0]
 tab22_graph_age_m<-tab22_graph_age_m[age_band!="All"]
+tab22_graph_age_m<-tab22_graph_age_m[,year:=as.factor(year)]
 
 } else {
  tab22_graph_age_m<-NULL 
@@ -496,6 +515,8 @@ if(!is.null(tab22_graph_age_m)){
 if (tab22_graph_age_m[no_records !=0.9,.N] != 0){
 htmltools::tagList(list(fig.tab22))
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -536,6 +557,8 @@ if(!is.null(tab22_graph_age_m)){
 if (tab22_graph_age_m[no_records ==0.9,.N] != 0){
 htmltools::tagList(list(fig.tab22_small))
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -549,9 +572,11 @@ if (tab23[,.N]>0){
   setcolorder(tab23, c("event_definition","sex","meaning","age_band","year","no_records","person_years","rate_per_1000_py"))
 datatable(tab23, options = list(scrollX=T))
 } else {
+  tab23<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+     tab23<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -561,9 +586,11 @@ datatable(tab23, options = list(scrollX=T))
 setcolorder(tab23, c("event_definition","sex","meaning","age_band","year","no_records","person_years","rate_per_1000_py"))
 datatable(tab23, options = list(scrollX=T))
   } else {
+     tab23<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+       tab23<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -579,6 +606,7 @@ tab23_graph_all<-tab23[no_records=="<5", no_records:= 0.9]
 tab23_graph_all<-tab23_graph_all[,no_records:=as.numeric(no_records)]
 tab23_graph_all<-tab23_graph_all[meaning=="All" & age_band=="All"]
 tab23_graph_all<-tab23_graph_all[person_years!=0]
+tab23_graph_all<-tab23_graph_all[,year:=as.factor(year)]
 
 } else {
  tab23_graph_all<-NULL 
@@ -605,6 +633,8 @@ ggplotly(ggplot(tab23_graph_all[no_records!=0.9], aes(x = year, y = rate_per_100
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -633,6 +663,8 @@ ggplotly(ggplot(tab23_graph_all[no_records==0.9], aes(x = year, y = rate_per_100
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -647,7 +679,7 @@ tab23_graph_age<-tab23_graph_age[,no_records:=as.numeric(no_records)]
 tab23_graph_age<-tab23_graph_age[meaning=="All"]
 tab23_graph_age<-tab23_graph_age[person_years!=0]
 tab23_graph_age<-tab23_graph_age[age_band!="All"]
-
+tab23_graph_age<-tab23_graph_age[,year:=as.factor(year)]
 } else {
  tab23_graph_age<-NULL 
 }
@@ -674,8 +706,9 @@ ggplotly(ggplot(tab23_graph_age[no_records!=0.9], aes(x = year, y = rate_per_100
                                      
 
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
-
 ```
 
 The incidence rate cannot be shown since the number of records is masked and replaced with 0.9 for visualization purpose.
@@ -703,8 +736,9 @@ ggplotly(ggplot(tab23_graph_age[no_records==0.9], aes(x = year, y = rate_per_100
                                      
 
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
-
 ```
 
 <br>
@@ -718,7 +752,7 @@ tab23_graph_age_m<-tab23_graph_age_m[,no_records:=as.numeric(no_records)]
 tab23_graph_age_m<-tab23_graph_age_m[meaning!="All"]
 tab23_graph_age_m<-tab23_graph_age_m[person_years!=0]
 tab23_graph_age_m<-tab23_graph_age_m[age_band!="All"]
-
+tab23_graph_age_m<-tab23_graph_age_m[,year:=as.factor(year)]
 } else {
  tab23_graph_age_m<-NULL 
 }
@@ -756,6 +790,8 @@ if(!is.null(tab23_graph_age_m)){
 if (tab23_graph_age_m[no_records !=0.9,.N] != 0){
 htmltools::tagList(list(fig.tab23))
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 
@@ -788,7 +824,6 @@ fig.tab23_small[[i]]<-ggplotly(ggplot(tab23_graph_age_m[no_records==0.9][meaning
 }
 }
 }
-
 ```
 
 ```{r display_tab23_graph_age_m_s, echo=FALSE}
@@ -796,6 +831,8 @@ if(!is.null(tab23_graph_age_m)){
 if (tab23_graph_age_m[no_records ==0.9,.N] != 0){
 htmltools::tagList(list(fig.tab22_small))
 }
+} else {
+  print("This table cannot be produced based on the available data.") 
 }
 ```
 

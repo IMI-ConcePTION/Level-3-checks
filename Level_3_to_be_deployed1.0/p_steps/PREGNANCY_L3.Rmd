@@ -167,6 +167,8 @@ ggplotly(ggplot(graph_1, aes(fill=`presence of codes category`, y=year, x=count)
     geom_bar(position="stack", stat="identity") +
       scale_fill_brewer(palette = "Greens") + 
       theme(panel.background = element_rect(fill = "white"), axis.line = element_line(size = 2, colour = "#76b82a")))
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -236,12 +238,14 @@ for(i in 1:length(fig.graph_2)){
                   axis.line = element_line(size = 2, colour = "#76b82a")))
 
 }
-}
+} 
 ```
 
 ```{r echo=F}
 if(!is.null(graph_2)){
 htmltools::tagList(list(fig.graph_2))
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -264,9 +268,11 @@ tab17<-fread(paste0(preg_dir,"Masked/", "pregnancy_rates_y_masked.csv"))
 if(tab17[,.N]>0){
 datatable(tab17, options = list(scrollX=T))
 } else {
+  tab17<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab17<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -275,9 +281,11 @@ datatable(tab17, options = list(scrollX=T))
     if(tab17[,.N]>0){
 datatable(tab17, options = list(scrollX=T))
   } else {
+    tab17<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+      tab17<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -292,6 +300,7 @@ if(!is.null(tab17)){
 tab17_graph_all<-tab17[no_women=="<5", no_women:= 0.9]
 tab17_graph_all<-tab17_graph_all[,no_women:=as.numeric(no_women)]
 tab17_graph_all<-tab17_graph_all[person_years!=0]
+tab17_graph_all<-tab17_graph_all[,year:=as.factor(year)]
 
 } else {
  tab17_graph_all<-NULL 
@@ -317,6 +326,8 @@ ggplotly(ggplot(tab17_graph_all[no_women!=0.9], aes(x = year, y = women_per_1000
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+   print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -344,6 +355,8 @@ ggplotly(ggplot(tab17_graph_all[no_women==0.9], aes(x = year, y = women_per_1000
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+   print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -364,9 +377,11 @@ tab18<-fread(paste0(preg_dir,"Masked/", "pregnancy_rates_y_age_masked.csv"))
 if(tab18[,.N]>0){
 datatable(tab18, options = list(scrollX=T))
 } else {
+  tab18<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+     tab18<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -375,9 +390,11 @@ datatable(tab18, options = list(scrollX=T))
     if(tab18[,.N]>0){
 datatable(tab18, options = list(scrollX=T))
   } else {
+     tab18<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+       tab18<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -392,6 +409,7 @@ if(!is.null(tab18)){
 tab18_graph_all<-tab18[no_women=="<5", no_women:= 0.9]
 tab18_graph_all<-tab18_graph_all[,no_women:=as.numeric(no_women)]
 tab18_graph_all<-tab18_graph_all[person_years!=0]
+tab18_graph_all<-tab18_graph_all[,year:=as.factor(year)]
 
 } else {
  tab18_graph_all<-NULL 
@@ -418,6 +436,8 @@ ggplotly(ggplot(tab18_graph_all[no_women!=0.9], aes(x = year, y = women_per_1000
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -446,6 +466,8 @@ ggplotly(ggplot(tab18_graph_all[no_women==0.9], aes(x = year, y = women_per_1000
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -466,9 +488,11 @@ tab19<-fread(paste0(preg_dir,"Masked/", "pregnancy_follow_up_masked.csv"))
 if (tab19[,.N]>0){
 datatable(tab19, options = list(scrollX=T))
 } else {
+  tab19<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab19<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -477,9 +501,11 @@ datatable(tab19, options = list(scrollX=T))
     if (tab19[,.N]>0){
 datatable(tab19, options = list(scrollX=T))
   } else {
+    tab19<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+      tab19<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }

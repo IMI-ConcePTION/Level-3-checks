@@ -108,9 +108,11 @@ if (tab10[,.N]>0){
 setcolorder(tab10,c("atc_code_1", "count", "meaning", "year", "data_access_provider", "data_source"))
 datatable(tab10, options = list(scrollX=T))
 } else {
+  tab10<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+     tab10<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -120,9 +122,11 @@ datatable(tab10, options = list(scrollX=T))
   setcolorder(tab10,c("atc_code_1", "count", "meaning", "year", "data_access_provider", "data_source"))
 datatable(tab10, options = list(scrollX=T))
   } else {
+     tab10<-NULL
     print("This table cannot be produced based on the available data.")
 }
     } else {
+       tab10<-NULL
    print("This table cannot be produced based on the available data.")
     }
 }
@@ -136,6 +140,7 @@ tab10_graph<-tab10[count=="<5", count:= 0.9]
 tab10_graph<-tab10_graph[,count:=as.numeric(count)]
 tab10_graph<-tab10_graph[is.na(atc_code_1), atc_code_1:="All"]
 tab10_graph<-tab10_graph[atc_code_1!="All"]
+tab10_graph<-tab10_graph[,year:=as.factor(year)]
 } else {
  tab10_graph<-NULL 
 }
@@ -161,6 +166,8 @@ ggplotly(ggplot(tab10_graph, aes(x = year, y = count, group=atc_code_1)) +
                legend.text = element_text(size = 7))) 
                                      
 }
+} else{
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -176,9 +183,11 @@ if(tab12[,.N]>0){
 setcolorder(tab12,c("atc_code_4", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3","atc_code_1", "data_access_provider", "data_source"))
 datatable(tab12, options = list(scrollX=T))
 } else {
+  tab12<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab12<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -188,9 +197,11 @@ datatable(tab12, options = list(scrollX=T))
   setcolorder(tab12,c("atc_code_4", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3","atc_code_1", "data_access_provider", "data_source"))
 datatable(tab12, options = list(scrollX=T))
   } else {
+    tab12<-NULL
     print("This table cannot be produced based on the available data.")
 }
     } else {
+      tab12<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -204,6 +215,7 @@ tab12_graph<-tab12[,.(meaning,year,atc_code_4,no_records,no_male_users, no_femal
 tab12_graph<-tab12_graph[no_records=="<5",no_records:=0.9]
 tab12_graph<-tab12_graph[no_male_users=="<5",no_male_users:=0.9]
 tab12_graph<-tab12_graph[no_female_users=="<5",no_female_users:=0.9]
+tab12_graph<-tab12_graph[,year:=as.factor(year)][,no_records:=as.numeric(no_records)][,no_male_users:=as.numeric(no_male_users)][,no_female_users:=as.numeric(no_female_users)]
 }
 
 if(!is.null(tab12_graph)){
@@ -228,6 +240,8 @@ ggplotly(ggplot(tab12_graph[meaning!="All"], aes(x = year, y = no_records, group
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -275,6 +289,8 @@ fig.tab12_users[[i]][['x']][['layout']][['annotations']][[1]][['y']] <--0.15
 ```{r display_tab12_users_graph, echo=FALSE}
 if(!is.null(tab12_graph)){
 htmltools::tagList(list(fig.tab12_users))
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -322,6 +338,8 @@ fig.tab12_median[[i]][['x']][['layout']][['annotations']][[1]][['y']] <--0.15
 ```{r display_tab12_median_graph, echo=FALSE}
 if(!is.null(tab12_graph)){
 htmltools::tagList(list(fig.tab12_median))
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -337,9 +355,11 @@ if (tab13[,.N]>0){
   setcolorder(tab13,c("atc_code_7", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
 datatable(tab13, options = list(scrollX=T))
 } else {
+  tab13<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+     tab13<-NULL
    print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -349,9 +369,11 @@ datatable(tab13, options = list(scrollX=T))
   setcolorder(tab13,c("atc_code_7", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
 datatable(tab13, options = list(scrollX=T))
   } else {
+     tab13<-NULL
     print("This table cannot be produced based on the available data.")
 }
     } else {
+       tab13<-NULL
    print("This table cannot be produced based on the available data.")
     }
 }
@@ -375,9 +397,11 @@ if(tab11[,.N]>0){
   setcolorder(tab11,c("atc_code_1", "count", "meaning", "year", "data_access_provider", "data_source"))
 datatable(tab11, options = list(scrollX=T))
 } else {
+  tab11<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab11<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -387,9 +411,11 @@ datatable(tab11, options = list(scrollX=T))
     setcolorder(tab11,c("atc_code_1", "count", "meaning", "year", "data_access_provider", "data_source"))
 datatable(tab11, options = list(scrollX=T))
   } else {
+    tab11<-NULL
     print("This table cannot be produced based on the available data.")
 }
     } else {
+      tab11<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -403,6 +429,7 @@ tab11_graph<-tab11[count=="<5", count:= 0.9]
 tab11_graph<-tab11_graph[,count:=as.numeric(count)]
 tab11_graph<-tab11_graph[is.na(atc_code_1),atc_code_1:="All"]
 tab11_graph<-tab11_graph[atc_code_1!="All"]
+tab11_graph<-tab11_graph[,year:=as.factor(year)]
 } else {
  tab11_graph<-NULL 
 }
@@ -428,6 +455,8 @@ ggplotly(ggplot(tab11_graph, aes(x = year, y = count, group=atc_code_1)) +
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -443,9 +472,11 @@ if(tab14[,.N]>0){
   setcolorder(tab14,c("atc_code_7", "no_records", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
 datatable(tab14, options = list(scrollX=T))
 } else {
+  tab14<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab14<-NULL
    print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -455,9 +486,11 @@ datatable(tab14, options = list(scrollX=T))
     setcolorder(tab14,c("atc_code_7", "no_records", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
 datatable(tab14, options = list(scrollX=T))
   } else {
+    tab14<-NULL
     print("This table cannot be produced based on the available data.")
 }
     } else {
+      tab14<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -480,9 +513,11 @@ tab15<-fread(paste0(vacc_dir,"Masked/", "vaccines_rates_year_atc_masked.csv"))
 if (tab15[,.N]>0){
 datatable(tab15, options = list(scrollX=T))
 } else {
+  tab15<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab15<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -491,9 +526,11 @@ datatable(tab15, options = list(scrollX=T))
   if (tab15[,.N]>0){
 datatable(tab15, options = list(scrollX=T))
   } else {
+    tab15<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+      tab15<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -509,6 +546,7 @@ tab15_graph<-tab15[count_vaccines=="<5", count_vaccines:= 0.9]
 tab15_graph<-tab15_graph[,count_vaccines:=as.numeric(count_vaccines)]
 tab15_graph<-tab15[no_users=="<5", no_users:= 0.9]
 tab15_graph<-tab15_graph[,no_users:=as.numeric(no_users)]
+tab15_graph<-tab15_graph[,year:=as.factor(year)]
 } else {
  tab15_graph<-NULL 
 }
@@ -533,6 +571,8 @@ ggplotly(ggplot(tab15_graph[count_vaccines !=0.9], aes(x = year, y = vaccines_pe
                legend.text = element_text(size = 7))) 
                                      
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -558,7 +598,9 @@ ggplotly(ggplot(tab15_graph[count_vaccines ==0.9], aes(x = year, y = vaccines_pe
                                      legend.title = element_text(size = 7), 
                legend.text = element_text(size = 7))) 
                                      
-}
+} 
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -585,6 +627,8 @@ ggplotly(ggplot(tab15_graph[no_users !=0.9], aes(x = year, y = users_per_1000_py
                legend.text = element_text(size = 7))) 
                                      
 }
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -611,6 +655,8 @@ ggplotly(ggplot(tab15_graph[no_users ==0.9], aes(x = year, y = users_per_1000_py
                legend.text = element_text(size = 7))) 
                                      
 }
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -624,9 +670,11 @@ tab16<-fread(paste0(vacc_dir,"Masked/", "vaccines_rates_year_age_atc_masked.csv"
 if (tab16[,.N]>0){
 datatable(tab16, options = list(scrollX=T))
 } else {
+  tab16<-NULL
     print("This table cannot be produced based on the available data.")
 }
   } else {
+    tab16<-NULL
     print("This table cannot be produced based on the available data.")
 }
 } else {
@@ -635,9 +683,11 @@ datatable(tab16, options = list(scrollX=T))
   if (tab16[,.N]>0){
 datatable(tab16, options = list(scrollX=T))
   } else {
+    tab16<-NULL
       print("This table cannot be produced based on the available data.")
   }
     } else {
+      tab16<-NULL
     print("This table cannot be produced based on the available data.")
     }
 }
@@ -653,6 +703,7 @@ tab16_graph<-tab16[count_vaccines=="<5", count_vaccines:= 0.9]
 tab16_graph<-tab16_graph[,count_vaccines:=as.numeric(count_vaccines)]
 tab16_graph<-tab16[no_users=="<5", no_users:= 0.9]
 tab16_graph<-tab16_graph[,no_users:=as.numeric(no_users)]
+tab16_graph<-tab16_graph[,year:=as.factor(year)]
 } else {
  tab16_graph<-NULL 
 }
@@ -680,7 +731,7 @@ fig.tab16_med[[i]]<-ggplotly(ggplot(tab16_graph[count_vaccines!=0.9][age_band==u
                                      
 }
 }
-}
+} 
 ```
 
 ```{r display_tab16_med_graph, echo=FALSE}
@@ -688,6 +739,8 @@ if(!is.null(tab16_graph)){
 if (tab16_graph[count_vaccines !=0.9,.N] != 0){
 htmltools::tagList(list(fig.tab16_med))
 }
+} else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -725,6 +778,8 @@ if(!is.null(tab16_graph)){
 if (tab16_graph[count_vaccines ==0.9,.N] != 0){
 htmltools::tagList(list(fig.tab16_med_small))
 }
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -762,6 +817,8 @@ if(!is.null(tab16_graph)){
 if (tab16_graph[no_users !=0.9,.N] != 0){
 htmltools::tagList(list(fig.tab16_user))
 }
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -799,6 +856,8 @@ if(!is.null(tab16_graph)){
 if (tab16_graph[no_users ==0.9,.N] != 0){
 htmltools::tagList(list(fig.tab16_users_small))
 }
+}else {
+  print("This table cannot be produced based on the available data.")
 }
 ```
 
@@ -814,3 +873,4 @@ htmltools::tagList(list(fig.tab16_users_small))
 
 </div>
 
+<br>
