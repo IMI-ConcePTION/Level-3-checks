@@ -251,4 +251,28 @@ if(subpopulations_present=="No"){
 }
 source(paste0(pre_dir,"save_environment.R"))
 
+#################################################
+#EUROCAT INDICATORS
+#################################################
+rm(list=ls())
+if(!require(rstudioapi)){install.packages("rstudioapi")}
+library(rstudioapi)
+
+projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(projectFolder)
+source("99_path.R")
+load(paste0(g_intermediate,"environment.RData"))
+Rmd_EUROCAT<-paste0(pre_dir,"/EUROCAT_DQI_L3.Rmd")
+system.time(source(paste0(pre_dir,"eurocat_dqi.R")))
+
+if(subpopulations_present=="No"){
+  system.time(render(Rmd_EUROCAT, output_dir = paste0(output_dir,"EUROCAT/"), output_file = "EUROCAT_DQI_L3.html")) 
+} else {
+  for (a in 1: length(subpopulations_names)){
+    system.time(render(Rmd_EUROCAT, output_dir = paste0(output_dir,"EUROCAT/"), output_file = paste0(subpopulations_names[a],"_EUROCAT_DQI_L3.html")))  
+  }
+}
+source(paste0(pre_dir,"save_environment.R"))
+
+
 
