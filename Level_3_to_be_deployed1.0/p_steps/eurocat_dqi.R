@@ -16,7 +16,7 @@ source(paste0(pre_dir, "info.R"))
 ##################################################
   #output folder for EUROCAT report in g_output
   if ("EUROCAT" %in% list.files(output_dir)){
-    unlink(paste0(output_dir,"EUROCAT"), recursive = T)#delete folder
+    unlink(paste0(output_dir,"EUROCAT"), recursive = TRUE)#delete folder
     dir.create(paste(output_dir, "EUROCAT", sep=""))
     eurocat_dir<-paste(output_dir, "EUROCAT/", sep="")
     dir.create(paste(eurocat_dir,"Masked", sep=""))
@@ -32,7 +32,7 @@ source(paste0(pre_dir, "info.R"))
   #EUROCAT_tmp/EUROCAT folder where all intermediary files are saved
   if ("EUROCAT" %in% list.files(tmp)){
     eurocat_tmp<-paste(tmp, "EUROCAT/", sep="")
-    do.call(file.remove, list(list.files(eurocat_tmp, full.names = T)))#clean folder completely
+    do.call(file.remove, list(list.files(eurocat_tmp, full.names = TRUE)))#clean folder completely
   }else{
     #Create the EUROCAT folder in the output dir
     dir.create(paste(tmp, "EUROCAT", sep=""))
@@ -46,8 +46,8 @@ if(length(actual_tables$EUROCAT)>0){
   #Main script
   ####################################################################################################
   
-  source(paste0(pre_dir, "Step1_FLOWCHART_FB_25.7.R"))
-  source(paste0(pre_dir,"Step2_DQIascert_acc.R"))
+  source(paste0(pre_dir, "Step1_FLOWCHART_28.9.R"))
+  source(paste0(pre_dir,"step2_ascertainment_accuracy.R"))
   source(paste0(pre_dir,"Step3_DQIcompleteness.R"))
   
   do.call(file.remove, list(list.files(eurocat_tmp, full.names = T)))
