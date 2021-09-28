@@ -84,20 +84,77 @@ The algorithm steps:
 
 ```{r echo=F, warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(ev_preg_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(ev_preg_dir,"Masked/")), pattern="diagnoses_pregnancy_counts_masked.csv"))>0){
 res_1<-fread(paste0(ev_preg_dir,"Masked/", "diagnoses_pregnancy_counts_masked.csv"))
-datatable(res_1, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_1[,.N]>0){
+datatable(res_1, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_1<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_1<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(ev_preg_dir,subpopulations_names[a],"/Masked/")))>0){
-res_1<-fread(paste0(ev_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_diagnoses_pregnancy_counts_masked.csv"))
-datatable(res_1, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(ev_preg_dir,subpopulations_names[a], "/Masked/")), pattern="diagnoses_pregnancy_counts_masked.csv"))>0){
+    res_1<-fread(paste0(ev_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_diagnoses_pregnancy_counts_masked.csv"))
+    if(res_1[,.N]>0){
+datatable(res_1, options = list(scrollX=T))
+    } else {
+      res_1<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
+    res_1<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
 }
+```
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_1_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_1)){
+res_1_graph<-res_1[no_pregnant_women=="<5", no_pregnant_women:= 0.9]
+res_1_graph<-res_1_graph[,no_pregnant_women:=as.numeric(no_pregnant_women)]
+res_1_graph<-res_1_graph[,year:=as.factor(year)]
+} else {
+  res_1_graph<-NULL
 }
+
+if (!is.null(res_1_graph)){
+fig.res_1<-vector(mode="list", length=length(unique(res_1_graph[,event_definition])))
+for(i in 1:length(unique(res_1_graph[,event_definition]))){
+fig.res_1[[i]]<-ggplotly(ggplot(res_1_graph[event_definition==unique(res_1_graph[,event_definition])[i]], aes(x = year, y = no_pregnant_women, group=truncated_code)) +
+                           geom_line(aes(color=truncated_code)) +
+                           geom_point(aes(color=truncated_code)) + 
+                           facet_wrap(~stage_of_pregnancy, ncol=2) +
+                               ggtitle(paste0("Number of pregnant women by event definition:", unique(res_1_graph[,event_definition])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+} 
+```
+
+```{r display_res1graph, echo=FALSE}
+if(!is.null(res_1_graph)){
+htmltools::tagList(list(fig.res_1))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
 ```
 
 
@@ -118,20 +175,77 @@ The algorithm steps:
 
 ```{r echo=F, warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(med_preg_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(med_preg_dir,"Masked/")), pattern="medicines_pregnancy_counts_masked.csv"))>0){
 res_2<-fread(paste0(med_preg_dir,"Masked/", "medicines_pregnancy_counts_masked.csv"))
-datatable(res_2, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_2[,.N]>0){
+datatable(res_2, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_2<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_2<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(med_preg_dir,subpopulations_names[a],"/Masked/")))>0){
-res_2<-fread(paste0(med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_medicines_pregnancy_counts_masked.csv"))
-datatable(res_2, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(med_preg_dir,subpopulations_names[a], "/Masked/")), pattern="medicines_pregnancy_counts_masked.csv"))>0){
+    res_2<-fread(paste0(med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_medicines_pregnancy_counts_masked.csv"))
+    if(res_2[,.N]>0){
+datatable(res_2, options = list(scrollX=T))
+    } else {
+      res_2<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
+    res_2<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
+}
+```
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_2_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_2)){
+res_2_graph<-res_2[no_records=="<5", no_records:= 0.9]
+res_2_graph<-res_2_graph[,no_records:=as.numeric(no_records)]
+res_2_graph<-res_2_graph[,year:=as.factor(year)]
+} else {
+  res_2_graph<-NULL
+}
+
+if (!is.null(res_2_graph)){
+fig.res_2<-vector(mode="list", length=length(unique(res_2_graph[,stage_of_pregnancy])))
+for(i in 1:length(unique(res_2_graph[,stage_of_pregnancy]))){
+fig.res_2[[i]]<-ggplotly(ggplot(res_2_graph[stage_of_pregnancy==unique(res_2_graph[,stage_of_pregnancy])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                               ggtitle(paste0("Number of prescriptions/dispensings by stage of pregnancy:", unique(res_2_graph[,stage_of_pregnancy])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
 }
 }
+
+```
+
+```{r display_res2graph, echo=FALSE}
+if(!is.null(res_2_graph)){
+htmltools::tagList(list(fig.res_2))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
 ```
 
 </div>
@@ -151,20 +265,77 @@ The algorithm steps:
 
 ```{r echo=F,warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(vacc_preg_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(vacc_preg_dir,"Masked/")), pattern="vaccines_pregnancy_counts_masked.csv"))>0){
 res_3<-fread(paste0(vacc_preg_dir,"Masked/", "vaccines_pregnancy_counts_masked.csv"))
-datatable(res_3, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_3[,.N]>0){
+datatable(res_3, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_3<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_3<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(vacc_preg_dir,subpopulations_names[a],"/Masked/")))>0){
-res_3<-fread(paste0(vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_3, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(vacc_preg_dir,subpopulations_names[a], "/Masked/")), pattern="vaccines_pregnancy_counts_masked.csv"))>0){
+    res_3<-fread(paste0(vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_pregnancy_counts_masked.csv"))
+    if(res_3[,.N]>0){
+datatable(res_3, options = list(scrollX=T))
+    } else {
+      res_3<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
+    res_3<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
+}
+```
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_3_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_3)){
+res_3_graph<-res_3[no_records=="<5", no_records:= 0.9]
+res_3_graph<-res_3_graph[,no_records:=as.numeric(no_records)]
+res_3_graph<-res_3_graph[,year:=as.factor(year)]
+} else {
+  res_3_graph<-NULL
+}
+
+if (!is.null(res_3_graph)){
+fig.res_3<-vector(mode="list", length=length(unique(res_3_graph[,stage_of_pregnancy])))
+for(i in 1:length(unique(res_3_graph[,stage_of_pregnancy]))){
+fig.res_3[[i]]<-ggplotly(ggplot(res_3_graph[stage_of_pregnancy==unique(res_3_graph[,stage_of_pregnancy])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                               ggtitle(paste0("Number of administrations by stage of pregnancy:", unique(res_3_graph[,stage_of_pregnancy])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
 }
 }
+
+```
+
+```{r display_res3graph, echo=FALSE}
+if(!is.null(res_3_graph)){
+htmltools::tagList(list(fig.res_3))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
 ```
 
 <br>
@@ -186,23 +357,80 @@ The algorithm steps:
 
 ```{r echo=F,warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(ev_med_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(ev_med_dir,"Masked/")), pattern="events_medicines_counts_masked.csv"))>0){
 res_4<-fread(paste0(ev_med_dir,"Masked/", "events_medicines_counts_masked.csv"))
-datatable(res_4, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_4[,.N]>0){
+datatable(res_4, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_4<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_4<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(ev_med_dir,subpopulations_names[a],"/Masked/")))>0){
-res_4<-fread(paste0(ev_med_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_counts_masked.csv"))
-datatable(res_4, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(ev_med_dir,subpopulations_names[a], "/Masked/")), pattern="events_medicines_counts_masked.csv"))>0){
+    res_4<-fread(paste0(ev_med_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_counts_masked.csv"))
+    if(res_4[,.N]>0){
+datatable(res_4, options = list(scrollX=T))
+    } else {
+      res_4<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
-}
+    res_4<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
 }
 ```
   
 <br>
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_4_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_4)){
+res_4_graph<-res_4[no_records=="<5", no_records:= 0.9]
+res_4_graph<-res_4_graph[,no_records:=as.numeric(no_records)]
+res_4_graph<-res_4_graph[,year:=as.factor(year)]
+} else {
+  res_4_graph<-NULL
+}
+
+if (!is.null(res_4_graph)){
+fig.res_4<-vector(mode="list", length=length(unique(res_4_graph[,event_definition])))
+for(i in 1:length(unique(res_4_graph[,event_definition]))){
+fig.res_4[[i]]<-ggplotly(ggplot(res_4_graph[event_definition==unique(res_4_graph[,event_definition])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                               ggtitle(paste0("Number of prescriptions/dispensings by event definition:", unique(res_4_graph[,event_definition])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+}
+
+```
+
+```{r display_res4graph, echo=FALSE}
+if(!is.null(res_4_graph)){
+htmltools::tagList(list(fig.res_4))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
+```
 
 </div>
 
@@ -221,23 +449,80 @@ The algorithm steps:
 
 ```{r echo=F,warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(ev_vacc_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(ev_vacc_dir,"Masked/")), pattern="events_vaccines_counts_masked.csv"))>0){
 res_5<-fread(paste0(ev_vacc_dir,"Masked/", "events_vaccines_counts_masked.csv"))
-datatable(res_5, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_5[,.N]>0){
+datatable(res_5, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_5<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_5<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(ev_vacc_dir,subpopulations_names[a],"/Masked/")))>0){
-res_5<-fread(paste0(ev_vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_counts_masked.csv"))
-datatable(res_5, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(ev_vacc_dir,subpopulations_names[a], "/Masked/")), pattern="events_vaccines_counts_masked.csv"))>0){
+    res_5<-fread(paste0(ev_vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_counts_masked.csv"))
+    if(res_5[,.N]>0){
+datatable(res_5, options = list(scrollX=T))
+    } else {
+      res_5<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
-}
+    res_5<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
 }
 ```
 
 <br> 
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_5_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_5)){
+res_5_graph<-res_5[no_records=="<5", no_records:= 0.9]
+res_5_graph<-res_5_graph[,no_records:=as.numeric(no_records)]
+res_5_graph<-res_5_graph[,year:=as.factor(year)]
+} else {
+  res_5_graph<-NULL
+}
+
+if (!is.null(res_5_graph)){
+fig.res_5<-vector(mode="list", length=length(unique(res_5_graph[,event_definition])))
+for(i in 1:length(unique(res_5_graph[,event_definition]))){
+fig.res_5[[i]]<-ggplotly(ggplot(res_5_graph[event_definition==unique(res_5_graph[,event_definition])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                               ggtitle(paste0("Number of administrations by event definition:", unique(res_5_graph[,event_definition])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+}
+
+```
+
+```{r display_res5graph, echo=FALSE}
+if(!is.null(res_5_graph)){
+htmltools::tagList(list(fig.res_5))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
+```
 
 </div>
 
@@ -255,23 +540,81 @@ The algorithm steps:
 
 ```{r echo=F,warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(ev_med_preg_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(ev_med_preg_dir,"Masked/")), pattern="events_medicines_pregnancy_counts_masked.csv"))>0){
 res_6<-fread(paste0(ev_med_preg_dir,"Masked/", "events_medicines_pregnancy_counts_masked.csv"))
-datatable(res_6, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_6[,.N]>0){
+datatable(res_6, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_6<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_6<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(ev_med_preg_dir,subpopulations_names[a],"/Masked/")))>0){
-res_6<-fread(paste0(ev_med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_pregnancy_counts_masked.csv"))
-datatable(res_6, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(ev_med_preg_dir,subpopulations_names[a], "/Masked/")), pattern="events_medicines_pregnancy_counts_masked.csv"))>0){
+    res_6<-fread(paste0(ev_med_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_medicines_pregnancy_counts_masked.csv"))
+    if(res_6[,.N]>0){
+datatable(res_6, options = list(scrollX=T))
+    } else {
+      res_6<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
-}
+    res_6<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
 }
 ```
 
 <br> 
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_6_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_6)){
+res_6_graph<-res_6[no_records=="<5", no_records:= 0.9]
+res_6_graph<-res_6_graph[,no_records:=as.numeric(no_records)]
+res_6_graph<-res_6_graph[,year:=as.factor(year)]
+} else {
+  res_6_graph<-NULL
+}
+
+if (!is.null(res_6_graph)){
+fig.res_6<-vector(mode="list", length=length(unique(res_6_graph[,event_definition])))
+for(i in 1:length(unique(res_6_graph[,event_definition]))){
+fig.res_6[[i]]<-ggplotly(ggplot(res_6_graph[event_definition==unique(res_6_graph[,event_definition])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                           facet_wrap(~stage_of_pregnancy, ncol=2) +
+                               ggtitle(paste0("Number of prescriptions/dispensings by event definition:", unique(res_6_graph[,event_definition])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+}
+
+```
+
+```{r display_res6graph, echo=FALSE}
+if(!is.null(res_6_graph)){
+htmltools::tagList(list(fig.res_6))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
+```
 
 </div>
 
@@ -289,23 +632,81 @@ The algorithm steps:
 
 ```{r echo=F,warning=FALSE}
 if (subpopulations_present=="No"){
-  if(length(list.files(paste0(ev_vacc_preg_dir, "Masked/")))>0){
+  if(sum(grepl(list.files(paste0(ev_vacc_preg_dir,"Masked/")), pattern="events_vaccines_pregnancy_counts_masked.csv"))>0){
 res_7<-fread(paste0(ev_vacc_preg_dir,"Masked/", "events_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_7, options = list(scrollX=T,DT.warn.size=FALSE))
+if(res_7[,.N]>0){
+datatable(res_7, options = list(scrollX=T))
   } else {
- print("This table cannot be produced based on the available data")  
+    res_7<-NULL
+  print("This table cannot be produced based on the available data.")
+  }
+} else {
+  res_7<-NULL
+  print("This table cannot be produced based on the available data.")
 }
 } else {
-  if(length(list.files(paste0(ev_vacc_preg_dir,subpopulations_names[a],"/Masked/")))>0){
-res_7<-fread(paste0(ev_vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_pregnancy_counts_masked.csv"))
-datatable(res_7, options = list(scrollX=T,DT.warn.size=FALSE))
+    if(sum(grepl(list.files(paste0(ev_vacc_preg_dir,subpopulations_names[a], "/Masked/")), pattern="events_vaccines_pregnancy_counts_masked.csv"))>0){
+    res_7<-fread(paste0(ev_vacc_preg_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_events_vaccines_pregnancy_counts_masked.csv"))
+    if(res_7[,.N]>0){
+datatable(res_7, options = list(scrollX=T))
+    } else {
+      res_7<-NULL
+    print("This table cannot be produced based on the available data.") 
+    }
   } else {
-  print("This table cannot be produced based on the available data")
-}
+    res_7<-NULL
+    print("This table cannot be produced based on the available data.")
+  }
 }
 ```
 
 <br> 
+
+A count smaller than 5(counts between 1 and 4) will be represented in the graphs with a value of 0.9 for easy comparison.
+
+```{r res_7_graph, echo=FALSE, warning=FALSE}
+if(!is.null(res_7)){
+res_7_graph<-res_7[no_records=="<5", no_records:= 0.9]
+res_7_graph<-res_7_graph[,no_records:=as.numeric(no_records)]
+res_7_graph<-res_7_graph[,year:=as.factor(year)]
+} else {
+  res_7_graph<-NULL
+}
+
+if (!is.null(res_7_graph)){
+fig.res_7<-vector(mode="list", length=length(unique(res_7_graph[,event_definition])))
+for(i in 1:length(unique(res_7_graph[,event_definition]))){
+fig.res_7[[i]]<-ggplotly(ggplot(res_7_graph[event_definition==unique(res_7_graph[,event_definition])[i]], aes(x = year, y = no_records, group=atc_code)) +
+                           geom_line(aes(color=atc_code)) +
+                           geom_point(aes(color=atc_code)) + 
+                           facet_wrap(~stage_of_pregnancy, ncol=2) +
+                               ggtitle(paste0("Number of administrations by event definition:", unique(res_7_graph[,event_definition])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+}
+
+```
+
+```{r display_res7graph, echo=FALSE}
+if(!is.null(res_7_graph)){
+htmltools::tagList(list(fig.res_7))
+} else {
+      print("This table cannot be produced based on the available data.")
+}
+
+```
 
 </div>
 
