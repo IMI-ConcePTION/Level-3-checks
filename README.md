@@ -133,7 +133,7 @@ To run the level 3 checks with subpopulation analysis follow the next steps:
 
 **Uploading to anDREa**
 1.	In a web browser, Go To: mydre.org.    
-2.	Click on ???Click here to login???. Pick an account and enter password.   
+2.	Click on 'Click here to login'. Pick an account and enter password.   
 3.	Click on Workspaces in upper left and then double click on the project workspace.    
 4.	Click on Files tab at top.    
 5.	Double click on 'inbox' folder.    
