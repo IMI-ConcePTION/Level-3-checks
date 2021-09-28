@@ -285,68 +285,6 @@ datatable(tab17, options = list(scrollX=T))
 
 <br>
 
-Counts smaller than 5 will be replaced with a count of 0.9 and will be plotted in a separate plot.
-
-```{r tab17_graph_all, echo=FALSE, warning=FALSE}
-if(!is.null(tab17)){
-tab17_graph_all<-tab17[no_women=="<5", no_women:= 0.9]
-tab17_graph_all<-tab17_graph_all[,no_women:=as.numeric(no_women)]
-tab17_graph_all<-tab17_graph_all[person_years!=0]
-
-} else {
- tab17_graph_all<-NULL 
-}
-
-if(!is.null(tab17_graph_all)){
-if (tab17_graph_all[no_women!=0.9,.N] != 0){
-ggplotly(ggplot(tab17_graph_all[no_women!=0.9], aes(x = year, y = women_per_1000_py, group=stage_of_pregnancy)) +
-                           geom_line(aes(color=stage_of_pregnancy)) +
-                           geom_point(aes(color=stage_of_pregnancy)) + 
-                               ggtitle("Pregnancy rate in women with at least one pregnancy code") + 
-                               xlab("Year") +
-                               ylab("Rate per 1000 person-years")+
-                             theme_classic() +
-                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
-                               theme(text=element_text(size=10),
-                                 axis.text.x = element_text(angle = 90, hjust = 1),
-                                     axis.title.x = element_text(colour = "#76b82a"),
-                                     axis.title.y = element_text(colour = "#76b82a"),
-                                     plot.title = element_text(colour = "#76b82a"),
-                                     strip.text.y = element_text(angle = 0),
-                                     legend.title = element_text(size = 7), 
-               legend.text = element_text(size = 7))) 
-                                     
-}
-}
-```
-
-The incidence rate cannot be shown since the number of women is masked and replaced with 0.9 for visualization purpose.
-
-```{r tab17_graph_all_small, echo=FALSE, warning=FALSE}
-
-if(!is.null(tab17_graph_all)){
-if (tab17_graph_all[no_women==0.9,.N] != 0){
-ggplotly(ggplot(tab17_graph_all[no_women==0.9], aes(x = year, y = women_per_1000_py, group=stage_of_pregnancy)) +
-                           geom_line(aes(color=stage_of_pregnancy)) +
-                           geom_point(aes(color=stage_of_pregnancy)) + 
-                               ggtitle("Pregnancy rate in women with at least one pregnancy code(counts smaller than 5)") + 
-                               xlab("Year") +
-                               ylab("Rate per 1000 person-years")+
-                             theme_classic() +
-                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
-                               theme(text=element_text(size=10),
-                                 axis.text.x = element_text(angle = 90, hjust = 1),
-                                     axis.title.x = element_text(colour = "#76b82a"),
-                                     axis.title.y = element_text(colour = "#76b82a"),
-                                     plot.title = element_text(colour = "#76b82a"),
-                                     strip.text.y = element_text(angle = 0),
-                                     legend.title = element_text(size = 7), 
-               legend.text = element_text(size = 7))) 
-                                     
-}
-}
-```
-
 </div>
 
 <br>
@@ -384,70 +322,6 @@ datatable(tab18, options = list(scrollX=T))
 ```
 
 <br>
-
-Counts smaller than 5 will be replaced with a count of 0.9 and will be plotted in a separate plot.
-
-```{r tab18_graph_all, echo=FALSE, warning=FALSE}
-if(!is.null(tab18)){
-tab18_graph_all<-tab18[no_women=="<5", no_women:= 0.9]
-tab18_graph_all<-tab18_graph_all[,no_women:=as.numeric(no_women)]
-tab18_graph_all<-tab18_graph_all[person_years!=0]
-
-} else {
- tab18_graph_all<-NULL 
-}
-
-if(!is.null(tab18_graph_all)){
-if (tab18_graph_all[no_women!=0.9,.N] != 0){
-ggplotly(ggplot(tab18_graph_all[no_women!=0.9], aes(x = year, y = women_per_1000_py, group=stage_of_pregnancy)) +
-                           geom_line(aes(color=stage_of_pregnancy)) +
-                           geom_point(aes(color=stage_of_pregnancy)) + 
-           facet_wrap(~ age_band, ncol=2, scales = "fixed") +
-                               ggtitle("Pregnancy rate in women by age") + 
-                               xlab("Year") +
-                               ylab("Rate per 1000 person-years")+
-                             theme_classic() +
-                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
-                               theme(text=element_text(size=10),
-                                 axis.text.x = element_text(angle = 90, hjust = 1),
-                                     axis.title.x = element_text(colour = "#76b82a"),
-                                     axis.title.y = element_text(colour = "#76b82a"),
-                                     plot.title = element_text(colour = "#76b82a"),
-                                     strip.text.y = element_text(angle = 0),
-                                     legend.title = element_text(size = 7), 
-               legend.text = element_text(size = 7))) 
-                                     
-}
-}
-```
-
-The incidence rate cannot be shown since the number of women is masked and replaced with 0.9 for visualization purpose.
-
-```{r tab18_graph_all_small, echo=FALSE, warning=FALSE}
-
-if(!is.null(tab18_graph_all)){
-if (tab18_graph_all[no_women==0.9,.N] != 0){
-ggplotly(ggplot(tab18_graph_all[no_women==0.9], aes(x = year, y = women_per_1000_py, group=stage_of_pregnancy)) +
-                           geom_line(aes(color=stage_of_pregnancy)) +
-                           geom_point(aes(color=stage_of_pregnancy)) + 
-           facet_wrap(~ age_band, ncol=2, scales = "fixed") +
-                               ggtitle("Pregnancy rate in women by age") + 
-                               xlab("Year") +
-                               ylab("Rate per 1000 person-years")+
-                             theme_classic() +
-                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
-                               theme(text=element_text(size=10),
-                                 axis.text.x = element_text(angle = 90, hjust = 1),
-                                     axis.title.x = element_text(colour = "#76b82a"),
-                                     axis.title.y = element_text(colour = "#76b82a"),
-                                     plot.title = element_text(colour = "#76b82a"),
-                                     strip.text.y = element_text(angle = 0),
-                                     legend.title = element_text(size = 7), 
-               legend.text = element_text(size = 7))) 
-                                     
-}
-}
-```
 
 </div>
 
