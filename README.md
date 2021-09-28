@@ -131,7 +131,24 @@ To run the level 3 checks with subpopulation analysis follow the next steps:
 
 ### Uploading results to the online research environment
 
-In development.
+**Uploading to anDREa**
+1.	In a web browser, Go To: mydre.org.    
+2.	Click on ???Click here to login???. Pick an account and enter password.   
+3.	Click on Workspaces in upper left and then double click on the project workspace.    
+4.	Click on Files tab at top.    
+5.	Double click on 'inbox' folder.    
+6.	Click on 'Level3'.     
+7.	Create a folder by clicking on the folder icon with + on it.    
+8.	Name the folder with the name of the data source, quality check level number and the date of running/uploading. Example if the data source ARS is uploading the level 3 checks output on the 28 September 2021, the folder should be named: `ARS_level3_2021_09_28`.     
+9.	Click on the folder you created.    
+10.	Click on cloud icon to upload files.    
+11.	Click on select and upload.    
+12.	Open the `ForDashboard` folder which is located inside `Level_3_to_be_deployed1.0/g_output/`. Hold down control and select all files within your prepared folder (can only do one folder at a time).    
+13.	Click on open.    
+14.	When it asks to confirm: "Would like to upload the inbox?" select 'OK'.     
+15.	Note: It may take many minutes for your upload to complete. You should receive an email once they are uploaded.    
+16.	If you find that your files are not in the corresponding level directory, check if the files are in the inbox and move them to the corresponding level directory.     
+
 
 ### Data characterization study links   
 
