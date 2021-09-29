@@ -274,5 +274,10 @@ if(subpopulations_present=="No"){
 }
 source(paste0(pre_dir,"save_environment.R"))
 
+####################################################
+#Create ForDashboard folder
+####################################################
+
+source(paste0(pre_dir,"for_dashboard.R"))
 
 
