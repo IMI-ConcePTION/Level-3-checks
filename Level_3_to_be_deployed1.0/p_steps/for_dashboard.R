@@ -31,6 +31,19 @@ if (subpopulations_present=="No"){
   file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/Report_03_VisitsLifestyle_ALL.html")), 
             paste0(dashboard_dir,"ALL/"))
   
+} else {
+  for (subp_names in 1:length(subpopulations_names)){
+    file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/", subpopulations_names[subp_names], "/Masked/"),list.files(paste0(output_dir,"STUDY_SOURCE_POPULATION/", subpopulations_names[subp_names], "/Masked/"))), 
+              paste0(dashboard_dir, subpopulations_names[subp_names],"/"))
+    file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/", subpopulations_names[subp_names],"Report_01_Study_population_",subpopulations_names[subp_names],".html")), 
+              paste0(dashboard_dir,subpopulations_names[subp_names],"/"))
+    file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/", subpopulations_names[subp_names],"Report_02_Dates_",subpopulations_names[subp_names],".html")), 
+              paste0(dashboard_dir,subpopulations_names[subp_names],"/"))
+    file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/", subpopulations_names[subp_names],"Report_03_VisitsLifestyle_",subpopulations_names[subp_names],".html")), 
+              paste0(dashboard_dir,subpopulations_names[subp_names],"/"))
+    file.copy(file.path(paste0(output_dir,"STUDY_SOURCE_POPULATION/", "R_01_01_POPTREE.csv")), 
+              paste0(dashboard_dir,subpopulations_names[subp_names],"/"))
+  }
 }
 
 #Output 2:MEDICINES
