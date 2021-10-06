@@ -38,7 +38,7 @@ for(i in 1:length(Lifestyle)){
   TABLES[i] <- Lifestyle[[i]]["CDM_table"]
 }
 
-#import and append all relavant CDM tables 
+#import and append all relevant CDM tables 
 TABLES <- unique(TABLES)
 for(i in TABLES) {
   assign(eval(i),IMPORT_PATTERN(pat = i, dir = path_dir))
