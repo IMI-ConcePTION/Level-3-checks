@@ -163,9 +163,12 @@ TEMP1 <- INPUTMATRIX(
   
   )
 
+
+max.y <- round(max(colSums(TEMP1)) + (0.1 * max(colSums(TEMP1))),0)
+
 #par(mar=c(5, 4, 4, 4), xpd=TRUE)
 par(mar = c(4.5,4.5,1,4),mgp = c(3.5,1,0), oma = c(1,1,1,1), xpd = T)
-barplot(TEMP1,main = "Source",ylim = c(0,max(TEMP[["PYSource"]])+(0.1*max(TEMP[["PYSource"]]))),xlab = "Year op_start_date", ylab = "Personyears"  , col = colors, cex.axis = 1, cex.names = 1.2 )
+barplot(TEMP1,main = "Source",ylim = c(0,max.y),xlab = "Year op_start_date", ylab = "Personyears"  , col = colors, cex.axis = 1, cex.names = 1.2 )
 #legend("right",title = "Agebands",legend =  rownames(TEMP1), col = c(2:(length(years)+1)), cex = 0.4,pch=10, box.col = "white")
 
 rm(TEMP1)
@@ -184,10 +187,10 @@ TEMP2 <- INPUTMATRIX(
   
   )
 
-barplot(TEMP2,main = "Study",ylim = c(0,max(TEMP[["PYSource"]])+(0.1*max(TEMP[["PYSource"]]))),xlab = "Year op_start_date", ylab = "Personyears"  , col = colors,cex.axis = 1, cex.names = 1.2)
+barplot(TEMP2,main = "Study",ylim = c(0,max.y),xlab = "Year op_start_date", ylab = "Personyears"  , col = colors,cex.axis = 1, cex.names = 1.2)
 
 legend("right",inset = c(-0.1,1, 0),title = "Agebands",legend =  stack, col = colors, cex = 0.8,pch=10, box.col = "white")
-rm(TEMP2)
+rm(TEMP2,max.y)
 } else {
   print("This table has no information and cannot be displayed.")
 }
@@ -221,7 +224,7 @@ TEMP1 <- INPUTMATRIX(
 
 par(mar = c(4.5,4.5,1,4),mgp = c(3.5,1,0), oma = c(1,1,1,1), xpd = T) 
 #par(mar=c(5, 4, 4, 4), xpd=TRUE)
-barplot(TEMP1,main = "Source",xlab = "Year op_start_date", ylab = "%"  , col = colors,cex.axis = 1, cex.names = 1.2)
+barplot(TEMP1,main = "Source",ylim = c(0,100),xlab = "Year op_start_date", ylab = "%"  , col = colors,cex.axis = 1, cex.names = 1.2)
 #legend("right",title = "Agebands",legend =  rownames(TEMP1), col = c(2:(length(years)+1)), cex = 0.4,pch=10, box.col = "white")
 
 rm(TEMP1)
@@ -242,7 +245,7 @@ TEMP2 <- INPUTMATRIX(
 
  
 
-barplot(TEMP2, main = "Study",xlab = "Year op_start_date", ylab = "%"  , col = colors,cex.axis = 1, cex.names = 1.2)
+barplot(TEMP2, main = "Study",ylim = c(0,100),xlab = "Year op_start_date", ylab = "%"  , col = colors,cex.axis = 1, cex.names = 1.2)
 
 legend("right",inset = c(-0.1,1, 0),title = "Agebands",legend =  stack, col = colors, cex = 0.8,pch=10, box.col = "white")
 
@@ -364,32 +367,12 @@ rm(TEMP,years,colors,stack)
 ```{r echo=F}
 #TEMP <- readRDS(paste0(thisdir,"/g_intermediate/STUDYPOP_DIS_ALL.rds")) 
 
-TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv"), sep = ";") 
+TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv")) 
+
 
 if (nrow(TEMP)>0){
-datatable(TEMP, 
-          #options = 
-            
-            #list(
-            #list(pageLength = 5),
-            #scrollX=T,
-            #autoWidth = T,
-            #colReorder = F,
-            #columnDefs = list(
-            #  list(width = '20px', targets = c(0:ncol(TEMP)-1)),
-            #  list(className = "dt-center", targets = "_all")
-            #  
-            #  )
-            #),
-            rownames = F,
-            escape = 1
-          )
-
-
-
-
-
-
+datatable(TEMP, options = list(scrollX=T),
+            escape = 1)
 } else {
   print("This table has no information and cannot be displayed.")
 }
@@ -609,6 +592,7 @@ datatable(TEMP, options = list(scrollX=T))
 }
 
 rm(TEMP)
+
 ```
 
 ```{r echo=F,fig.width=8,fig.height=5}
@@ -755,23 +739,19 @@ Note that if the op_end_date is after the date of creation, the date of creation
 
 
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";") 
-
 if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 setnames(TEMP,"No","Median distance in months")
 
 datatable(TEMP, options = list(scrollX=T), rownames = F)
-}else {
+} else {
   print("This table has no information and cannot be displayed.")
 }
-rm(TEMP)
 
 ```
 
 ```{r echo=F}
-
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";")
-
 if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 } else {
