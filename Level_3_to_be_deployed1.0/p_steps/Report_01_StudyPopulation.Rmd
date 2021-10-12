@@ -392,10 +392,12 @@ datatable(TEMP,
 
 
 
-rm(TEMP)
+
 } else {
   print("This table has no information and cannot be displayed.")
 }
+
+rm(TEMP)
 ```
 
 ```{r echo=F,  fig.show="hold", out.width="50%"}
@@ -527,12 +529,12 @@ TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_04_STUDYPOPPY.csv"), sep = ";")
 
 if(nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T))
-rm(TEMP)
+
 } else {
   print("This table has no information and cannot be displayed.")
 }
 
-
+rm(TEMP)
 
 
 ```
@@ -604,10 +606,12 @@ TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_05_STUDYPOPPY2.csv"), sep = ";")
 
 if(nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T))
-rm(TEMP)
+
 } else {
   print("This table has no information and cannot be displayed.")
 }
+
+rm(TEMP)
 
 ```
 
@@ -755,14 +759,22 @@ Note that if the op_end_date is after the date of creation, the date of creation
 
 
 TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";") 
+
 if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 setnames(TEMP,"No","Median distance in months")
 
 datatable(TEMP, options = list(scrollX=T), rownames = F)
-rm(TEMP)
+} else {
+  print("This table has no information and cannot be displayed.")
+}   
 
+rm(TEMP)
+```
+
+```{r echo=F}
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";")
+if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 } else {
   print("This table has no information and cannot be displayed.")
