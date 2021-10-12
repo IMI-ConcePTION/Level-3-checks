@@ -19,7 +19,7 @@ if(SUBP) {
 
 
 list1 <- c("No. source","PY source","No. study","PY study","Total No","No Female","No Male","PY Male","PY Female","Total","No","No. of visits","No. of persons with at least one visit","Women with at least 1 record in study period","Woman in category",as.character(c(1:12)),as.character(c(1900:2200)))
-list2 <- c("% Male","% Female","%","Visit rate, No. of visits/1000 PY")
+list2 <- c("% Male","% Female","%","Visit rate, No. of visits/1000 PY","PY")
 
 vlist <- rep(5,length(list1)) 
 names(vlist) <- list1
