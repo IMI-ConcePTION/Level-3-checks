@@ -364,17 +364,35 @@ rm(TEMP,years,colors,stack)
 ```{r echo=F}
 #TEMP <- readRDS(paste0(thisdir,"/g_intermediate/STUDYPOP_DIS_ALL.rds")) 
 
-TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv")) 
-
+TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_03_STUDYPOP.csv"), sep = ";") 
 
 if (nrow(TEMP)>0){
-datatable(TEMP, options = list(scrollX=T),
-            escape = 1)
+datatable(TEMP, 
+          #options = 
+            
+            #list(
+            #list(pageLength = 5),
+            #scrollX=T,
+            #autoWidth = T,
+            #colReorder = F,
+            #columnDefs = list(
+            #  list(width = '20px', targets = c(0:ncol(TEMP)-1)),
+            #  list(className = "dt-center", targets = "_all")
+            #  
+            #  )
+            #),
+            rownames = F,
+            escape = 1
+          )
+
+
+
+
+
+rm(TEMP)
 } else {
   print("This table has no information and cannot be displayed.")
 }
-
-rm(TEMP)
 ```
 
 ```{r echo=F,  fig.show="hold", out.width="50%"}
@@ -506,12 +524,12 @@ TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_04_STUDYPOPPY.csv"), sep = ";")
 
 if(nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T))
-
+rm(TEMP)
 } else {
   print("This table has no information and cannot be displayed.")
 }
 
-rm(TEMP)
+
 
 
 ```
@@ -583,12 +601,10 @@ TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_05_STUDYPOPPY2.csv"), sep = ";")
 
 if(nrow(TEMP)>0){
 datatable(TEMP, options = list(scrollX=T))
-
+rm(TEMP)
 } else {
   print("This table has no information and cannot be displayed.")
 }
-
-rm(TEMP)
 
 ```
 
@@ -741,15 +757,9 @@ TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NU
 setnames(TEMP,"No","Median distance in months")
 
 datatable(TEMP, options = list(scrollX=T), rownames = F)
-} else {
-  print("This table has no information and cannot be displayed.")
-}
+rm(TEMP)
 
-```
-
-```{r echo=F}
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_11_InDatabaseDuration.csv"), sep = ";")
-if(nrow(TEMP)>0){
 TEMP <- TEMP[get("Distance in months") == "Median",][,"Distance in months" := NULL][,"%" := NULL]
 } else {
   print("This table has no information and cannot be displayed.")
