@@ -47,7 +47,7 @@ PERSONS[!is.na(day_of_birth) & !is.na(month_of_birth) & !is.na(year_of_birth),bi
 PERSONS[!is.na(day_of_death) & !is.na(month_of_death) & !is.na(year_of_death),death_date := as.IDate(paste0(year_of_death, sprintf("%02d",month_of_death),sprintf("%02d",day_of_death)),"%Y%m%d")]
 PERSONS <- PERSONS[,age_start_study := floor(time_length(interval(birth_date, start_study_date),"year"))]
 
-print('Delete abundant columns and tables')  
+print('Delete superfluose columns and tables')  
 #lapply(c("day_of_death","month_of_death","year_of_death"), function (x) PERSONS <- PERSONS[,eval(x) := NULL])
 
 saveRDS(PERSONS,file = paste0(std_pop_tmp,"PERSONS.rds"))
