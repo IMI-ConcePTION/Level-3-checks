@@ -84,4 +84,5 @@ rm(METADATA)
 gc()
 
 #Parameters for end analyses
-Analyse_dates <- c("start_follow_up","end_follow_up","birth_date")
+#Analyse_dates <- c("start_follow_up","end_follow_up","birth_date")
+Analyse_dates <- c("start_follow_up","end_follow_up","birth_date","op_start_date","op_end_date")
