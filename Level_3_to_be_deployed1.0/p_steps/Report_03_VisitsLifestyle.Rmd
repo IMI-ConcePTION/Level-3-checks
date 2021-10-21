@@ -55,7 +55,7 @@ This report is focusing on:
 
 ```{r echo=F}
 
-TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_12_VISITS.csv"), sep = ";") 
+TEMP <- fread(paste0(report_dir2,"/",i,"_R_01_12_VISITS.csv"), sep = ";")[, Order := NULL] 
 
 
 
@@ -73,9 +73,13 @@ rm(TEMP)
 
 TEMP <- fread(paste0(report_dir1,"/",i,"_R_01_12_VISITS.csv"), sep = ";") 
 
+
+
 if(nrow(TEMP) > 0) {
 
-bands <- unique(TEMP[["Age"]])
+bands <- unique(TEMP[,.(Age,Order)])
+setorder(bands,Order)
+bands <- unique(bands[["Age"]])
 #colors <- c(2:(length(bands)+1))
 colors <- colorRamps::matlab.like(length(bands))
 
