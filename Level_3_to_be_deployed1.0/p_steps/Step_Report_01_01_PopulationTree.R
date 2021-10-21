@@ -25,10 +25,25 @@ TEMP <- INPUTMATRIX(
   per = T
 )
 
-}else{TEMP <- matrix(NA, nrow = 0, ncol = length(unique(Agebands[["band"]])), dimnames = list(c(),unique(Agebands[["band"]])))}
+TEMP2 <- INPUTMATRIX(
+  d = SOURCE_POPULATION,
+  value = "person_id",
+  type = "count",
+  var = "band",
+  var.v = unique(SOURCE_POPULATION[["band"]]),
+  cat = "sex_at_instance_creation",
+  cat.v = c("F","M"),
+  per = F
+)
+
+}else{
+  TEMP <- matrix(NA, nrow = 0, ncol = length(unique(Agebands[["band"]])), dimnames = list(c(),unique(Agebands[["band"]])))
+  TEMP2 <- matrix(NA, nrow = 0, ncol = length(unique(Agebands[["band"]])), dimnames = list(c(),unique(Agebands[["band"]])))
+  
+  }
 
 saveRDS(TEMP, file = paste0(std_source_pop_dir,"R_01_01_POPTREE.rds"))
-fwrite(as.data.table(TEMP, keep.rownames = T), file = paste0(std_source_pop_dir,"R_01_01_POPTREE.csv"),sep = ";" )
+fwrite(as.data.table(TEMP2, keep.rownames = T), file = paste0(std_source_pop_dir,"R_01_01_POPTREE.csv"),sep = ";" )
 
 rm(TEMP,Agebands,SOURCE_POPULATION)
 
