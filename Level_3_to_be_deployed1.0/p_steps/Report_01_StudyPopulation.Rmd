@@ -58,13 +58,22 @@ This report is focusing on the follow up time of the subjects. The following top
 
 ```{r echo=F,fig.width=8,fig.height=5}
 
-TEMP <- readRDS(paste0(std_source_pop_dir,"R_01_01_POPTREE.rds")) 
+TEMP <- fread(paste0(std_source_pop_dir,"R_01_01_POPTREE.csv"), sep = ";")  
 
 if(nrow(TEMP) > 0) {
-datatable(t(TEMP), options = list(scrollX=T))
+
+TEMP <- fread(paste0(std_source_pop_dir,"R_01_01_POPTREE.csv"), sep = ";") 
+TEMP <- t(TEMP)
+colnames(TEMP) <- TEMP[1,]
+TEMP <- TEMP[2:nrow(TEMP),] 
+TEMP[as.numeric(TEMP) < 5] <- "<5"  
+  
+datatable(TEMP, options = list(scrollX=T), colnames = c('Number of females' = 'F', 'Number of males' = 'M'))
 } else {
   print("This table has no information and cannot be displayed.")
 }
+
+TEMP <- readRDS(paste0(std_source_pop_dir,"R_01_01_POPTREE.rds"))
 
 if(nrow(TEMP) > 0) {
 

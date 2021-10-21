@@ -4,8 +4,11 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
-CreateBands <- function(bands){
-
+CreateBands <- function(bands, NEWBORNS = T){
+  
+  if(NEWBORNS & bands[1] == 0 & bands[2] != 1){bands[1] <- 1}
+  if(NEWBORNS & bands[1] == 0 & bands[2] == 1){bands <- bands[2:length(bands)]}
+  
   bands_list <- list()
 
       for (k in 1:length(bands)){
@@ -38,8 +41,12 @@ CreateBands <- function(bands){
   setorder(bands,INT)
   ORDER <- as.data.table(cbind("band" = unique(bands[,band]),"Order" = seq(from = 1, to = length(unique(bands[,band])),by = 1)))[,Order := as.integer(Order)]
   bands <- merge(x= bands, y= ORDER, by = "band", all.x = T) 
+  
+  if(NEWBORNS){bands <- rbindlist(list(list("0",0,0),bands))}
+  
   setorder(bands,Order)
 
+  
 }
 
 IMPORT_PATTERN <- function(pat,dir){
