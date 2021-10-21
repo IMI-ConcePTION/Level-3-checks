@@ -44,16 +44,24 @@ for(i in 1:nrow(SCHEME_04)){
     
     FlowChart3 <- list()
     
-    print(paste0("Set start_follow up date and end follow_up_date ",SCHEME_04[["subpopulations"]][i]))
-    STUDY_POPULATION <- SOURCE[,start_follow_up := max(start_study_date,op_start_date+lookback_period,date_min),by = list(row.names(SOURCE))]
-    STUDY_POPULATION <- STUDY_POPULATION[,end_follow_up := min(end_study_date,op_end_date,date_creation,recommended_end_date,date_max),by = list(row.names(SOURCE))]
+    SOURCE <- SOURCE[, row := row.names(SOURCE)]
+    
+    print(paste0("Set start_follow up date  ",SCHEME_04[["subpopulations"]][i]," for newborns as subjects that where 0 at op_start_date"))
+    STUDY_POPULATION <- SOURCE[age_op_start_date == 0 ,start_follow_up := max(start_study_date, op_start_date, date_min), by = row]
+    
+    print(paste0("Set start_follow up date  ",SCHEME_04[["subpopulations"]][i]," for subjects that where 1 year or older at op_start_date"))
+    STUDY_POPULATION <- STUDY_POPULATION[age_op_start_date != 0 ,start_follow_up := max(start_study_date,op_start_date+lookback_period,date_min), by = row]
+    
+    print(paste0("Set end_follow up date  ",SCHEME_04[["subpopulations"]][i]," for all subjects"))
+    STUDY_POPULATION <- STUDY_POPULATION[,end_follow_up := min(end_study_date, op_end_date, date_creation, recommended_end_date, date_max),by = row][, row := NULL]
+    
     
     rm(SOURCE)
     gc()
     
     before <- nrow(STUDY_POPULATION)
     STUDY_POPULATION <- STUDY_POPULATION[start_follow_up < end_follow_up ,]
-    STUDY_POPULATION <- STUDY_POPULATION[(start_follow_up - op_start_date) >= lookback_period ,]
+    STUDY_POPULATION <- STUDY_POPULATION[(start_follow_up - op_start_date) >= lookback_period | age_op_start_date == 0 ,]
     after <- nrow(STUDY_POPULATION)
     
     FlowChart3[[paste0("End_look_back_period_after_end_follow_up_",SCHEME_04[["subpopulations"]][i])]]$step <- "04_CreateStudyPopulation"

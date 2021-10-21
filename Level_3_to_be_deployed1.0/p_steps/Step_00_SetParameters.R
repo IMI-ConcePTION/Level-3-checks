@@ -41,10 +41,9 @@ SelectionCriteria <- list(
   No_year_of_death = expression(!(is.na(year_of_death) & (!is.na(day_of_death) | !is.na(month_of_death)))),
   OP_START_DATE_before_OP_END_DATE = expression(op_start_date < op_end_date),
   Study_Period_and_spell_overlap  = expression(op_start_date %between% intv| op_end_date %between% intv | (op_start_date  < start_study_date & op_end_date > end_study_date)),
-  Spells_less_then_lookback_period = expression(op_end_date - op_start_date > lookback_period),
-  Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - op_start_date > lookback_period),
-  #Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - date_min > lookback_period),
-  Remaning_time_to_date_max_less_then_lookback_period = expression(date_max - op_start_date > lookback_period),
+  Spells_less_then_lookback_period = expression(op_end_date - op_start_date > lookback_period | age_op_start_date == 0),
+  Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - op_start_date > lookback_period | age_op_start_date == 0),
+  Remaning_time_to_date_max_less_then_lookback_period = expression(date_max - op_start_date > lookback_period | age_op_start_date == 0),
   Age_min_to_end_of_study_above_0 = expression(end_study_date - date_min > 0),
   Start_of_study_Age_max_to_above_0 = expression(date_max - start_study_date > 0)
   
