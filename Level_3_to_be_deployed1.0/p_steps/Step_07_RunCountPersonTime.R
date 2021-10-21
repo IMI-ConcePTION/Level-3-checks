@@ -66,7 +66,7 @@ for(i in 1:nrow(SCHEME_07)){
       End_date = "end_follow_up", 
       Birth_date = "birth_date",
       Strata = "sex_at_instance_creation", 
-      Age_bands = c(0,10,20,30,40,50,60,70,80,90,100), 
+      Age_bands = c(0,0,9,19,29,39,49,59,69,79,89,99), 
       Unit_of_age = "year" , 
       Increment = "month", 
       include_remaning_ages = T, 
@@ -77,6 +77,8 @@ for(i in 1:nrow(SCHEME_07)){
     if(!is.null(TEMP)){
     TEMP <- TEMP[,Month := substr(month,6,8)]
     TEMP <- TEMP[,Year := substr(month,1,4)]
+    
+    TEMP <- TEMP[Ageband == "0-0", Ageband := "0"]
     
     PT1 <- rbindlist(list(PT1,TEMP[, .(Persontime = sum(Persontime)), keyby = list(Year,sex_at_instance_creation, Ageband)]),fill = T, use.names = T)
     PT2 <- rbindlist(list(PT2,TEMP[, .(Persontime = sum(Persontime)), keyby = list(Year,Month,sex_at_instance_creation)]),fill = T, use.names = T)
