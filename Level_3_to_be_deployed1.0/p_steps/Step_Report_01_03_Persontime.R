@@ -41,6 +41,8 @@ for(i in 1:nrow(SCHEME_0103)){
   gc()
   
   if(any(duplicated(TEMP[["person_id"]]))) stop("Duplicate persons in table")
+  
+  #Note Year and PY are based on start_follow_up. 
   COUNT <- TEMP[,.(count = sum(!is.na(person_id)), mean = round(mean(PY),2), median = median(PY)), keyby = list(Year,band,sex_at_instance_creation)]
   COUNT_T <- TEMP[,.(count = sum(!is.na(person_id)), mean = round(mean(PY),2), median = median(PY)), keyby = list(Year,sex_at_instance_creation)][,band := "Total"]
   rm(TEMP)
