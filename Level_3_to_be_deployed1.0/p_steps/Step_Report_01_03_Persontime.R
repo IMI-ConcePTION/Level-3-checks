@@ -34,12 +34,13 @@ for(i in 1:nrow(SCHEME_0103)){
   Agebands <- CreateBands(seq(from = 0 , to = 20 + Age_max, by = 10))
   #Agebands <- CreateBands(seq(from = 0 , to = 10 + max(STUDY_POPULATION[["age_start_follow_up"]]), by = 10))
   
-  TEMP <- merge(x = STUDY_POPULATION, y = Agebands, by.x = "age_start_follow_up",by.y = "INT", all.x = T )
+  TEMP <- merge(x = STUDY_POPULATION, y = Agebands, by.x = "age_start_follow_up",by.y = "INT", all.x = T, allow.cartesian = F)
+  if(nrow(STUDY_POPULATION) != nrow(TEMP)) stop("Invalid agebands input")
   
   rm(Agebands,STUDY_POPULATION)
   gc()
   
-  
+  if(any(duplicated(TEMP[["person_id"]]))) stop("Duplicate persons in table")
   COUNT <- TEMP[,.(count = sum(!is.na(person_id)), mean = round(mean(PY),2), median = median(PY)), keyby = list(Year,band,sex_at_instance_creation)]
   COUNT_T <- TEMP[,.(count = sum(!is.na(person_id)), mean = round(mean(PY),2), median = median(PY)), keyby = list(Year,sex_at_instance_creation)][,band := "Total"]
   rm(TEMP)
