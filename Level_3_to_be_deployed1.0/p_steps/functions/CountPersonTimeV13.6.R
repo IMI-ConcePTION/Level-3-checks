@@ -310,10 +310,11 @@ CountPersonTime2 <- function(Dataset_events = NULL, Dataset, Person_id, Start_st
               
               if(print) print(paste("Remove ",Outcomes_rec1[i], "outcomes within a censoring of ",Rec_period1[i]," days"))
               events_rec  <- copy(Dataset_events_rec2)[get(Name_event) == Outcomes_rec1[i],]
-              setorderv(events_rec,c(Person_id,Name_event,Date_event))
+              
               
               while(nrow(events_rec) > 0){ 
                 
+                setorderv(events_rec,c(Person_id,Name_event,Date_event))
                 events_rec <- events_rec[,D := shift(get(Date_event)),by = c(Person_id,Name_event) ]
                 events_rec[,dif := get(Date_event) - D]
                 events_rec[is.na(dif), dif := 0 ][,dif := as.numeric(dif)]
