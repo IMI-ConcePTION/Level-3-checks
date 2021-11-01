@@ -137,7 +137,7 @@ if (subpopulations_present=="Yes"){
     #MEANINGS TO BE EXCLUDED
     meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES" & other==subpopulations_names[s],values], pattern = " "))
     
-    source(paste0(pre_dir, "MEDICINES_L3_pre_script_2.R"))
+    source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
     
     #clean medicines_tmp
     for(i in 1:length(list.files(medicines_tmp))){
@@ -154,7 +154,7 @@ if (subpopulations_present=="Yes"){
   #MEANINGS TO BE EXCLUDED
   meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES",values], pattern = " "))
 
-  source(paste0(pre_dir, "MEDICINES_L3_pre_script_2.R"))
+  source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
 
   do.call(file.remove, list(list.files(medicines_tmp, full.names = T)))
   
@@ -172,8 +172,12 @@ keep_environment<-c("StudyName", "data_access_provider_name", "data_source_name"
                     "start_study_date","end_study_date", "lookback_period", "intv","recommended_end_date", "date_creation","start_study_date2","end_study_date2",
                     "METADATA_subp", "actual_tables", "tmp", "s", "meanings_birth_registry","CountPersonTime2",
                     "diagnoses","pregnancies","diagnoses_pregnancy_med_vacc","diagnoses_pregnancy_med","diagnoses_pregnancy_vacc","pregnancy_only_med_vacc","pregnancy_only_med","pregnancy_only_vacc",
-                    "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","output_path",
-                    "med_dir","medicines_tmp","medicines_pop", "Rmd_MEDICINES")
+                    "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","path_output",
+                    "med_dir","medicines_tmp","medicines_pop", "Rmd_MEDICINES",
+                    "vacc_dir", "vaccines_tmp", "vaccines_pop","Rmd_VACCINES",
+                    "diag_dir", "events_tmp","mo_tmp","so_tmp","diag_tmp", "diag_pop","Rmd_DIAGNOSES", "conditions","diagnoses",
+                    "preg_dir","preg_ev_tmp","preg_m_tmp","preg_s_tmp","preg_si_tmp","preg_tmp", "preg_pop","Rmd_PREGNANCY","pregnancies",
+                    "poi_dir","ev_preg_dir","med_preg_dir","vacc_preg_dir","ev_med_preg_dir","ev_vacc_preg_dir","ev_med_dir","ev_vacc_dir","ev_preg_pop","med_preg_pop","vacc_preg_pop","ev_med_preg_pop","ev_vacc_preg_pop","ev_med_pop","ev_vacc_pop","poi_tmp","Rmd_POI")
 list_rm<-ls()[ls() %!in% keep_environment]
 rm(list = list_rm)
 rm(list_rm)
