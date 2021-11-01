@@ -3,6 +3,12 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 06/07/2021
 
+#Changes: 29.10.2010
+#Fix bug in calculating number of records(now the script allows for the same medication being prescribed to the same subject in the same date)
+#person time expressed in days will now be expressed in years
+#from rates of per 1000 pd now is per 100 py
+#fix bug in calculating number of users, number of users is shown only for subjects having a prescribed/dispensed medicine
+#added number of subjects in the rate tables
 
 ################################################
 #MEDICINES
@@ -29,6 +35,7 @@ if(length(actual_tables$MEDICINES)>0){
   #############################################################################
   med_study_population<-list() #number of records in the study population
   med_study_population_meaning<-list() #number of records in the study population by meaning
+  med_study_population_meaning_year<-list() #number of records in the study population by meaning and year
   male_population<-list() #save whether males are included
   female_population<-list() #save whether females are included
   #############################################################################
@@ -61,6 +68,7 @@ if(length(actual_tables$MEDICINES)>0){
   empty_atc_code_m_f<-list() #number of records with empty atc code by meaning in females in childebearing age
   empty_atc_code_m_y_f<-list() #number of records with empty atc code by meaning and year in females in childebearing age
   med_study_population_meaning_f<-list() #number of records in females [12-55] years old by meaning
+  med_study_population_meaning_year_f<-list() #number of records in females [12-55] years old by meaning and year
   med_study_population_f<-list() #number of records in females [12-55] years old
   ##############################
   females_childbearing<-list() #check if females of childbearing age are available
@@ -125,6 +133,8 @@ if(length(actual_tables$MEDICINES)>0){
     ############################
     med_study_population[[w]]<-df[,.N] #number of records in the study population
     med_study_population_meaning[[w]]<-df[,.N, by="meaning"] #number of records in the study population by meaning
+    med_study_population_meaning_year[[w]]<-df[,.N, by=c("meaning","year")] #number of records in the study population by meaning
+    
     ############################
     #Table 15
     ############################
@@ -197,8 +207,8 @@ if(length(actual_tables$MEDICINES)>0){
                       meaning_var = "meaning",
                       atc_var = "medicinal_product_atc_code",
                       level_num = 1) #export results to medicines_tmp with name Res_1_name of original file
-    Res.1<-Res.1$count
-    saveRDS(Res.1, paste0(medicines_tmp, paste0("Res.1_", actual_tables$MEDICINES[y], ".rds"))) #allows to save data as list
+    saveRDS(Res.1$count, paste0(medicines_tmp, paste0("Res.1_count_", actual_tables$MEDICINES[y], ".rds"))) #allows to save data as list
+    saveRDS(Res.1$total, paste0(medicines_tmp, paste0("Res.1_total_", actual_tables$MEDICINES[y], ".rds"))) #allows to save data as list
     rm(Res.1) 
     #################################
     #Table 11:
@@ -212,6 +222,8 @@ if(length(actual_tables$MEDICINES)>0){
       #total row
       #total records by meaning(numerator): med_study_population_meaning_f
       med_study_population_meaning_f[[w]]<-df[sex_at_instance_creation=="F" & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,.N, by="meaning"]
+      med_study_population_meaning_year_f[[w]]<-df[sex_at_instance_creation=="F" & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,.N, by=c("meaning","year")]
+      
       #total records(denominator): med_study_population_f
       #med_study_population_f[[w]]<-df[sex_at_instance_creation=="F" & age_start_follow_up>=12 & age_start_follow_up<=55,.N]
       #counts by meaning and year for atc trunacted to the first level in females [12-55]
@@ -220,8 +232,8 @@ if(length(actual_tables$MEDICINES)>0){
                         meaning_var = "meaning",
                         atc_var = "medicinal_product_atc_code",
                         level_num = 1) #export results to medicines_tmp with name Res_2_name of original file
-      Res.2<-Res.2$count
-      saveRDS(Res.2, paste0(medicines_tmp, paste0("Res.2_", actual_tables$MEDICINES[y], ".rds")))
+      saveRDS(Res.2$count, paste0(medicines_tmp, paste0("Res.2_count_", actual_tables$MEDICINES[y], ".rds")))
+      saveRDS(Res.2$total, paste0(medicines_tmp, paste0("Res.2_total_", actual_tables$MEDICINES[y], ".rds")))
       rm(Res.2)
       females_childbearing[[w]]<-1
     } else {females_childbearing[[w]]<-0}
@@ -667,57 +679,79 @@ if(length(actual_tables$MEDICINES)>0){
   empty_atc_code_m_y<-do.call(rbind,empty_atc_code_m_y)
   empty_atc_code_m_y<-empty_atc_code_m_y[,lapply(.SD, sum), .SDcols="N", by=c("meaning", "year")]
   names(empty_atc_code_m_y)<-c("meaning","year", "count")
-  empty_atc_code_m_y[,atc_code_1:="empty"]
+  empty_atc_code_m_y<-data.table(empty_atc_code_m_y,atc_code_1="empty")
+  med_study_population_meaning_year<-do.call(rbind,med_study_population_meaning_year)
+  med_study_population_meaning_year<-med_study_population_meaning_year[,lapply(.SD, sum), .SDcols="N", by=c("meaning", "year")]
+  setnames(med_study_population_meaning_year,"N", "total")
+  
+  
   #counts by meaning, year and atc level 1:load Res.1 
-  Res.1_files<-list.files(medicines_tmp,pattern="^Res.1")
-  
+  Res.1_files<-list.files(medicines_tmp,pattern="^Res.1_count")
+  Res.1_tot<-list.files(medicines_tmp,pattern="^Res.1_total")
   if (length(Res.1_files)>0){
-    Res.1<-readRDS(paste0(medicines_tmp,Res.1_files[1]))
-    i<-2
-    while(i <= length(Res.1_files)){
-      a<-readRDS(paste0(medicines_tmp, Res.1_files[i]))
-      Res.1<-rbind(Res.1, a)
-      rm(a)
-      Res.1<-Res.1[,lapply(.SD, sum), .SDcols="count", by=c("meaning", "year", "atc_code_1")]
-      i<-i+1
-    }
-  } else {Res.1<-NULL}
+    tab10<-lapply(paste0(medicines_tmp,Res.1_files),readRDS)
+    tab10<-do.call(rbind,tab10)
+    tab10<-tab10[,lapply(.SD, sum), .SDcols="count", by=c("meaning", "year", "atc_code_1")]
+  } else {
+    tab10<-NULL 
+  }
+  if (length(Res.1_tot)>0){
+    Res.1_total<-lapply(paste0(medicines_tmp,Res.1_tot),readRDS)
+    Res.1_total<-do.call(rbind,Res.1_total)
+    Res.1_total<-Res.1_total[,lapply(.SD, sum), .SDcols="total", by=c("meaning", "year")]
+  } else {
+    Res.1_total<-NULL 
+  }
   
-  total<-data.table(med_study_population_meaning, year="total", atc_code_1=NA)
-  Res.1<-rbind(Res.1,total)
+  if(!is.null(tab10) | !is.null(Res.1_total)){
+    tab10<-merge(tab10,Res.1_total, by=c("meaning","year"))
+  }
+  
   #remove all files in Res.1_files
   #remove files not needed from medicines_tmp
   for(i in 1:length(Res.1_files)){
     unlink(paste0(medicines_tmp,Res.1_files[i]))
   }
+  for(i in 1:length(Res.1_tot)){
+    unlink(paste0(medicines_tmp,Res.1_tot[i]))
+  }
   
+  #get all combinations meaning and year from the table
+  meanings_tab10<-tab10[!duplicated(meaning),meaning]
+  years_tab10<-tab10[!duplicated(year),year]
+  comb_tab10<-as.data.table(expand.grid(meanings_tab10,years_tab10))
+  names(comb_tab10)<-c("meaning","year")
+  empty_atc_code_m_y<-merge(empty_atc_code_m_y,comb_tab10, by=c("meaning","year"),all=T)
+  empty_atc_code_m_y<-merge(empty_atc_code_m_y,med_study_population_meaning_year,by=c("meaning","year"))
+  empty_atc_code_m_y[is.na(count),count:=0][is.na(atc_code_1),atc_code_1:="empty"]
+  rm(med_study_population_meaning_year)
   print("Create table 10.")
-  tab10<-data.table(rbind(Res.1, empty_atc_code_m_y))
-  setcolorder(tab10, c("meaning","year", "atc_code_1","count"))
+  tab10<-data.table(rbind(tab10, empty_atc_code_m_y))
+  setcolorder(tab10, c("meaning","year", "atc_code_1","count","total"))
   setorderv(tab10, c("meaning", "year", "atc_code_1"))
-  rm(Res.1,Res.1_files)
+  rm(Res.1_files)
   
   print("Export table 10.")
   
   if(!is.null(tab10)){
     tab10<-data.table(tab10, data_access_provider= data_access_provider_name, data_source=data_source_name)
-   if (subpopulations_present=="Yes"){
-     write.csv(tab10, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_1.csv"), row.names = F)
-   } else {
-     write.csv(tab10, paste0(med_dir,"medicines_my_atc_1.csv"), row.names = F)
-   }
+    if (subpopulations_present=="Yes"){
+      fwrite(tab10, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_1.csv"), row.names = F)
+    } else {
+      fwrite(tab10, paste0(med_dir,"medicines_my_atc_1.csv"), row.names = F)
+    }
   }
   
-#Apply masking
+  #Apply masking
   
   if(!is.null(tab10)){
-    tab10[, count:= as.character(count)][as.numeric(count) > 0 & as.numeric(count) < 5, count := "<5"]
-  
-  if(subpopulations_present=="Yes"){
-    write.csv(tab10, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_1_masked.csv"), row.names = F)
-  } else {
-    write.csv(tab10, paste0(med_dir,"Masked/","medicines_my_atc_1_masked.csv"), row.names = F)
-  }
+    suppressWarnings(tab10[, count:= as.character(count)][as.numeric(count) > 0 & as.numeric(count) < 5, count := "<5"])
+    suppressWarnings(tab10[, total:= as.character(total)][as.numeric(total) > 0 & as.numeric(total) < 5, total := "<5"])
+    if(subpopulations_present=="Yes"){
+      fwrite(tab10, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_1_masked.csv"), row.names = F)
+    } else {
+      fwrite(tab10, paste0(med_dir,"Masked/","medicines_my_atc_1_masked.csv"), row.names = F)
+    }
   }
   rm(tab10)
   #################################################################################################
@@ -734,30 +768,56 @@ if(length(actual_tables$MEDICINES)>0){
     empty_atc_code_m_y_f<-empty_atc_code_m_y_f[,lapply(.SD, sum), .SDcols="N", by=c("meaning", "year")]
     names(empty_atc_code_m_y_f)<-c("meaning","year", "count")
     empty_atc_code_m_y_f[,atc_code_1:="empty"]
+    med_study_population_meaning_year_f<-do.call(rbind,med_study_population_meaning_year_f)
+    med_study_population_meaning_year_f<-med_study_population_meaning_year_f[,lapply(.SD, sum), .SDcols="N", by=c("meaning", "year")]
+    setnames(med_study_population_meaning_year_f,"N", "total")
+    
     #counts by meaning, year and atc level 1:load Res.2 
-    Res.2_files<-list.files(medicines_tmp,pattern="^Res.2")
+    Res.2_files<-list.files(medicines_tmp,pattern="^Res.2_count")
+    Res.2_tot<-list.files(medicines_tmp,pattern="^Res.2_total")
     if (length(Res.2_files)>0){
-      Res.2<-readRDS(paste0(medicines_tmp,Res.2_files[1]))
-      i<-2
-      while(i <= length(Res.2_files)){
-        a<-readRDS(paste0(medicines_tmp, Res.2_files[i]))
-        Res.2<-rbind(Res.2,a)
-        rm(a)
-        Res.2<-Res.2[,lapply(.SD, sum), .SDcols="count", by=c("meaning", "year", "atc_code_1")]
-        i<-i+1
-      }
-    } else {Res.2<-NULL}
+      tab11<-lapply(paste0(medicines_tmp,Res.2_files),readRDS)
+      tab11<-do.call(rbind,tab11)
+      tab11<-tab11[,lapply(.SD, sum), .SDcols="count", by=c("meaning", "year", "atc_code_1")]
+    } else {
+      tab11<-NULL 
+    }
+    if (length(Res.2_tot)>0){
+      Res.2_total<-lapply(paste0(medicines_tmp,Res.2_tot),readRDS)
+      Res.2_total<-do.call(rbind,Res.2_total)
+      Res.2_total<-Res.2_total[,lapply(.SD, sum), .SDcols="total", by=c("meaning", "year")]
+    } else {
+      Res.2_total<-NULL 
+    }
+    
+    if(!is.null(tab11) | !is.null(Res.2_total)){
+      tab11<-merge(tab11,Res.2_total, by=c("meaning","year"))
+    }
     
     #remove all files in Res.2_files
     #remove files not needed from medicines_tmp
     for(i in 1:length(Res.2_files)){
       unlink(paste0(medicines_tmp,Res.2_files[i]))
     }
+    for(i in 1:length(Res.2_tot)){
+      unlink(paste0(medicines_tmp,Res.2_tot[i]))
+    }
     
-    tab11<-data.table(rbind(Res.2, empty_atc_code_m_y_f))
-    setcolorder(tab11, c("meaning","year", "atc_code_1","count"))
+    
+    #get all combinations meaning and year from the table
+    meanings_tab11<-tab11[!duplicated(meaning),meaning]
+    years_tab11<-tab11[!duplicated(year),year]
+    comb_tab11<-as.data.table(expand.grid(meanings_tab11,years_tab11))
+    names(comb_tab11)<-c("meaning","year")
+    empty_atc_code_m_y_f<-merge(empty_atc_code_m_y_f,comb_tab11, by=c("meaning","year"),all=T)
+    empty_atc_code_m_y_f<-merge(empty_atc_code_m_y_f,med_study_population_meaning_year_f,by=c("meaning","year"))
+    empty_atc_code_m_y_f[is.na(count),count:=0][is.na(atc_code_1),atc_code_1:="empty"]
+    rm(med_study_population_meaning_year_f)
+    print("Create table 10.")
+    tab11<-data.table(rbind(tab11, empty_atc_code_m_y_f))
+    setcolorder(tab11, c("meaning","year", "atc_code_1","count","total"))
     setorderv(tab11, c("meaning", "year", "atc_code_1"))
-    rm(Res.2,Res.2_files)
+    rm(Res.2_files)
     print("Export table 11.")
     
   } else {
@@ -770,19 +830,20 @@ if(length(actual_tables$MEDICINES)>0){
   if(!is.null(tab11)){
     tab11<-data.table(tab11, data_access_provider= data_access_provider_name, data_source=data_source_name)
     if(subpopulations_present=="Yes"){
-    write.csv(tab11, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_1_f.csv"), row.names = F)
+      fwrite(tab11, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_1_f.csv"), row.names = F)
     } else {
-      write.csv(tab11, paste0(med_dir,"medicines_my_atc_1_f.csv"), row.names = F)
-  }
+      fwrite(tab11, paste0(med_dir,"medicines_my_atc_1_f.csv"), row.names = F)
+    }
   }
   
   #Apply masking
   if(!is.null(tab11)){
-    tab11[, count:= as.character(count)][as.numeric(count) > 0 & as.numeric(count) < 5, count := "<5"]
+    suppressWarnings(tab11[, count:= as.character(count)][as.numeric(count) > 0 & as.numeric(count) < 5, count := "<5"])
+    suppressWarnings(tab11[, total:= as.character(total)][as.numeric(total) > 0 & as.numeric(total) < 5, total := "<5"])
     if (subpopulations_present=="Yes"){
-    write.csv(tab11, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_1_f_masked.csv"), row.names = F)
+      fwrite(tab11, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_1_f_masked.csv"), row.names = F)
     } else {
-      write.csv(tab11, paste0(med_dir,"Masked/", "medicines_my_atc_1_f_masked.csv"), row.names = F)
+      fwrite(tab11, paste0(med_dir,"Masked/", "medicines_my_atc_1_f_masked.csv"), row.names = F)
     }
   }
   rm(tab11)
@@ -796,7 +857,7 @@ if(length(actual_tables$MEDICINES)>0){
   #############################
   if(male_population>0){
     if(subpopulations_present=="Yes"){
-    median_males_files<-list.files(paste0(medicines_pop, subpopulations_names[s], "/"),pattern="m_population")
+      median_males_files<-list.files(paste0(medicines_pop, subpopulations_names[s], "/"),pattern="m_population")
     } else {
       median_males_files<-list.files(medicines_pop,pattern="m_population") 
     }
@@ -811,22 +872,22 @@ if(length(actual_tables$MEDICINES)>0){
       }
       rm(letters_atc)
       
-      i<-1
-      for (i in 1:length(list_median_males)){
+      med_males_index<-1
+      for (med_males_index in 1:length(list_median_males)){
         if(subpopulations_present=="Yes"){
-        median_male<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_males[[i]][1]))
+          median_male<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_males[[med_males_index]][1]))
         } else {
-          median_male<-readRDS(paste0(medicines_pop, list_median_males[[i]][1]))
+          median_male<-readRDS(paste0(medicines_pop, list_median_males[[med_males_index]][1]))
         }
         #count by person_id, atc code meaning and year
         median_male<-median_male[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code")]
         
         z<-2
-        while (z <= length(list_median_males[[i]])){
+        while (z <= length(list_median_males[[med_males_index]])){
           if(subpopulations_present=="Yes"){
-          a<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_males[[i]][[z]]))
+            a<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_males[[med_males_index]][[z]]))
           } else {
-            a<-readRDS(paste0(medicines_pop, list_median_males[[i]][[z]]))
+            a<-readRDS(paste0(medicines_pop, list_median_males[[med_males_index]][[z]]))
           }
           a<-a[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code")]
           median_male<-rbind(median_male, a)
@@ -838,140 +899,152 @@ if(length(actual_tables$MEDICINES)>0){
         median_male<-median_male[,atc_level:=nchar(medicinal_product_atc_code)]
         #number of records, male users, median male users by atc_code_7 (table 13)
         if(median_male[atc_level==7,.N]>0){
-          res.tab13.m<-median_male[atc_level==7]
-          setnames(res.tab13.m,"medicinal_product_atc_code", "atc_code_7")
           #number of records by meaning, year, and atc_code_7
-          res.tab13.m_records.my<-res.tab13.m[,lapply(.SD, sum), by=.(atc_code_7, meaning, year),.SDcols="count"]
+          res.tab13.m_records.my<-median_male[atc_level==7,lapply(.SD, sum), by=.(medicinal_product_atc_code, meaning, year),.SDcols="count"]
           setnames(res.tab13.m_records.my,"count","no_records")
+          setnames(res.tab13.m_records.my,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_records.my[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_records.my,paste0(medicines_tmp,names(list_median_males)[i], "_tab13_m_rec_7.my_", i, ".rds"))
+          setcolorder(res.tab13.m_records.my,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_records.my,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab13_m_rec_7.my_", med_males_index, ".rds"))
           rm(res.tab13.m_records.my)
           #number of records by atc_code_7
-          res.tab13.m_records.t<-res.tab13.m[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_7),.SDcols="count"]
+          res.tab13.m_records.t<-median_male[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,sum),by=.(medicinal_product_atc_code), .SDcols="count"]
           res.tab13.m_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab13.m_records.t,"count","no_records")
+          setnames(res.tab13.m_records.t,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_records.t[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_records.t,paste0(medicines_tmp,names(list_median_males)[i], "_tab13_m_rec_7.t_", i, ".rds"))
+          setcolorder(res.tab13.m_records.t,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_records.t,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab13_m_rec_7.t_", med_males_index, ".rds"))
           rm(res.tab13.m_records.t)
           #number of male users by meaning, year and atc_code_7
-          res.tab13.m_users.c_7<-res.tab13.m[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7, meaning, year),.SDcols="person_id"]
+          res.tab13.m_users.c_7<-median_male[atc_level==7,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code, meaning, year),.SDcols="person_id"]
           setnames(res.tab13.m_users.c_7,"person_id","no_male_users")
+          setnames(res.tab13.m_users.c_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_users.c_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_users.c_7,paste0(medicines_tmp,names(list_median_males)[i], "_tab13_m_users_7.my_", i, ".rds"))
+          setcolorder(res.tab13.m_users.c_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.c_7,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab13_m_users_7.my_", med_males_index, ".rds"))
           rm(res.tab13.m_users.c_7)
           #number of male users by atc_code_7
-          res.tab13.m_users.t_7<-res.tab13.m[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7),.SDcols="person_id"]
+          res.tab13.m_users.t_7<-median_male[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code),.SDcols="person_id"]
           setnames(res.tab13.m_users.t_7,"person_id","no_male_users")
+          setnames(res.tab13.m_users.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_users.t_7[,meaning:="All"][,year:="All"]
           res.tab13.m_users.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_users.t_7,paste0(medicines_tmp,names(list_median_males)[i], "_tab13_m_users_7.t_", i, ".rds"))
+          setcolorder(res.tab13.m_users.t_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.t_7,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab13_m_users_7.t_", med_males_index, ".rds"))
           rm(res.tab13.m_users.t_7)
           #median prescription by meaning, year and atc_code_7
-          res.tab13.m_users.med_7<-res.tab13.m[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_7)]
+          res.tab13.m_users.med_7<-median_male[atc_level==7,lapply(.SD,median),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
           setnames(res.tab13.m_users.med_7,"count","median_rx_male_users")
+          setnames(res.tab13.m_users.med_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_users.med_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_users.med_7,paste0(medicines_tmp,names(list_median_males)[i],"_tab13_m_median_7.my_",i, ".rds"))
+          setcolorder(res.tab13.m_users.med_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.med_7,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab13_m_median_7.my_",med_males_index, ".rds"))
           rm(res.tab13.m_users.med_7)
           #median prescriptions by atc_code_7
-          res.tab13.m_users.med.t_7<-res.tab13.m[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_7)]
+          res.tab13.m_users.med.t_7<-median_male[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(medicinal_product_atc_code)]
           setnames(res.tab13.m_users.med.t_7,"count","median_rx_male_users")
+          setnames(res.tab13.m_users.med.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.m_users.med.t_7[,meaning:="All"][,year:="All"]
           res.tab13.m_users.med.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.m_users.med.t_7,paste0(medicines_tmp,names(list_median_males)[i],"_tab13_m_median_7.t_",i, ".rds"))
-          rm(res.tab13.m_users.med.t_7,res.tab13.m)
+          setcolorder(res.tab13.m_users.med.t_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.med.t_7,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab13_m_median_7.t_",med_males_index, ".rds"))
+          rm(res.tab13.m_users.med.t_7)
         }
         
         #############
         #number of records, male users, median male users (table 12)
         if(median_male[atc_level==4|atc_level==5|atc_level==6|atc_level==7,.N]>0){
           median_male<-median_male[,atc_code_4:=substr(medicinal_product_atc_code,1,4)] #create atc_code_4
-          #subset only atc codes of interest, aggregate data over atc_code_4
-          res.tab12.m<-median_male[atc_level==4|atc_level==5|atc_level==6|atc_level==7][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_4","atc_level")]
           #number of records by meaning, year, and atc_code_4
-          res.tab12.m_records.my<-res.tab12.m[,lapply(.SD, sum), by=.(atc_code_4, meaning, year),.SDcols="count"]
+          res.tab12.m_records.my<-median_male[atc_level>=4,lapply(.SD, sum), by=.(atc_code_4, meaning, year),.SDcols="count"]
           setnames(res.tab12.m_records.my,"count","no_records")
           res.tab12.m_records.my[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_4.my_", i, ".rds"))
+          setcolorder(res.tab12.m_records.my,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_4.my_", med_males_index, ".rds"))
           rm(res.tab12.m_records.my)
           #number of records by atc_code_4
-          res.tab12.m_records.t<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_4),.SDcols="count"]
+          res.tab12.m_records.t<-median_male[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_4),.SDcols="count"]
           res.tab12.m_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.m_records.t,"count","no_records")
           res.tab12.m_records.t[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_4.t_", i, ".rds"))
+          setcolorder(res.tab12.m_records.t,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_4.t_", med_males_index, ".rds"))
           rm(res.tab12.m_records.t)
           #number of male users by meaning, year and atc_code_4
-          res.tab12.m_users.c_4<-res.tab12.m[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_4, meaning, year),.SDcols="person_id"]
+          res.tab12.m_users.c_4<-median_male[atc_level>=4,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_4, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.m_users.c_4,"person_id","no_male_users")
           res.tab12.m_users.c_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_users.c_4,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_4.my_", i, ".rds"))
+          setcolorder(res.tab12.m_users.c_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.c_4,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_4.my_", med_males_index, ".rds"))
           rm(res.tab12.m_users.c_4)
           #number of male users by atc_code_4
-          res.tab12.m_users.t_4<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_4),.SDcols="person_id"]
+          res.tab12.m_users.t_4<-median_male[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_4),.SDcols="person_id"]
           setnames(res.tab12.m_users.t_4,"person_id","no_male_users")
           res.tab12.m_users.t_4[,meaning:="All"][,year:="All"]
           res.tab12.m_users.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_users.t_4,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_4.t_", i, ".rds"))
+          setcolorder(res.tab12.m_users.t_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.t_4,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_4.t_", med_males_index, ".rds"))
           rm(res.tab12.m_users.t_4)
           #median prescription by meaning, year and atc_code_4
-          res.tab12.m_users.med_4<-res.tab12.m[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_4)]
+          res.tab12.m_users.med_4<-median_male[atc_level>=4,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_4)]
           setnames(res.tab12.m_users.med_4,"count","median_rx_male_users")
           res.tab12.m_users.med_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_users.med_4,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_4.my_",i, ".rds"))
+          setcolorder(res.tab12.m_users.med_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.med_4,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_4.my_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med_4)
           #median prescriptions by atc_code_4
-          res.tab12.m_users.med.t_4<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_4)]
+          res.tab12.m_users.med.t_4<-median_male[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_4)]
           setnames(res.tab12.m_users.med.t_4,"count","median_rx_male_users")
           res.tab12.m_users.med.t_4[,meaning:="All"][,year:="All"]
           res.tab12.m_users.med.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.m_users.med.t_4,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_4.t_",i, ".rds"))
-          rm(res.tab12.m_users.med.t_4,res.tab12.m)
+          setcolorder(res.tab12.m_users.med.t_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.med.t_4,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_4.t_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.med.t_4)
           median_male[,atc_code_4:=NULL]
         }
         
         ##number of records, male users, median male users by atc_3 (table 12)
         if(median_male[atc_level==3,.N]>0){
           median_male<-median_male[,atc_code_3:=substr(medicinal_product_atc_code,1,3)] #create atc_code_3
-          #subset only atc codes of interest, aggregate data over atc_code_3
-          res.tab12.m<-median_male[atc_level==3][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_3","atc_level")]
           #number of records by meaning, year, and atc_code_3
-          res.tab12.m_records.my<-res.tab12.m[,lapply(.SD, sum), by=.(atc_code_3, meaning, year),.SDcols="count"]
+          res.tab12.m_records.my<-median_male[atc_level==3,lapply(.SD, sum), by=.(atc_code_3, meaning, year),.SDcols="count"]
           setnames(res.tab12.m_records.my,"count","no_records")
           res.tab12.m_records.my[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_3.my_", i, ".rds"))
+          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_3.my_", med_males_index, ".rds"))
           rm(res.tab12.m_records.my)
           #number of records by atc_code_3
-          res.tab12.m_records.t<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_3),.SDcols="count"]
+          res.tab12.m_records.t<-median_male[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_3),.SDcols="count"]
           res.tab12.m_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.m_records.t,"count","no_records")
           res.tab12.m_records.t[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_3.t_", i, ".rds"))
+          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_3.t_", med_males_index, ".rds"))
           rm(res.tab12.m_records.t)
           #number of male users by meaning, year and atc_code_3
-          res.tab12.m_users.c_3<-res.tab12.m[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_3, meaning, year),.SDcols="person_id"]
+          res.tab12.m_users.c_3<-median_male[atc_level==3,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_3, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.m_users.c_3,"person_id","no_male_users")
           res.tab12.m_users.c_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_users.c_3,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_3.my_", i, ".rds"))
+          saveRDS(res.tab12.m_users.c_3,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_3.my_", med_males_index, ".rds"))
           rm(res.tab12.m_users.c_3)
           #number of male users by atc_code_3
-          res.tab12.m_users.t_3<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_3),.SDcols="person_id"]
+          res.tab12.m_users.t_3<-median_male[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_3),.SDcols="person_id"]
           setnames(res.tab12.m_users.t_3,"person_id","no_male_users")
           res.tab12.m_users.t_3[,meaning:="All"][,year:="All"]
           res.tab12.m_users.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_users.t_3,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_3.t_", i, ".rds"))
+          saveRDS(res.tab12.m_users.t_3,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_3.t_", med_males_index, ".rds"))
           rm(res.tab12.m_users.t_3)
           #median prescription by meaning, year and atc_code_3
-          res.tab12.m_users.med_3<-res.tab12.m[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_3)]
+          res.tab12.m_users.med_3<-median_male[atc_level==3,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_3)]
           setnames(res.tab12.m_users.med_3,"count","median_rx_male_users")
           res.tab12.m_users.med_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_users.med_3,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_3.my_",i, ".rds"))
+          saveRDS(res.tab12.m_users.med_3,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_3.my_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med_3)
           #median prescriptions by atc_code_3
-          res.tab12.m_users.med.t_3<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_3)]
+          res.tab12.m_users.med.t_3<-median_male[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_3)]
           setnames(res.tab12.m_users.med.t_3,"count","median_rx_male_users")
           res.tab12.m_users.med.t_3[,meaning:="All"][,year:="All"]
           res.tab12.m_users.med.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.m_users.med.t_3,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_3.t_",i, ".rds"))
+          saveRDS(res.tab12.m_users.med.t_3,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_3.t_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med.t_3,res.tab12.m)
           median_male[,atc_code_3:=NULL]
         }
@@ -979,52 +1052,50 @@ if(length(actual_tables$MEDICINES)>0){
         #number of records, male users, median male users by atc_3 (table 12)
         if(median_male[atc_level==1,.N]>0){
           median_male<-median_male[,atc_code_1:=substr(medicinal_product_atc_code,1,1)] #create atc_code_1
-          #subset only atc codes of interest, aggregate data over atc_code_1
-          res.tab12.m<-median_male[atc_level==1][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_1","atc_level")]
           #number of records by meaning, year, and atc_code_1
-          res.tab12.m_records.my<-res.tab12.m[,lapply(.SD, sum), by=.(atc_code_1, meaning, year),.SDcols="count"]
+          res.tab12.m_records.my<-median_male[atc_level==1,lapply(.SD, sum), by=.(atc_code_1, meaning, year),.SDcols="count"]
           setnames(res.tab12.m_records.my,"count","no_records")
           res.tab12.m_records.my[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_1.my_", i, ".rds"))
+          saveRDS(res.tab12.m_records.my,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_1.my_", med_males_index, ".rds"))
           rm(res.tab12.m_records.my)
           #number of records by atc_code_1
-          res.tab12.m_records.t<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_1),.SDcols="count"]
+          res.tab12.m_records.t<-median_male[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_1),.SDcols="count"]
           res.tab12.m_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.m_records.t,"count","no_records")
           res.tab12.m_records.t[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_rec_1.t_", i, ".rds"))
+          saveRDS(res.tab12.m_records.t,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_rec_1.t_", med_males_index, ".rds"))
           rm(res.tab12.m_records.t)
           #number of male users by meaning, year and atc_code_1
-          res.tab12.m_users.c_1<-res.tab12.m[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_1, meaning, year),.SDcols="person_id"]
+          res.tab12.m_users.c_1<-median_male[atc_level==1,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_1, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.m_users.c_1,"person_id","no_male_users")
           res.tab12.m_users.c_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_users.c_1,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_1.my_", i, ".rds"))
+          saveRDS(res.tab12.m_users.c_1,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_1.my_", med_males_index, ".rds"))
           rm(res.tab12.m_users.c_1)
           #number of male users by atc_code_1
-          res.tab12.m_users.t_1<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_1),.SDcols="person_id"]
+          res.tab12.m_users.t_1<-median_male[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_1),.SDcols="person_id"]
           setnames(res.tab12.m_users.t_1,"person_id","no_male_users")
           res.tab12.m_users.t_1[,meaning:="All"][,year:="All"]
           res.tab12.m_users.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_users.t_1,paste0(medicines_tmp,names(list_median_males)[i], "_tab12_m_users_1.t_", i, ".rds"))
+          saveRDS(res.tab12.m_users.t_1,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab12_m_users_1.t_", med_males_index, ".rds"))
           rm(res.tab12.m_users.t_1)
           #median prescription by meaning, year and atc_code_1
-          res.tab12.m_users.med_1<-res.tab12.m[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_1)]
+          res.tab12.m_users.med_1<-median_male[atc_level==1,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_1)]
           setnames(res.tab12.m_users.med_1,"count","median_rx_male_users")
           res.tab12.m_users.med_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_users.med_1,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_1.my_",i, ".rds"))
+          saveRDS(res.tab12.m_users.med_1,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_1.my_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med_1)
           #median prescriptions by atc_code_1
-          res.tab12.m_users.med.t_1<-res.tab12.m[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_1)]
+          res.tab12.m_users.med.t_1<-median_male[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_1)]
           setnames(res.tab12.m_users.med.t_1,"count","median_rx_male_users")
           res.tab12.m_users.med.t_1[,meaning:="All"][,year:="All"]
           res.tab12.m_users.med.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.m_users.med.t_1,paste0(medicines_tmp,names(list_median_males)[i],"_tab12_m_median_1.t_",i, ".rds"))
+          saveRDS(res.tab12.m_users.med.t_1,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_1.t_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med.t_1,res.tab12.m)
           median_male[,atc_code_1:=NULL]
         }
       }
       print("Calculating number of male users and number of median prescription/dispensings stratified by ATC code, meaning and year.")
-      
+      rm(median_male)
       ########
       #Info input
       #tab12_m_rec_4.my: number of male records by meaning, year, atc_code_4
@@ -1133,7 +1204,7 @@ if(length(actual_tables$MEDICINES)>0){
   #############################
   if(female_population>0){
     if(subpopulations_present=="Yes"){
-    median_females_files<-list.files(paste0(medicines_pop, subpopulations_names[s], "/"),pattern="f_population")
+      median_females_files<-list.files(paste0(medicines_pop, subpopulations_names[s], "/"),pattern="f_population")
     } else {
       median_females_files<-list.files(medicines_pop, pattern="f_population")
     }
@@ -1148,27 +1219,25 @@ if(length(actual_tables$MEDICINES)>0){
       }
       rm(letters_atc)
       
-      i<-1
-      for (i in 1:length(list_median_females)){
+      med_females_index<-1
+      for (med_females_index in 1:length(list_median_females)){
         if (subpopulations_present=="Yes"){
-        median_female<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_females[[i]][1]))
+          median_female<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_females[[med_females_index]][1]))
         } else {
-          median_female<-readRDS(paste0(medicines_pop, list_median_females[[i]][1]))
+          median_female<-readRDS(paste0(medicines_pop, list_median_females[[med_females_index]][1]))
           
         }
-        setnames(median_female, "meaning", "meaning")
+        
         #count by person_id, atc code meaning and year
         median_female<-median_female[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code","age_start_follow_up")]
         
         z<-2
-        while (z <= length(list_median_females[[i]])){
+        while (z <= length(list_median_females[[med_females_index]])){
           if(subpopulations_present=="Yes"){
-           a<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_females[[i]][[z]]))
+            a<-readRDS(paste0(medicines_pop, subpopulations_names[s], "/", list_median_females[[med_females_index]][[z]]))
           } else {
-            a<-readRDS(paste0(medicines_pop, list_median_females[[i]][[z]]))
-            
+            a<-readRDS(paste0(medicines_pop, list_median_females[[med_females_index]][[z]]))
           }
-          setnames(a, "meaning", "meaning")
           a<-a[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code","age_start_follow_up")]
           median_female<-rbind(median_female, a)
           median_female<-median_female[,lapply(.SD, sum), by=c("person_id","meaning","year","medicinal_product_atc_code","age_start_follow_up"), .SDcols="count"]
@@ -1179,237 +1248,252 @@ if(length(actual_tables$MEDICINES)>0){
         median_female<-median_female[,atc_level:=nchar(medicinal_product_atc_code)]
         #number of records, female users, median female users by atc_code_7 (table 13)
         if(median_female[atc_level==7,.N]>0){
-          res.tab13.f<-median_female[atc_level==7]
-          setnames(res.tab13.f,"medicinal_product_atc_code", "atc_code_7")
           #number of records by meaning, year, and atc_code_7
-          res.tab13.f_records.my<-res.tab13.f[,lapply(.SD, sum), by=.(atc_code_7, meaning, year),.SDcols="count"]
+          res.tab13.f_records.my<-median_female[atc_level==7,lapply(.SD, sum), by=.(medicinal_product_atc_code, meaning, year),.SDcols="count"]
           setnames(res.tab13.f_records.my,"count","no_records")
+          setnames(res.tab13.f_records.my,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_records.my[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_records.my,paste0(medicines_tmp,names(list_median_females)[i], "_tab13_f_rec_7.my_", i, ".rds"))
+          setcolorder(res.tab13.f_records.my, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_records.my,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab13_f_rec_7.my_", med_females_index, ".rds"))
           rm(res.tab13.f_records.my)
           #number of records by atc_code_7
-          res.tab13.f_records.t<-res.tab13.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_7),.SDcols="count"]
+          res.tab13.f_records.t<-median_female[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD, sum), by=.(medicinal_product_atc_code),.SDcols="count"]
           res.tab13.f_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab13.f_records.t,"count","no_records")
+          setnames(res.tab13.f_records.t,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_records.t[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_records.t,paste0(medicines_tmp,names(list_median_females)[i], "_tab13_f_rec_7.t_", i, ".rds"))
+          setcolorder(res.tab13.f_records.t, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_records.t,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab13_f_rec_7.t_", med_females_index, ".rds"))
           rm(res.tab13.f_records.t)
           #number of female users by meaning, year and atc_code_7
-          res.tab13.f_users.c_7<-res.tab13.f[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7, meaning, year),.SDcols="person_id"]
+          res.tab13.f_users.c_7<-median_female[atc_level==7,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code, meaning, year),.SDcols="person_id"]
           setnames(res.tab13.f_users.c_7,"person_id","no_female_users")
+          setnames(res.tab13.f_users.c_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_users.c_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_users.c_7,paste0(medicines_tmp,names(list_median_females)[i], "_tab13_f_users_7.my_", i, ".rds"))
+          setcolorder(res.tab13.f_users.c_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.c_7,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab13_f_users_7.my_", med_females_index, ".rds"))
           rm(res.tab13.f_users.c_7)
           #number of female users by atc_code_7
-          res.tab13.f_users.t_7<-res.tab13.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7),.SDcols="person_id"]
+          res.tab13.f_users.t_7<-median_female[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code),.SDcols="person_id"]
           setnames(res.tab13.f_users.t_7,"person_id","no_female_users")
+          setnames(res.tab13.f_users.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_users.t_7[,meaning:="All"][,year:="All"]
           res.tab13.f_users.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_users.t_7,paste0(medicines_tmp,names(list_median_females)[i], "_tab13_f_users_7.t_", i, ".rds"))
+          setcolorder(res.tab13.f_users.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab13_f_users_7.t_", med_females_index, ".rds"))
           rm(res.tab13.f_users.t_7)
           #median prescription by meaning, year and atc_code_7
-          res.tab13.f_users.med_7<-res.tab13.f[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_7)]
+          res.tab13.f_users.med_7<-median_female[atc_level==7,lapply(.SD,median),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
           setnames(res.tab13.f_users.med_7,"count","median_rx_female_users")
+          setnames(res.tab13.f_users.med_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_users.med_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_users.med_7,paste0(medicines_tmp,names(list_median_females)[i],"_tab13_f_median_7.my_",i, ".rds"))
+          setcolorder(res.tab13.f_users.med_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.med_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab13_f_median_7.my_",med_females_index, ".rds"))
           rm(res.tab13.f_users.med_7)
           #median prescriptions by atc_code_7
-          res.tab13.f_users.med.t_7<-res.tab13.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_7)]
+          res.tab13.f_users.med.t_7<-median_female[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(medicinal_product_atc_code)]
           setnames(res.tab13.f_users.med.t_7,"count","median_rx_female_users")
+          setnames(res.tab13.f_users.med.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab13.f_users.med.t_7[,meaning:="All"][,year:="All"]
           res.tab13.f_users.med.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab13.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[i],"_tab13_f_median_7.t_",i, ".rds"))
-          rm(res.tab13.f_users.med.t_7,res.tab13.f)
+          setcolorder(res.tab13.f_users.med.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab13_f_median_7.t_",med_females_index, ".rds"))
+          rm(res.tab13.f_users.med.t_7)
         }
         
         #number of records, female users, median female users by atc_code_7 (table 14) in females of childbearing age
-        if(median_female[atc_level==7 & age_start_follow_up>=12 & age_start_follow_up<=55,.N]>0){
+        if(median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,.N]>0){
           ##########users by meaning and year
-          res.tab12.f<-median_female[atc_level==7 & age_start_follow_up>=12 & age_start_follow_up<=55]
-          setnames(res.tab12.f,"medicinal_product_atc_code", "atc_code_7")
           #number of records by meaning, year, and atc_code_7
-          res.tab12.f_records.my<-res.tab12.f[,lapply(.SD, sum), by=.(atc_code_7, meaning, year),.SDcols="count"]
+          res.tab12.f_records.my<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD, sum), by=.(medicinal_product_atc_code, meaning, year),.SDcols="count"]
           setnames(res.tab12.f_records.my,"count","no_records")
+          setnames(res.tab12.f_records.my,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_records.my[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[i], "_tab14_f_rec_7.my_", i, ".rds"))
+          setcolorder(res.tab12.f_records.my, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab14_f_rec_7.my_", med_females_index, ".rds"))
           rm(res.tab12.f_records.my)
           #number of records by atc_code_7
-          res.tab12.f_records.t<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_7),.SDcols="count"]
+          res.tab12.f_records.t<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD, sum), by=.(medicinal_product_atc_code),.SDcols="count"]
           res.tab12.f_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.f_records.t,"count","no_records")
+          setnames(res.tab12.f_records.t,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_records.t[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[i], "_tab14_f_rec_7.t_", i, ".rds"))
+          setcolorder(res.tab12.f_records.t, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab14_f_rec_7.t_", med_females_index, ".rds"))
           rm(res.tab12.f_records.t)
           #number of female users by meaning, year and atc_code_7
-          res.tab12.f_users.c_7<-res.tab12.f[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7, meaning, year),.SDcols="person_id"]
+          res.tab12.f_users.c_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.f_users.c_7,"person_id","no_female_users")
+          setnames(res.tab12.f_users.c_7,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_users.c_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_users.c_7,paste0(medicines_tmp,names(list_median_females)[i], "_tab14_f_users_7.my_", i, ".rds"))
+          setcolorder(res.tab12.f_users.c_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.c_7,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab14_f_users_7.my_", med_females_index, ".rds"))
           rm(res.tab12.f_users.c_7)
           #number of female users by atc_code_7
-          res.tab12.f_users.t_7<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_7),.SDcols="person_id"]
+          res.tab12.f_users.t_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(medicinal_product_atc_code),.SDcols="person_id"]
           setnames(res.tab12.f_users.t_7,"person_id","no_female_users")
+          setnames(res.tab12.f_users.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_users.t_7[,meaning:="All"][,year:="All"]
           res.tab12.f_users.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_users.t_7,paste0(medicines_tmp,names(list_median_females)[i], "_tab14_f_users_7.t_", i, ".rds"))
+          setcolorder(res.tab12.f_users.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab14_f_users_7.t_", med_females_index, ".rds"))
           rm(res.tab12.f_users.t_7)
           #median prescription by meaning, year and atc_code_7
-          res.tab12.f_users.med_7<-res.tab12.f[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_7)]
+          res.tab12.f_users.med_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,median),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
           setnames(res.tab12.f_users.med_7,"count","median_rx_female_users")
+          setnames(res.tab12.f_users.med_7,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_users.med_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_users.med_7,paste0(medicines_tmp,names(list_median_females)[i],"_tab14_f_median_7.my_",i, ".rds"))
+          setcolorder(res.tab12.f_users.med_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.med_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab14_f_median_7.my_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med_7)
           #median prescriptions by atc_code_7
-          res.tab12.f_users.med.t_7<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_7), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_7)]
+          res.tab12.f_users.med.t_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(medicinal_product_atc_code)]
           setnames(res.tab12.f_users.med.t_7,"count","median_rx_female_users")
+          setnames(res.tab12.f_users.med.t_7,"medicinal_product_atc_code","atc_code_7")
           res.tab12.f_users.med.t_7[,meaning:="All"][,year:="All"]
           res.tab12.f_users.med.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
-          saveRDS(res.tab12.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[i],"_tab14_f_median_7.t_",i, ".rds"))
-          rm(res.tab12.f_users.med.t_7,res.tab12.f)
+          setcolorder(res.tab12.f_users.med.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab14_f_median_7.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.med.t_7)
         }
         
         #############
         #number of records, female users, median female users (table 12)
-        if(median_female[atc_level==4|atc_level==5|atc_level==6|atc_level==7,.N]>0){
+        if(median_female[atc_level>=4,.N]>0){
           median_female<-median_female[,atc_code_4:=substr(medicinal_product_atc_code,1,4)] #create atc_code_4
-          #subset only atc codes of interest, aggregate data over atc_code_4
-          res.tab12.f<-median_female[atc_level==4|atc_level==5|atc_level==6|atc_level==7][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_4","age_start_follow_up","atc_level")]
           #number of records by meaning, year, and atc_code_4
-          res.tab12.f_records.my<-res.tab12.f[,lapply(.SD, sum), by=.(atc_code_4, meaning, year),.SDcols="count"]
+          res.tab12.f_records.my<-median_female[atc_level>=4,lapply(.SD, sum), by=.(atc_code_4, meaning, year),.SDcols="count"]
           setnames(res.tab12.f_records.my,"count","no_records")
           res.tab12.f_records.my[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_4.my_", i, ".rds"))
+          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_4.my_", med_females_index, ".rds"))
           rm(res.tab12.f_records.my)
           #number of records by atc_code_4
-          res.tab12.f_records.t<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_4),.SDcols="count"]
+          res.tab12.f_records.t<-median_female[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_4),.SDcols="count"]
           res.tab12.f_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.f_records.t,"count","no_records")
           res.tab12.f_records.t[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_4.t_", i, ".rds"))
+          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_4.t_", med_females_index, ".rds"))
           rm(res.tab12.f_records.t)
           #number of female users by meaning, year and atc_code_4
-          res.tab12.f_users.c_4<-res.tab12.f[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_4, meaning, year),.SDcols="person_id"]
+          res.tab12.f_users.c_4<-median_female[atc_level>=4,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_4, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.f_users.c_4,"person_id","no_female_users")
           res.tab12.f_users.c_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_users.c_4,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_4.my_", i, ".rds"))
+          saveRDS(res.tab12.f_users.c_4,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_4.my_", med_females_index, ".rds"))
           rm(res.tab12.f_users.c_4)
           #number of female users by atc_code_4
-          res.tab12.f_users.t_4<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_4),.SDcols="person_id"]
+          res.tab12.f_users.t_4<-median_female[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_4),.SDcols="person_id"]
           setnames(res.tab12.f_users.t_4,"person_id","no_female_users")
           res.tab12.f_users.t_4[,meaning:="All"][,year:="All"]
           res.tab12.f_users.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_users.t_4,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_4.t_", i, ".rds"))
+          saveRDS(res.tab12.f_users.t_4,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_4.t_", med_females_index, ".rds"))
           rm(res.tab12.f_users.t_4)
           #median prescription by meaning, year and atc_code_4
-          res.tab12.f_users.med_4<-res.tab12.f[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_4)]
+          res.tab12.f_users.med_4<-median_female[atc_level>=4,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_4)]
           setnames(res.tab12.f_users.med_4,"count","median_rx_female_users")
           res.tab12.f_users.med_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_users.med_4,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_4.my_",i, ".rds"))
+          saveRDS(res.tab12.f_users.med_4,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_4.my_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med_4)
           #median prescriptions by atc_code_4
-          res.tab12.f_users.med.t_4<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_4)]
+          res.tab12.f_users.med.t_4<-median_female[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_4)]
           setnames(res.tab12.f_users.med.t_4,"count","median_rx_female_users")
           res.tab12.f_users.med.t_4[,meaning:="All"][,year:="All"]
           res.tab12.f_users.med.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
-          saveRDS(res.tab12.f_users.med.t_4,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_4.t_",i, ".rds"))
-          rm(res.tab12.f_users.med.t_4,res.tab12.f)
+          saveRDS(res.tab12.f_users.med.t_4,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_4.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.med.t_4)
           median_female[,atc_code_4:=NULL]
         }
         
         ##number of records, female users, median female users by atc_3 (table 12)
         if(median_female[atc_level==3,.N]>0){
           median_female<-median_female[,atc_code_3:=substr(medicinal_product_atc_code,1,3)] #create atc_code_3
-          #subset only atc codes of interest, aggregate data over atc_code_3
-          res.tab12.f<-median_female[atc_level==3][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_3","age_start_follow_up","atc_level")]
           #number of records by meaning, year, and atc_code_3
-          res.tab12.f_records.my<-res.tab12.f[,lapply(.SD, sum), by=.(atc_code_3, meaning, year),.SDcols="count"]
+          res.tab12.f_records.my<-median_female[atc_level==3,lapply(.SD, sum), by=.(atc_code_3, meaning, year),.SDcols="count"]
           setnames(res.tab12.f_records.my,"count","no_records")
           res.tab12.f_records.my[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_3.my_", i, ".rds"))
+          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_3.my_", med_females_index, ".rds"))
           rm(res.tab12.f_records.my)
           #number of records by atc_code_3
-          res.tab12.f_records.t<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_3),.SDcols="count"]
+          res.tab12.f_records.t<-median_female[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_3),.SDcols="count"]
           res.tab12.f_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.f_records.t,"count","no_records")
           res.tab12.f_records.t[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_3.t_", i, ".rds"))
+          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_3.t_", med_females_index, ".rds"))
           rm(res.tab12.f_records.t)
           #number of female users by meaning, year and atc_code_3
-          res.tab12.f_users.c_3<-res.tab12.f[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_3, meaning, year),.SDcols="person_id"]
+          res.tab12.f_users.c_3<-median_female[atc_level==3,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_3, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.f_users.c_3,"person_id","no_female_users")
           res.tab12.f_users.c_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_users.c_3,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_3.my_", i, ".rds"))
+          saveRDS(res.tab12.f_users.c_3,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_3.my_", med_females_index, ".rds"))
           rm(res.tab12.f_users.c_3)
           #number of female users by atc_code_3
-          res.tab12.f_users.t_3<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_3),.SDcols="person_id"]
+          res.tab12.f_users.t_3<-median_female[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_3),.SDcols="person_id"]
           setnames(res.tab12.f_users.t_3,"person_id","no_female_users")
           res.tab12.f_users.t_3[,meaning:="All"][,year:="All"]
           res.tab12.f_users.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_users.t_3,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_3.t_", i, ".rds"))
+          saveRDS(res.tab12.f_users.t_3,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_3.t_", med_females_index, ".rds"))
           rm(res.tab12.f_users.t_3)
           #median prescription by meaning, year and atc_code_3
-          res.tab12.f_users.med_3<-res.tab12.f[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_3)]
+          res.tab12.f_users.med_3<-median_female[atc_level==3,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_3)]
           setnames(res.tab12.f_users.med_3,"count","median_rx_female_users")
           res.tab12.f_users.med_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_users.med_3,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_3.my_",i, ".rds"))
+          saveRDS(res.tab12.f_users.med_3,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_3.my_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med_3)
           #median prescriptions by atc_code_3
-          res.tab12.f_users.med.t_3<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_3)]
+          res.tab12.f_users.med.t_3<-median_female[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_3)]
           setnames(res.tab12.f_users.med.t_3,"count","median_rx_female_users")
           res.tab12.f_users.med.t_3[,meaning:="All"][,year:="All"]
           res.tab12.f_users.med.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
-          saveRDS(res.tab12.f_users.med.t_3,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_3.t_",i, ".rds"))
-          rm(res.tab12.f_users.med.t_3,res.tab12.f)
+          saveRDS(res.tab12.f_users.med.t_3,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_3.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.med.t_3)
           median_female[,atc_code_3:=NULL]
         }
         
         #number of records, female users, median female users by atc_3 (table 12)
         if(median_female[atc_level==1,.N]>0){
           median_female<-median_female[,atc_code_1:=substr(medicinal_product_atc_code,1,1)] #create atc_code_1
-          #subset only atc codes of interest, aggregate data over atc_code_1
-          res.tab12.f<-median_female[atc_level==1][,medicinal_product_atc_code:=NULL][,lapply(.SD,sum), by=c("person_id", "meaning", "year", "atc_code_1","age_start_follow_up","atc_level")]
           #number of records by meaning, year, and atc_code_1
-          res.tab12.f_records.my<-res.tab12.f[,lapply(.SD, sum), by=.(atc_code_1, meaning, year),.SDcols="count"]
+          res.tab12.f_records.my<-median_female[atc_level==1,lapply(.SD, sum), by=.(atc_code_1, meaning, year),.SDcols="count"]
           setnames(res.tab12.f_records.my,"count","no_records")
           res.tab12.f_records.my[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_1.my_", i, ".rds"))
+          saveRDS(res.tab12.f_records.my,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_1.my_", med_females_index, ".rds"))
           rm(res.tab12.f_records.my)
           #number of records by atc_code_1
-          res.tab12.f_records.t<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_1),.SDcols="count"]
+          res.tab12.f_records.t<-median_female[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD, sum), by=.(atc_code_1),.SDcols="count"]
           res.tab12.f_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab12.f_records.t,"count","no_records")
           res.tab12.f_records.t[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_rec_1.t_", i, ".rds"))
+          saveRDS(res.tab12.f_records.t,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_rec_1.t_", med_females_index, ".rds"))
           rm(res.tab12.f_records.t)
           #number of female users by meaning, year and atc_code_1
-          res.tab12.f_users.c_1<-res.tab12.f[,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_1, meaning, year),.SDcols="person_id"]
+          res.tab12.f_users.c_1<-median_female[atc_level==1,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_1, meaning, year),.SDcols="person_id"]
           setnames(res.tab12.f_users.c_1,"person_id","no_female_users")
           res.tab12.f_users.c_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_users.c_1,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_1.my_", i, ".rds"))
+          saveRDS(res.tab12.f_users.c_1,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_1.my_", med_females_index, ".rds"))
           rm(res.tab12.f_users.c_1)
           #number of female users by atc_code_1
-          res.tab12.f_users.t_1<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,function(x) length(unique(x))), by=.(atc_code_1),.SDcols="person_id"]
+          res.tab12.f_users.t_1<-median_female[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,function(x) length(unique(na.omit(x)))), by=.(atc_code_1),.SDcols="person_id"]
           setnames(res.tab12.f_users.t_1,"person_id","no_female_users")
           res.tab12.f_users.t_1[,meaning:="All"][,year:="All"]
           res.tab12.f_users.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_users.t_1,paste0(medicines_tmp,names(list_median_females)[i], "_tab12_f_users_1.t_", i, ".rds"))
+          saveRDS(res.tab12.f_users.t_1,paste0(medicines_tmp,names(list_median_females)[med_females_index], "_tab12_f_users_1.t_", med_females_index, ".rds"))
           rm(res.tab12.f_users.t_1)
           #median prescription by meaning, year and atc_code_1
-          res.tab12.f_users.med_1<-res.tab12.f[,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_1)]
+          res.tab12.f_users.med_1<-median_female[atc_level==1,lapply(.SD,median),.SDcols="count", by=.(meaning, year, atc_code_1)]
           setnames(res.tab12.f_users.med_1,"count","median_rx_female_users")
           res.tab12.f_users.med_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_users.med_1,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_1.my_",i, ".rds"))
+          saveRDS(res.tab12.f_users.med_1,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_1.my_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med_1)
           #median prescriptions by atc_code_1
-          res.tab12.f_users.med.t_1<-res.tab12.f[,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_1)]
+          res.tab12.f_users.med.t_1<-median_female[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,median),.SDcols="count", by=.(atc_code_1)]
           setnames(res.tab12.f_users.med.t_1,"count","median_rx_female_users")
           res.tab12.f_users.med.t_1[,meaning:="All"][,year:="All"]
           res.tab12.f_users.med.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
-          saveRDS(res.tab12.f_users.med.t_1,paste0(medicines_tmp,names(list_median_females)[i],"_tab12_f_median_1.t_",i, ".rds"))
-          rm(res.tab12.f_users.med.t_1,res.tab12.f)
+          saveRDS(res.tab12.f_users.med.t_1,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_1.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.med.t_1)
           median_female[,atc_code_1:=NULL]
         }
       }
+      rm(median_female)
       print("Calculating number of female users and number of median prescription/dispensings stratified by ATC code, meaning and year.")
       
       ########
@@ -1515,7 +1599,6 @@ if(length(actual_tables$MEDICINES)>0){
   } else {
     tab12_females<-data.table(meaning="N/A", year="N/A", atc_code_1="N/A", atc_code_3="N/A", atc_code_4="N/A", no_female_users="N/A", median_rx_female_users="N/A")
   }
-  
   ########
   #Info input
   #f_records.my: number of female records by meaning, year, atc_code_4, atc_code_3, atc_code_1(combined)
@@ -1540,14 +1623,14 @@ if(length(actual_tables$MEDICINES)>0){
     tot_rec_f.my<-c(list.files(medicines_tmp,pattern="f_records.my"))
     tot_rec_m.my<-readRDS(paste0(medicines_tmp,tot_rec_m.my))
     tot_rec_f.my<-readRDS(paste0(medicines_tmp,tot_rec_f.my))
-    tot_rec_f.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
-    tot_rec_m.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
-    tot_rec.my<-merge(tot_rec_f.my,tot_rec_m.my,by=c("meaning","year","atc_code_4","atc_code_3","atc_code_1"),all=T)
-    tot_rec.my[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
-    tot_rec.my[,no_records.x:=NULL][,no_records.y:=NULL]
+    tot_rec.my<-tot_rec_m.my
+    rm(tot_rec_m.my)
+    tot_rec.my<-rbind(tot_rec.my,tot_rec_f.my)
+    tot_rec.my<-tot_rec.my[,lapply(.SD,sum), by=c("meaning","year","atc_code_1","atc_code_3","atc_code_4"), .SDcols="no_records"]
+    tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     unlink(paste0(medicines_tmp,"m_records.my.rds"))
     unlink(paste0(medicines_tmp,"f_records.my.rds"))
-    rm(tot_rec_f.my,tot_rec_m.my)
+    rm(tot_rec_f.my)
     #tot_rec.my:combined number of records for males and female(sum) by meaning, year, atc_code_4, atc_code_3,atc_code_1
   }
   if(male_population==0 & female_population>0){
@@ -1569,14 +1652,14 @@ if(length(actual_tables$MEDICINES)>0){
     tot_rec_f.t<-c(list.files(medicines_tmp,pattern="f_records.t"))
     tot_rec_m.t<-readRDS(paste0(medicines_tmp,tot_rec_m.t))
     tot_rec_f.t<-readRDS(paste0(medicines_tmp,tot_rec_f.t))
-    tot_rec_f.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
-    tot_rec_m.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
-    tot_rec.t<-merge(tot_rec_f.t,tot_rec_m.t,by=c("meaning","year","atc_code_4","atc_code_3","atc_code_1"),all=T)
-    tot_rec.t[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
-    tot_rec.t[,no_records.x:=NULL][,no_records.y:=NULL]
+    tot_rec.t<-tot_rec_m.t
+    rm(tot_rec_m.t)
+    tot_rec.t<-rbind(tot_rec.t,tot_rec_f.t)
+    tot_rec.t<-tot_rec.t[,lapply(.SD,sum), by=c("meaning","year","atc_code_1","atc_code_3","atc_code_4"), .SDcols="no_records"]
+    tot_rec.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     unlink(paste0(medicines_tmp,"m_records.t.rds"))
     unlink(paste0(medicines_tmp,"f_records.t.rds"))
-    rm(tot_rec_f.t,tot_rec_m.t)
+    rm(tot_rec_f.t)
     #tot_rec.t:combined number of records for males and female(sum) by atc_code_4, atc_code_3,atc_code_1
   }
   if(male_population==0 & female_population>0){
@@ -1692,9 +1775,9 @@ if(length(actual_tables$MEDICINES)>0){
   if(!is.null(tab12)){
     tab12<-data.table(tab12, data_access_provider= data_access_provider_name, data_source=data_source_name)
     if (subpopulations_present=="Yes"){
-    write.csv(tab12, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_4.csv"), row.names = F)
+      fwrite(tab12, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_4.csv"), row.names = F)
     } else {
-      write.csv(tab12, paste0(med_dir,"medicines_my_atc_4.csv"), row.names = F)
+      fwrite(tab12, paste0(med_dir,"medicines_my_atc_4.csv"), row.names = F)
     }
   }
   
@@ -1706,9 +1789,9 @@ if(length(actual_tables$MEDICINES)>0){
     tab12[, no_female_users:= as.character(no_female_users)][as.numeric(no_female_users) > 0 & as.numeric(no_female_users) < 5, no_female_users := "<5"]
     
     if(subpopulations_present=="Yes"){
-    write.csv(tab12, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_4_masked.csv"), row.names = F)
+      fwrite(tab12, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_4_masked.csv"), row.names = F)
     } else {
-      write.csv(tab12, paste0(med_dir,"Masked/", "medicines_my_atc_4_masked.csv"), row.names = F)
+      fwrite(tab12, paste0(med_dir,"Masked/", "medicines_my_atc_4_masked.csv"), row.names = F)
     }
   }
   
@@ -1746,75 +1829,75 @@ if(length(actual_tables$MEDICINES)>0){
   #my
   ######
   if(male_population>0){
-  #combine results for male users records
-  tab13_male_rec.my<-list.files(medicines_tmp,pattern="tab13_m_rec_7.my")
-  tab13.m_records.my<-lapply(paste0(medicines_tmp,tab13_male_rec.my), readRDS)
-  tab13.m_records.my<-do.call(rbind,tab13.m_records.my)
-  for(i in 1:length(tab13_male_rec.my)){
-    unlink(paste0(medicines_tmp,tab13_male_rec.my[i]))
-  }
-  saveRDS(tab13.m_records.my,paste0(medicines_tmp,"tab13.m_records.my.rds"))
-  rm(tab13_male_rec.my,tab13.m_records.my)
-  #output:tab13.m_records.my
-  
-  #combine results for male users 
-  tab13_male_users.my<-list.files(medicines_tmp,pattern="tab13_m_users_7.my")
-  #load all files and rbind together
-  tab13.m_users.my<-lapply(paste0(medicines_tmp,tab13_male_users.my), readRDS)
-  tab13.m_users.my<-do.call(rbind,tab13.m_users.my)
-  for(i in 1:length(tab13_male_users.my)){
-    unlink(paste0(medicines_tmp,tab13_male_users.my[i]))
-  }
-  saveRDS(tab13.m_users.my,paste0(medicines_tmp,"tab13.m_users.my.rds"))
-  rm(tab13_male_users.my,tab13.m_users.my)
-  #output:tab13.m_users.my
-  
-  #combine results for median presc/disp for male users
-  tab13_male_median.my<-list.files(medicines_tmp,pattern="tab13_m_median_7.my")
-  tab13.m_median.my<-lapply(paste0(medicines_tmp,tab13_male_median.my), readRDS)
-  tab13.m_median.my<-do.call(rbind,tab13.m_median.my)
-  for(i in 1:length(tab13_male_median.my)){
-    unlink(paste0(medicines_tmp,tab13_male_median.my[i]))
-  }
-  saveRDS(tab13.m_median.my,paste0(medicines_tmp,"tab13.m_median.my.rds"))
-  rm(tab13_male_median.my,tab13.m_median.my)
-  #output: tab13.m_median.my
-  
-  ########
-  #total
-  ########
-  #combine results for male users records
-  tab13_male_rec.t<-list.files(medicines_tmp,pattern="_tab13_m_rec_7.t_")
-  tab13.m_records.t<-lapply(paste0(medicines_tmp,tab13_male_rec.t), readRDS)
-  tab13.m_records.t<-do.call(rbind,tab13.m_records.t)
-  for(i in 1:length(tab13_male_rec.t)){
-    unlink(paste0(medicines_tmp,tab13_male_rec.t[i]))
-  }
-  saveRDS(tab13.m_records.t,paste0(medicines_tmp,"tab13.m_records.t.rds"))
-  rm(tab13_male_rec.t,tab13.m_records.t)
-  #output:tab13.m_records.t
-  
-  #male users total 
-  tab13_male_users.t<-list.files(medicines_tmp,pattern="tab13_m_users_7.t")
-  #load all files and rbind together
-  tab13.m_users.t<-lapply(paste0(medicines_tmp,tab13_male_users.t), readRDS)
-  tab13.m_users.t<-do.call(rbind,tab13.m_users.t)
-  for(i in 1:length(tab13_male_users.t)){
-    unlink(paste0(medicines_tmp,tab13_male_users.t[i]))
-  }
-  saveRDS(tab13.m_users.t,paste0(medicines_tmp,"tab13.m_users.t.rds"))
-  rm(tab13_male_users.t,tab13.m_users.t)
-  #output: tab13.m_users.t
-  
-  tab13_male_median.t<-list.files(medicines_tmp,pattern="tab13_m_median_7.t")
-  #load all files and rbind together
-  tab13.m_median.t<-lapply(paste0(medicines_tmp,tab13_male_median.t), readRDS)
-  tab13.m_median.t<-do.call(rbind,tab13.m_median.t)
-  for(i in 1:length(tab13_male_median.t)){
-    unlink(paste0(medicines_tmp,tab13_male_median.t[i]))
-  }
-  saveRDS(tab13.m_median.t,paste0(medicines_tmp,"tab13.m_median.t.rds"))
-  rm(tab13_male_median.t,tab13.m_median.t)
+    #combine results for male users records
+    tab13_male_rec.my<-list.files(medicines_tmp,pattern="tab13_m_rec_7.my")
+    tab13.m_records.my<-lapply(paste0(medicines_tmp,tab13_male_rec.my), readRDS)
+    tab13.m_records.my<-do.call(rbind,tab13.m_records.my)
+    for(i in 1:length(tab13_male_rec.my)){
+      unlink(paste0(medicines_tmp,tab13_male_rec.my[i]))
+    }
+    saveRDS(tab13.m_records.my,paste0(medicines_tmp,"tab13.m_records.my.rds"))
+    rm(tab13_male_rec.my,tab13.m_records.my)
+    #output:tab13.m_records.my
+    
+    #combine results for male users 
+    tab13_male_users.my<-list.files(medicines_tmp,pattern="tab13_m_users_7.my")
+    #load all files and rbind together
+    tab13.m_users.my<-lapply(paste0(medicines_tmp,tab13_male_users.my), readRDS)
+    tab13.m_users.my<-do.call(rbind,tab13.m_users.my)
+    for(i in 1:length(tab13_male_users.my)){
+      unlink(paste0(medicines_tmp,tab13_male_users.my[i]))
+    }
+    saveRDS(tab13.m_users.my,paste0(medicines_tmp,"tab13.m_users.my.rds"))
+    rm(tab13_male_users.my,tab13.m_users.my)
+    #output:tab13.m_users.my
+    
+    #combine results for median presc/disp for male users
+    tab13_male_median.my<-list.files(medicines_tmp,pattern="tab13_m_median_7.my")
+    tab13.m_median.my<-lapply(paste0(medicines_tmp,tab13_male_median.my), readRDS)
+    tab13.m_median.my<-do.call(rbind,tab13.m_median.my)
+    for(i in 1:length(tab13_male_median.my)){
+      unlink(paste0(medicines_tmp,tab13_male_median.my[i]))
+    }
+    saveRDS(tab13.m_median.my,paste0(medicines_tmp,"tab13.m_median.my.rds"))
+    rm(tab13_male_median.my,tab13.m_median.my)
+    #output: tab13.m_median.my
+    
+    ########
+    #total
+    ########
+    #combine results for male users records
+    tab13_male_rec.t<-list.files(medicines_tmp,pattern="_tab13_m_rec_7.t_")
+    tab13.m_records.t<-lapply(paste0(medicines_tmp,tab13_male_rec.t), readRDS)
+    tab13.m_records.t<-do.call(rbind,tab13.m_records.t)
+    for(i in 1:length(tab13_male_rec.t)){
+      unlink(paste0(medicines_tmp,tab13_male_rec.t[i]))
+    }
+    saveRDS(tab13.m_records.t,paste0(medicines_tmp,"tab13.m_records.t.rds"))
+    rm(tab13_male_rec.t,tab13.m_records.t)
+    #output:tab13.m_records.t
+    
+    #male users total 
+    tab13_male_users.t<-list.files(medicines_tmp,pattern="tab13_m_users_7.t")
+    #load all files and rbind together
+    tab13.m_users.t<-lapply(paste0(medicines_tmp,tab13_male_users.t), readRDS)
+    tab13.m_users.t<-do.call(rbind,tab13.m_users.t)
+    for(i in 1:length(tab13_male_users.t)){
+      unlink(paste0(medicines_tmp,tab13_male_users.t[i]))
+    }
+    saveRDS(tab13.m_users.t,paste0(medicines_tmp,"tab13.m_users.t.rds"))
+    rm(tab13_male_users.t,tab13.m_users.t)
+    #output: tab13.m_users.t
+    
+    tab13_male_median.t<-list.files(medicines_tmp,pattern="tab13_m_median_7.t")
+    #load all files and rbind together
+    tab13.m_median.t<-lapply(paste0(medicines_tmp,tab13_male_median.t), readRDS)
+    tab13.m_median.t<-do.call(rbind,tab13.m_median.t)
+    for(i in 1:length(tab13_male_median.t)){
+      unlink(paste0(medicines_tmp,tab13_male_median.t[i]))
+    }
+    saveRDS(tab13.m_median.t,paste0(medicines_tmp,"tab13.m_median.t.rds"))
+    rm(tab13_male_median.t,tab13.m_median.t)
   } 
   #output:tab13.m_median.t
   ########
@@ -1824,76 +1907,76 @@ if(length(actual_tables$MEDICINES)>0){
   #my
   #######
   if(female_population>0){
-  #combine results for female users records
-  tab13_female_rec.my<-list.files(medicines_tmp,pattern="tab13_f_rec_7.my")
-  tab13.f_records.my<-lapply(paste0(medicines_tmp,tab13_female_rec.my), readRDS)
-  tab13.f_records.my<-do.call(rbind,tab13.f_records.my)
-  for(i in 1:length(tab13_female_rec.my)){
-    unlink(paste0(medicines_tmp,tab13_female_rec.my[i]))
-  }
-  saveRDS(tab13.f_records.my,paste0(medicines_tmp,"tab13.f_records.my.rds"))
-  rm(tab13_female_rec.my,tab13.f_records.my)
-  #output: tab13.f_records.my
-  
-  #combine results for female users 
-  tab13_female_users.my<-list.files(medicines_tmp,pattern="tab13_f_users_7.my")
-  #load all files and rbind together
-  tab13.f_users.my<-lapply(paste0(medicines_tmp,tab13_female_users.my), readRDS)
-  tab13.f_users.my<-do.call(rbind,tab13.f_users.my)
-  for(i in 1:length(tab13_female_users.my)){
-    unlink(paste0(medicines_tmp,tab13_female_users.my[i]))
-  }
-  saveRDS(tab13.f_users.my,paste0(medicines_tmp,"tab13.f_users.my.rds"))
-  rm(tab13_female_users.my,tab13.f_users.my)
-  #output: tab13.f_users.my
-  
-  #median female users
-  tab13_female_median.my<-list.files(medicines_tmp,pattern="tab13_f_median_7.my")
-  tab13.f_median.my<-lapply(paste0(medicines_tmp,tab13_female_median.my), readRDS)
-  tab13.f_median.my<-do.call(rbind,tab13.f_median.my)
-  for(i in 1:length(tab13_female_median.my)){
-    unlink(paste0(medicines_tmp,tab13_female_median.my[i]))
-  }
-  saveRDS(tab13.f_median.my,paste0(medicines_tmp,"tab13.f_median.my.rds"))
-  rm(tab13_female_median.my,tab13.f_median.my)
-  #output: tab13.f_median.my
-  
-  #########
-  #total
-  #########
-  #combine results for female users records
-  tab13_female_rec.t<-list.files(medicines_tmp,pattern="tab13_f_rec_7.t")
-  tab13.f_records.t<-lapply(paste0(medicines_tmp,tab13_female_rec.t), readRDS)
-  tab13.f_records.t<-do.call(rbind,tab13.f_records.t)
-  for(i in 1:length(tab13_female_rec.t)){
-    unlink(paste0(medicines_tmp,tab13_female_rec.t[i]))
-  }
-  saveRDS(tab13.f_records.t,paste0(medicines_tmp,"tab13.f_records.t.rds"))
-  rm(tab13_female_rec.t,tab13.f_records.t)
-  
-  #female users total 
-  tab13_female_users.t<-list.files(medicines_tmp,pattern="tab13_f_users_7.t")
-  #load all files and rbind together
-  tab13.f_users.t<-lapply(paste0(medicines_tmp,tab13_female_users.t), readRDS)
-  tab13.f_users.t<-do.call(rbind,tab13.f_users.t)
-  for(i in 1:length(tab13_female_users.t)){
-    unlink(paste0(medicines_tmp,tab13_female_users.t[i]))
-  }
-  saveRDS(tab13.f_users.t,paste0(medicines_tmp,"tab13.f_users.t.rds"))
-  rm(tab13_female_users.t,tab13.f_users.t)
-  #output: tab13.f_users.t
-  
-  #median
-  tab13_female_median.t<-list.files(medicines_tmp,pattern="tab13_f_median_7.t")
-  #load all files and rbind together
-  tab13.f_median.t<-lapply(paste0(medicines_tmp,tab13_female_median.t), readRDS)
-  tab13.f_median.t<-do.call(rbind,tab13.f_median.t)
-  for(i in 1:length(tab13_female_median.t)){
-    unlink(paste0(medicines_tmp,tab13_female_median.t[i]))
-  }
-  saveRDS(tab13.f_median.t,paste0(medicines_tmp,"tab13.f_median.t.rds"))
-  rm(tab13_female_median.t,tab13.f_median.t)
-  #output: tab13.f_median.t
+    #combine results for female users records
+    tab13_female_rec.my<-list.files(medicines_tmp,pattern="tab13_f_rec_7.my")
+    tab13.f_records.my<-lapply(paste0(medicines_tmp,tab13_female_rec.my), readRDS)
+    tab13.f_records.my<-do.call(rbind,tab13.f_records.my)
+    for(i in 1:length(tab13_female_rec.my)){
+      unlink(paste0(medicines_tmp,tab13_female_rec.my[i]))
+    }
+    saveRDS(tab13.f_records.my,paste0(medicines_tmp,"tab13.f_records.my.rds"))
+    rm(tab13_female_rec.my,tab13.f_records.my)
+    #output: tab13.f_records.my
+    
+    #combine results for female users 
+    tab13_female_users.my<-list.files(medicines_tmp,pattern="tab13_f_users_7.my")
+    #load all files and rbind together
+    tab13.f_users.my<-lapply(paste0(medicines_tmp,tab13_female_users.my), readRDS)
+    tab13.f_users.my<-do.call(rbind,tab13.f_users.my)
+    for(i in 1:length(tab13_female_users.my)){
+      unlink(paste0(medicines_tmp,tab13_female_users.my[i]))
+    }
+    saveRDS(tab13.f_users.my,paste0(medicines_tmp,"tab13.f_users.my.rds"))
+    rm(tab13_female_users.my,tab13.f_users.my)
+    #output: tab13.f_users.my
+    
+    #median female users
+    tab13_female_median.my<-list.files(medicines_tmp,pattern="tab13_f_median_7.my")
+    tab13.f_median.my<-lapply(paste0(medicines_tmp,tab13_female_median.my), readRDS)
+    tab13.f_median.my<-do.call(rbind,tab13.f_median.my)
+    for(i in 1:length(tab13_female_median.my)){
+      unlink(paste0(medicines_tmp,tab13_female_median.my[i]))
+    }
+    saveRDS(tab13.f_median.my,paste0(medicines_tmp,"tab13.f_median.my.rds"))
+    rm(tab13_female_median.my,tab13.f_median.my)
+    #output: tab13.f_median.my
+    
+    #########
+    #total
+    #########
+    #combine results for female users records
+    tab13_female_rec.t<-list.files(medicines_tmp,pattern="tab13_f_rec_7.t")
+    tab13.f_records.t<-lapply(paste0(medicines_tmp,tab13_female_rec.t), readRDS)
+    tab13.f_records.t<-do.call(rbind,tab13.f_records.t)
+    for(i in 1:length(tab13_female_rec.t)){
+      unlink(paste0(medicines_tmp,tab13_female_rec.t[i]))
+    }
+    saveRDS(tab13.f_records.t,paste0(medicines_tmp,"tab13.f_records.t.rds"))
+    rm(tab13_female_rec.t,tab13.f_records.t)
+    
+    #female users total 
+    tab13_female_users.t<-list.files(medicines_tmp,pattern="tab13_f_users_7.t")
+    #load all files and rbind together
+    tab13.f_users.t<-lapply(paste0(medicines_tmp,tab13_female_users.t), readRDS)
+    tab13.f_users.t<-do.call(rbind,tab13.f_users.t)
+    for(i in 1:length(tab13_female_users.t)){
+      unlink(paste0(medicines_tmp,tab13_female_users.t[i]))
+    }
+    saveRDS(tab13.f_users.t,paste0(medicines_tmp,"tab13.f_users.t.rds"))
+    rm(tab13_female_users.t,tab13.f_users.t)
+    #output: tab13.f_users.t
+    
+    #median
+    tab13_female_median.t<-list.files(medicines_tmp,pattern="tab13_f_median_7.t")
+    #load all files and rbind together
+    tab13.f_median.t<-lapply(paste0(medicines_tmp,tab13_female_median.t), readRDS)
+    tab13.f_median.t<-do.call(rbind,tab13.f_median.t)
+    for(i in 1:length(tab13_female_median.t)){
+      unlink(paste0(medicines_tmp,tab13_female_median.t[i]))
+    }
+    saveRDS(tab13.f_median.t,paste0(medicines_tmp,"tab13.f_median.t.rds"))
+    rm(tab13_female_median.t,tab13.f_median.t)
+    #output: tab13.f_median.t
   }
   ########
   #Info input
@@ -1919,14 +2002,14 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.tot_rec_f.my<-c(list.files(medicines_tmp,pattern="tab13.f_records.my"))
     tab13.tot_rec_m.my<-readRDS(paste0(medicines_tmp,tab13.tot_rec_m.my))
     tab13.tot_rec_f.my<-readRDS(paste0(medicines_tmp,tab13.tot_rec_f.my))
-    tab13.tot_rec_f.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tab13.tot_rec_m.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tab13.tot_rec.my<-merge(tab13.tot_rec_f.my,tab13.tot_rec_m.my,by=c("meaning","year","atc_code_7", "atc_code_3"),all=T)
-    tab13.tot_rec.my[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
-    tab13.tot_rec.my[,no_records.x:=NULL][,no_records.y:=NULL]
+    tab13.tot_rec.my<-tab13.tot_rec_m.my
+    rm(tab13.tot_rec_m.my)
+    tab13.tot_rec.my<-rbind(tab13.tot_rec.my,tab13.tot_rec_f.my)
+    tab13.tot_rec.my<-tab13.tot_rec.my[,lapply(.SD, sum), by=c("meaning","year","atc_code_3","atc_code_7"),.SDcols="no_records"]
+    tab13.tot_rec.my[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     unlink(paste0(medicines_tmp,"tab13.m_records.my.rds"))
     unlink(paste0(medicines_tmp,"tab13.f_records.my.rds"))
-    rm(tab13.tot_rec_f.my,tab13.tot_rec_m.my)
+    rm(tab13.tot_rec_f.my)
     #tab13.tot_rec.my:combined number of records for males and female(sum) by meaning, year, atc_code_7, atc_code_3
   }
   if(male_population==0 & female_population>0){
@@ -1948,12 +2031,10 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.tot_rec_f.t<-c(list.files(medicines_tmp,pattern="tab13.f_records.t"))
     tab13.tot_rec_m.t<-readRDS(paste0(medicines_tmp,tab13.tot_rec_m.t))
     tab13.tot_rec_f.t<-readRDS(paste0(medicines_tmp,tab13.tot_rec_f.t))
-    tab13.tot_rec_f.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tab13.tot_rec_m.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
-    tab13.tot_rec.t<-merge(tab13.tot_rec_f.t,tab13.tot_rec_m.t,by=c("meaning","year","atc_code_7","atc_code_3"),all=T)
-    rm(tab13.tot_rec_f.t,tab13.tot_rec_m.t)
-    tab13.tot_rec.t[is.na(no_records.x),no_records.x:=0][is.na(no_records.y),no_records.y:=0][,no_records:=no_records.x+no_records.y]
-    tab13.tot_rec.t[,no_records.x:=NULL][,no_records.y:=NULL]
+    tab13.tot_rec.t<-tab13.tot_rec_m.t
+    tab13.tot_rec.t<-rbind(tab13.tot_rec.t,tab13.tot_rec_f.t)
+    tab13.tot_rec.t<-tab13.tot_rec.t[,lapply(.SD,sum), by=c("meaning","year","atc_code_3","atc_code_7"), .SDcols="no_records"]
+    tab13.tot_rec.t[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     unlink(paste0(medicines_tmp,"tab13.m_records.t.rds"))
     unlink(paste0(medicines_tmp,"tab13.f_records.t.rds"))
     #tab13.tot_rec.t:combined number of records for males and female(sum) by atc_code_7, atc_code_3
@@ -2062,29 +2143,29 @@ if(length(actual_tables$MEDICINES)>0){
     setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3", "no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
     setorderv(tab13,c("meaning","year","atc_code_7","atc_code_3"))
   }
-
+  
   #######
   #output tab13 to medicines_dir folder
   ######
   if(!is.null(tab13)){
     tab13<-data.table(tab13, data_access_provider= data_access_provider_name, data_source=data_source_name)
     if(subpopulations_present=="Yes"){
-    write.csv(tab13, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_7.csv"), row.names = F)
+      fwrite(tab13, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_7.csv"), row.names = F)
     } else {
-      write.csv(tab13, paste0(med_dir,"medicines_my_atc_7.csv"), row.names = F)
+      fwrite(tab13, paste0(med_dir,"medicines_my_atc_7.csv"), row.names = F)
     }
   }
   
- #Apply masking 
+  #Apply masking 
   if(!is.null(tab13)){
     tab13[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
     tab13[, no_male_users:= as.character(no_male_users)][as.numeric(no_male_users) > 0 & as.numeric(no_male_users) < 5, no_male_users := "<5"]
     tab13[, no_female_users:= as.character(no_female_users)][as.numeric(no_female_users) > 0 & as.numeric(no_female_users) < 5, no_female_users := "<5"]
     
     if(subpopulations_present=="Yes"){
-    write.csv(tab13, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_7_masked.csv"), row.names = F)
+      fwrite(tab13, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_7_masked.csv"), row.names = F)
     } else {
-    write.csv(tab13, paste0(med_dir,"Masked/", "medicines_my_atc_7_masked.csv"), row.names = F)
+      fwrite(tab13, paste0(med_dir,"Masked/", "medicines_my_atc_7_masked.csv"), row.names = F)
     }
   }
   
@@ -2225,25 +2306,25 @@ if(length(actual_tables$MEDICINES)>0){
   
   if(!is.null(tab14)){
     tab14<-data.table(tab14, data_access_provider= data_access_provider_name, data_source=data_source_name)
-   if (subpopulations_present=="Yes"){
-     write.csv(tab14, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_7_f.csv"), row.names = F)
-   } else {
-     write.csv(tab14, paste0(med_dir,"medicines_my_atc_7_f.csv"), row.names = F)
-   }
+    if (subpopulations_present=="Yes"){
+      fwrite(tab14, paste0(med_dir,subpopulations_names[s], "/", subpopulations_names[s],"_medicines_my_atc_7_f.csv"), row.names = F)
+    } else {
+      fwrite(tab14, paste0(med_dir,"medicines_my_atc_7_f.csv"), row.names = F)
+    }
   }
   
- #Apply masking 
+  #Apply masking 
   if(!is.null(tab14)){
     tab14[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
     tab14[, no_female_users:= as.character(no_female_users)][as.numeric(no_female_users) > 0 & as.numeric(no_female_users) < 5, no_female_users := "<5"]
     if(subpopulations_present=="Yes"){
-      write.csv(tab14, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_7_f_masked.csv"), row.names = F)
+      fwrite(tab14, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_my_atc_7_f_masked.csv"), row.names = F)
     } else {
-      write.csv(tab14, paste0(med_dir, "Masked/", "medicines_my_atc_7_f_masked.csv"), row.names = F)
+      fwrite(tab14, paste0(med_dir, "Masked/", "medicines_my_atc_7_f_masked.csv"), row.names = F)
     }
   }
   
-  rm(tab13.tot_rec.t,tot_rec.t,total, empty_atc_code_m, empty_atc_code_m_f, empty_atc_code_m_y, empty_atc_code_m_y_f,
+  rm(tab13.tot_rec.t,tot_rec.t, empty_atc_code_m, empty_atc_code_m_f, empty_atc_code_m_y, empty_atc_code_m_y_f,
      meaning_info, med_study_population_f, med_study_population_meaning, med_study_population_meaning_f, med_study_population_meaning_info, presc_info,
      presc_unit_info, prescriber_info, years_this_table, colnames)
   ########################################################################################################
@@ -2251,9 +2332,9 @@ if(length(actual_tables$MEDICINES)>0){
   #######################################################################################################
   print("Calculating rates of medicine use.")
   if(subpopulations_present=="Yes"){
-  medicines_files<-list.files(paste0(medicines_pop, subpopulations_names[s]), pattern = "f_population")
+    medicines_files<-list.files(paste0(medicines_pop, subpopulations_names[s]), pattern = "f_population")
   } else {
-  medicines_files<-list.files(medicines_pop, pattern = "f_population")
+    medicines_files<-list.files(medicines_pop, pattern = "f_population")
   }
   if(length(medicines_files)>0){
     #creates filter year_ATC level
@@ -2269,8 +2350,10 @@ if(length(actual_tables$MEDICINES)>0){
     names(medicines_list)<-files
     rm(files)
     #separate all files into the right category
+    #Change:substr(medicines_files,1,6)/it removes the possibility to detect files that are named by year incorrectly
+    #26.10.2021
     for (i in 1:length(medicines_list)){
-      medicines_list[[i]]<-medicines_files[str_detect(medicines_files,names(medicines_list)[i])]
+      medicines_list[[i]]<-medicines_files[str_detect(substr(medicines_files,1,6),names(medicines_list)[i])]
     }
     rm(medicines_files)
     medicines_files<-medicines_list
@@ -2283,8 +2366,8 @@ if(length(actual_tables$MEDICINES)>0){
     for (med_files in 1: length(medicines_files)){
       #load file
       if(subpopulations_present=="Yes"){
-      medicines<-lapply(paste0(medicines_pop, subpopulations_names[s],"/",medicines_files[[med_files]]), readRDS)
-     } else {
+        medicines<-lapply(paste0(medicines_pop, subpopulations_names[s],"/",medicines_files[[med_files]]), readRDS)
+      } else {
         medicines<-lapply(paste0(medicines_pop, medicines_files[[med_files]]), readRDS)
       }
       medicines<-do.call(rbind,medicines)
@@ -2299,42 +2382,41 @@ if(length(actual_tables$MEDICINES)>0){
       #create atc_code(truncted to the third level)
       medicines[,truncated_atc_code:=substr(medicinal_product_atc_code,1,3)]
       if(medicines[,.N]>0){
-      outcomes_list<-unique(medicines[["truncated_atc_code"]])
-      
-      print(names(medicines_files)[med_files])
-      output<-CountPersonTime2(Dataset_events = unique(medicines[,.(person_id,truncated_atc_code, medicines_date)]),
-                              Dataset = unique(medicines[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
-                              Person_id = "person_id",
-                              Start_study_time =paste0(as.numeric(names(medicines_files)[med_files])-1,"0101"),#start only at the year of interest
-                              End_study_time = paste0(names(medicines_files)[med_files],"1231"),#end at the year of interest
-                              Start_date = "start_follow_up",
-                              End_date = "end_follow_up",
-                              Birth_date = "birth_date",
-                              Increment = "year",
-                              Unit_of_age = "year",
-                              include_remaning_ages = TRUE,
-                              Aggregate = F,
-                              Outcomes_rec = outcomes_list,
-                              Name_event = "truncated_atc_code",
-                              Date_event = "medicines_date",
-                              Rec_period = rep(0, length(outcomes_list)),
-                              Age_bands = c(12,19,29,39,49),
-                              print = F, 
-                              check_overlap = F) #results will be used only for counts
-rm(medicines)  
-
-#from wide to long(remove all person time)
-output[,colnames(output)[str_detect(colnames(output), "^Persontime")]]<-NULL
-output<-melt(output, id.vars=c("person_id", "Ageband","year"), measure.vars = colnames(output)[!colnames(output) %in% c("person_id", "Ageband", "year", "Persontime")], variable.name = "truncated_atc_code")        
-setnames(output, "value", "count_medicines")
-setnames(output, "Ageband", "age_band")
-output[,truncated_atc_code:=substr(truncated_atc_code,1,3)]
-output<-output[count_medicines!=0]#remove counts of zero
-
-#will be used to count users
-saveRDS(output, paste0(medicines_tmp, names(medicines_files)[med_files], "_rates_users_records.rds"))
-
-rm(output)
+        outcomes_list<-unique(medicines[["truncated_atc_code"]])
+        
+        print(names(medicines_files)[med_files])
+        output<-CountPersonTime2(Dataset_events = medicines[,.(person_id,truncated_atc_code, medicines_date)],
+                                 Dataset = unique(medicines[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
+                                 Person_id = "person_id",
+                                 Start_study_time =paste0(as.numeric(names(medicines_files)[med_files]),"0101"),#start only at the year of interest
+                                 End_study_time = paste0(names(medicines_files)[med_files],"1231"),#end at the year of interest
+                                 Start_date = "start_follow_up",
+                                 End_date = "end_follow_up",
+                                 Birth_date = "birth_date",
+                                 Increment = "year",
+                                 Unit_of_age = "year",
+                                 include_remaning_ages = TRUE,
+                                 Aggregate = F,
+                                 Outcomes_rec = outcomes_list,
+                                 Name_event = "truncated_atc_code",
+                                 Date_event = "medicines_date",
+                                 Rec_period = rep(0, length(outcomes_list)),
+                                 Age_bands = c(12,19,29,39,49),
+                                 print = F, 
+                                 check_overlap = F) #results will be used only for counts
+        rm(medicines)  
+        
+        #from wide to long(remove all person time)
+        output[,colnames(output)[str_detect(colnames(output), "^Persontime")]]<-NULL
+        output<-melt(output, id.vars=c("person_id", "Ageband","year"), measure.vars = colnames(output)[!colnames(output) %in% c("person_id", "Ageband", "year", "Persontime")], variable.name = "truncated_atc_code")        
+        setnames(output, "value", "count_medicines")
+        setnames(output, "Ageband", "age_band")
+        output[,truncated_atc_code:=substr(truncated_atc_code,1,3)]
+        
+        #will be used to count users
+        saveRDS(output, paste0(medicines_tmp, names(medicines_files)[med_files], "_rates_users_records.rds"))
+        
+        rm(output)
       }
     }
   }
@@ -2348,11 +2430,12 @@ rm(output)
       print(names(medicines_files)[med_files])
       #load file
       if(subpopulations_present=="Yes"){
-      medicines<-lapply(paste0(medicines_pop, subpopulations_names[s],"/",medicines_files[[med_files]]), readRDS)
+        medicines<-lapply(paste0(medicines_pop, subpopulations_names[s],"/",medicines_files[[med_files]]), readRDS)
       } else {
         medicines<-lapply(paste0(medicines_pop, medicines_files[[med_files]]), readRDS)
       }
       medicines<-do.call(rbind,medicines)
+      medicines<-medicines[!duplicated(person_id)]
       #select only female 12-55 years old
       medicines<-medicines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg]
       #create char: number of characters for medicinal_product_atc_code
@@ -2364,137 +2447,173 @@ rm(output)
       #remove person_id already calculated
       medicines<-medicines[!person_id %in% person_ids]
       if(medicines[,.N]>0){
-      person_ids<-c(person_ids,unique(medicines[["person_id"]]))
-      output<-CountPersonTime2(Dataset = unique(medicines[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
-                               Person_id = "person_id",
-                               Start_study_time =start_study_date2,
-                               End_study_time = end_study_date2,
-                               Start_date = "start_follow_up",
-                               End_date = "end_follow_up",
-                               Birth_date = "birth_date",
-                               Increment = "year",
-                               Unit_of_age = "year",
-                               include_remaning_ages = TRUE,
-                               Aggregate = T,
-                               Age_bands = c(12,19,29,39,49),
-                               print = F, 
-                               check_overlap = F) #results will be used only for py
-      rm(medicines)  
-      saveRDS(output, paste0(medicines_tmp, names(medicines_files)[med_files], "_rates_py.rds"))
-      rm(output)
+        person_ids<-c(person_ids,unique(medicines[["person_id"]]))
+        output<-CountPersonTime2(Dataset = unique(medicines[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
+                                 Person_id = "person_id",
+                                 Start_study_time =start_study_date2,
+                                 End_study_time = end_study_date2,
+                                 Start_date = "start_follow_up",
+                                 End_date = "end_follow_up",
+                                 Birth_date = "birth_date",
+                                 Increment = "year",
+                                 Unit_of_age = "year",
+                                 include_remaning_ages = TRUE,
+                                 Aggregate = F,
+                                 Age_bands = c(12,19,29,39,49),
+                                 print = F, 
+                                 check_overlap = F)
+        #trasform from days into person-years
+        output<-output[,Persontime:=round(Persontime/365.25,3)]
+        no_subjects<-output[,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year","Ageband"), .SDcols="person_id"]
+        no_subjects_agg<-output[,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year"), .SDcols="person_id"]
+        output<-output[,lapply(.SD, sum), by=c("year","Ageband"), .SDcols="Persontime"]
+        #results will be used only for py
+        rm(medicines)  
+        saveRDS(output, paste0(medicines_tmp, names(medicines_files)[med_files], "_rates_py.rds"))
+        saveRDS(no_subjects_agg, paste0(medicines_tmp, names(medicines_files)[med_files], "_subjects_agg.rds"))
+        saveRDS(no_subjects, paste0(medicines_tmp, names(medicines_files)[med_files], "_subjects.rds"))
+        
+        
+        rm(output,no_subjects_agg,no_subjects)
       }
     }
   }
-
-#####################################
-#combine results
-####################################
-print("Calculating number of records and users.")
-records_files<-list.files(medicines_tmp, "rates_users_records")  
-no_records<-readRDS(paste0(medicines_tmp,records_files[[1]]))  
-no_records<-no_records[,lapply(.SD,sum), by=c("person_id","age_band","year","truncated_atc_code"), .SDcols="count_medicines"]
-no_users<-no_records[,lapply(.SD, function(x) length(unique(x))), by=c("age_band","year","truncated_atc_code"), .SDcols="person_id"]
-no_records_agg<-no_records[,lapply(.SD,sum), by=c("truncated_atc_code","year"), .SDcols="count_medicines"]
-no_users_agg<-no_records[,lapply(.SD, function(x) length(unique(x))), by=c("truncated_atc_code","year"), .SDcols="person_id"]
-rec_files<-2
-while(rec_files <= length(records_files)){
-  no_records_2<-readRDS(paste0(medicines_tmp,records_files[[rec_files]]))
-  no_records_2<-no_records_2[,lapply(.SD,sum), by=c("person_id","age_band","year","truncated_atc_code"), .SDcols="count_medicines"]
-  no_users<-rbind(no_users,no_records_2[,lapply(.SD, function(x) length(unique(x))), by=c("age_band","year","truncated_atc_code"), .SDcols="person_id"])
-  no_records_agg<-rbind(no_records_agg,no_records_2[,lapply(.SD,sum), by=c("truncated_atc_code","year"), .SDcols="count_medicines"])
-  no_users_agg<-rbind(no_users_agg,no_records_2[,lapply(.SD, function(x) length(unique(x))), by=c("truncated_atc_code","year"), .SDcols="person_id"])
-  no_records<-rbind(no_records, no_records_2)
+  
+  #####################################
+  #combine results
+  ####################################
+  print("Calculating number of records and users.")
+  records_files<-list.files(medicines_tmp, "rates_users_records")  
+  no_records<-readRDS(paste0(medicines_tmp,records_files[[1]]))  
   no_records<-no_records[,lapply(.SD,sum), by=c("person_id","age_band","year","truncated_atc_code"), .SDcols="count_medicines"]
-  rm(no_records_2)
-  rec_files<-rec_files+1
-}
-
-
-#put everything together
-###################################################################
-#rates in females of child bearing age by year and atc code and age
-####################################################################
-print("Combine number of records and users in one table.")
-no_records<-no_records[,lapply(.SD,sum), by=c("truncated_atc_code","year","age_band"), .SDcols="count_medicines"]
-no_records[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
-no_users[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
-no_records<-merge(no_records,no_users, by=c("age_band","year","truncated_atc_code"))
-setnames(no_records,"person_id","no_users")
-rm(no_users)
-no_records_agg<-no_records_agg[,lapply(.SD,sum), by=c("year", "truncated_atc_code"), .SDcols="count_medicines"]
-no_records_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
-no_users_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
-no_records_agg<-merge(no_records_agg,no_users_agg, by=c("truncated_atc_code","year"))
-setnames(no_records_agg,"person_id","no_users")
-rm(no_users_agg)
-
-#delete files
-for (i in 1:length(records_files)){
-  file.remove(paste0(medicines_tmp,records_files[[i]]))
-}
-
-#########
-print("Calculating person time.")
-person_files<-list.files(medicines_tmp, "rates_py")  
-person_years<-lapply(paste0(medicines_tmp,person_files), readRDS)
-person_years<-do.call(rbind,person_years)
-person_years<-person_years[,lapply(.SD,sum), by=c("year","Ageband"), .SDcols="Persontime"]
-setnames(person_years, "Persontime", "person_years")
-setnames(person_years, "Ageband", "age_band")
-##########
-
-#delete files
-for (i in 1:length(person_files)){
-  file.remove(paste0(medicines_tmp,person_files[[i]]))
-}
-
-#######################################################
-#rates by age, year and atc code
-#######################################################
-print("Create table 16: Rate of medicine use in females of child bearing age by year, age band and atc code.")
-no_records[,year:=as.character(year)][,age_band:=as.character(age_band)]
-person_years[,year:=as.character(year)][,age_band:=as.character(age_band)]
-no_records<-merge(no_records,person_years, by=c("year", "age_band"), all=T)
-no_records[is.na(count_medicines),count_medicines:=0][is.na(no_users),no_users:=0]
-atc_codes<-unique(na.omit(no_records[["truncated_atc_code"]]))
-no_emp<-no_records[count_medicines==0]
-no_records<-no_records[count_medicines!=0]
-no_records_emp<-cbind(no_emp,atc_code=atc_codes[1])
-atc<-2
-while(atc <= length(atc_codes)){
-  no_records_emp<-rbind(no_records_emp,cbind(no_emp, atc_code=atc_codes[atc]))
-  atc<-atc+1
-}
-no_records_emp[,truncated_atc_code:=NULL]
-setnames(no_records_emp,"atc_code","truncated_atc_code")
-no_records<-rbind(no_records,no_records_emp)
-rm(no_records_emp)
-
-no_records[,medicines_per_1000_py:=round(((count_medicines/person_years)*1000),2)]
-no_records[,users_per_1000_py:=round(((no_users/person_years)*1000),2)]
-
-if(subpopulations_present=="Yes"){
-  write.csv(no_records, paste0(med_dir, subpopulations_names[s], "/", subpopulations_names[s], "_medicines_rates_year_age_atc.csv"), row.names = F)
-} else {
-  write.csv(no_records, paste0(med_dir, "medicines_rates_year_age_atc.csv"), row.names = F)
-}
-
-################
-#Apply masking
-################
-
+  no_users<-no_records[count_medicines!=0,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("age_band","year","truncated_atc_code"), .SDcols="person_id"]
+  no_records_agg<-no_records[,lapply(.SD,sum), by=c("truncated_atc_code","year"), .SDcols="count_medicines"]
+  no_users_agg<-no_records[count_medicines!=0,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("truncated_atc_code","year"), .SDcols="person_id"]
+  
+  rec_files<-2
+  while(rec_files <= length(records_files)){
+    no_records_2<-readRDS(paste0(medicines_tmp,records_files[[rec_files]]))
+    no_records_2<-no_records_2[,lapply(.SD,sum), by=c("person_id","age_band","year","truncated_atc_code"), .SDcols="count_medicines"]
+    no_users<-rbind(no_users,no_records_2[count_medicines!=0,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("age_band","year","truncated_atc_code"), .SDcols="person_id"])
+    no_records_agg<-rbind(no_records_agg,no_records_2[,lapply(.SD,sum), by=c("truncated_atc_code","year"), .SDcols="count_medicines"])
+    no_users_agg<-rbind(no_users_agg,no_records_2[count_medicines!=0,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("truncated_atc_code","year"), .SDcols="person_id"])
+    no_records<-rbind(no_records, no_records_2)
+    no_records<-no_records[,lapply(.SD,sum), by=c("person_id","age_band","year","truncated_atc_code"), .SDcols="count_medicines"]
+    rm(no_records_2)
+    rec_files<-rec_files+1
+  }
+  no_records<-no_records[,lapply(.SD,sum), by=c("truncated_atc_code","year","age_band"), .SDcols="count_medicines"]
+  no_users<-no_users[,lapply(.SD,sum), by=c("truncated_atc_code","year","age_band"), .SDcols="person_id"]
+  setnames(no_users,"person_id","no_users")
+  
+  no_records_agg<-no_records_agg[,lapply(.SD,sum), by=c("year", "truncated_atc_code"), .SDcols="count_medicines"]
+  no_users_agg<-no_users_agg[,lapply(.SD,sum), by=c("year","truncated_atc_code"), .SDcols="person_id"]
+  setnames(no_users_agg,"person_id","no_users")
+  
+  #NUMBER OF SUBJECTS by year
+  subjects_agg_files<-list.files(medicines_tmp, "subjects_agg")  
+  no_subjects_agg<-lapply(paste0(medicines_tmp,subjects_agg_files),readRDS)
+  no_subjects_agg<-do.call(rbind,no_subjects_agg)
+  names(no_subjects_agg)<-c("year","no_subjects")
+  no_subjects_agg<-no_subjects_agg[,lapply(.SD,sum), by="year", .SDcols="no_subjects"]
+  
+  #delete files
+  for (i in 1:length(subjects_agg_files)){
+    file.remove(paste0(medicines_tmp,subjects_agg_files[[i]]))
+  }
+  
+  #NUMBER OF SUBJECTS by year and age band
+  subjects_files<-list.files(medicines_tmp, "subjects")  
+  no_subjects<-lapply(paste0(medicines_tmp,subjects_files),readRDS)
+  no_subjects<-do.call(rbind,no_subjects)
+  names(no_subjects)<-c("year","age_band", "no_subjects")
+  no_subjects<-no_subjects[,lapply(.SD,sum), by=c("year","age_band"), .SDcols="no_subjects"]
+  
+  
+  #delete files
+  for (i in 1:length(subjects_files)){
+    file.remove(paste0(medicines_tmp,subjects_files[[i]]))
+  }
+  
+  #put everything together
+  ###################################################################
+  #rates in females of child bearing age by year and atc code and age
+  ####################################################################
+  print("Combine number of records and users in one table.")
+  no_records[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+  no_users[,age_band:=as.character(age_band)][,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+  no_subjects[,age_band:=as.character(age_band)][,year:=as.character(year)]
+  no_records<-merge(no_records,no_users, by=c("age_band","year","truncated_atc_code"),all=T)
+  rm(no_users)
+  no_records<-merge(no_records,no_subjects, by=c("age_band","year"),all=T)
+  no_records[is.na(no_users),no_users:=0][is.na(count_medicines),count_medicines:=0][is.na(truncated_atc_code),truncated_atc_code:="N/A"]
+  rm(no_subjects)
+  
+  no_records_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+  no_users_agg[,year:=as.character(year)][,truncated_atc_code:=as.character(truncated_atc_code)]
+  no_subjects_agg[,year:=as.character(year)]
+  no_records_agg<-merge(no_records_agg,no_users_agg, by=c("truncated_atc_code","year"),all=T)
+  rm(no_users_agg)
+  no_records_agg<-merge(no_records_agg,no_subjects_agg, by=c("year"),all=T)
+  rm(no_subjects_agg)
+  no_records_agg[is.na(no_users),no_users:=0][is.na(count_medicines),count_medicines:=0][is.na(truncated_atc_code),truncated_atc_code:="N/A"]
+  
+  
+  #delete files
+  for (i in 1:length(records_files)){
+    file.remove(paste0(medicines_tmp,records_files[[i]]))
+  }
+  
+  #########
+  print("Calculating person time.")
+  person_files<-list.files(medicines_tmp, "rates_py")  
+  person_years<-lapply(paste0(medicines_tmp,person_files), readRDS)
+  person_years<-do.call(rbind,person_years)
+  person_years<-person_years[,lapply(.SD,sum), by=c("year","Ageband"), .SDcols="Persontime"]
+  setnames(person_years, "Persontime", "person_years")
+  setnames(person_years, "Ageband", "age_band")
+  ##########
+  
+  #delete files
+  for (i in 1:length(person_files)){
+    file.remove(paste0(medicines_tmp,person_files[[i]]))
+  }
+  
+  #######################################################
+  #rates by age, year and atc code
+  #######################################################
+  print("Create table 16: Rate of medicine use in females of child bearing age by year, age band and atc code.")
+  no_records[,year:=as.character(year)][,age_band:=as.character(age_band)]
+  person_years[,year:=as.character(year)][,age_band:=as.character(age_band)]
+  no_records<-merge(no_records,person_years, by=c("year", "age_band"), all=T)
+  no_records[,medicines_per_100_py:=round(((count_medicines/person_years)*100),2)]
+  no_records[,users_per_100_py:=round(((no_users/person_years)*100),2)]
+  no_records[,subjects_per_100_py:=round(((no_subjects/person_years)*100),2)]
+  
+  if(subpopulations_present=="Yes"){
+    fwrite(no_records, paste0(med_dir, subpopulations_names[s], "/", subpopulations_names[s], "_medicines_rates_year_age_atc.csv"), row.names = F)
+  } else {
+    fwrite(no_records, paste0(med_dir, "medicines_rates_year_age_atc.csv"), row.names = F)
+  }
+  
+  ################
+  #Apply masking
+  ################
+  
   no_records[, count_medicines:= as.character(count_medicines)][as.numeric(count_medicines) > 0 & as.numeric(count_medicines) < 5, count_medicines := "<5"]
   no_records[, no_users:= as.character(no_users)][as.numeric(no_users) > 0 & as.numeric(no_users) < 5, no_users := "<5"]
+  no_records[, no_subjects:= as.character(no_subjects)][as.numeric(no_subjects) > 0 & as.numeric(no_subjects) < 5, no_subjects := "<5"]
   no_records[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
-  no_records[, medicines_per_1000_py:= as.character(medicines_per_1000_py)][count_medicines=="<5" | person_years=="<5", medicines_per_1000_py := "N/A"]
-  no_records[, users_per_1000_py:= as.character(users_per_1000_py)][no_users=="<5" | person_years=="<5", users_per_1000_py := "N/A"]
- 
-   if(subpopulations_present=="Yes"){
-    write.csv(no_records, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_rates_year_age_atc_masked.csv"), row.names = F)
+  no_records[, medicines_per_100_py:= as.character(medicines_per_100_py)][count_medicines=="<5" | person_years=="<5", medicines_per_100_py := "N/A"]
+  no_records[, users_per_100_py:= as.character(users_per_100_py)][no_users=="<5" | person_years=="<5", users_per_100_py := "N/A"]
+  no_records[, subjects_per_100_py:= as.character(subjects_per_100_py)][no_subjects=="<5" | person_years=="<5", subjects_per_100_py := "N/A"]
+  
+  if(subpopulations_present=="Yes"){
+    fwrite(no_records, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_rates_year_age_atc_masked.csv"), row.names = F)
   } else {
-    write.csv(no_records, paste0(med_dir, "Masked/", "medicines_rates_year_age_atc_masked.csv"), row.names = F)
+    fwrite(no_records, paste0(med_dir, "Masked/", "medicines_rates_year_age_atc_masked.csv"), row.names = F)
   }
-rm(no_records)
+  rm(no_records)
   
   #######################################################
   #rates by year and atc code
@@ -2505,28 +2624,15 @@ rm(no_records)
   no_records_agg[,year:=as.character(year)]
   person_years[,year:=as.character(year)]
   no_records_agg<-merge(no_records_agg,person_years, by=c("year"), all=T)
-  no_records_agg[is.na(count_medicines),count_medicines:=0][is.na(no_users),no_users:=0]
-  atc_codes<-unique(na.omit(no_records_agg[["truncated_atc_code"]]))
-  no_emp<-no_records_agg[count_medicines==0]
-  no_records_agg<-no_records_agg[count_medicines!=0]
-  no_records_emp<-cbind(no_emp,atc_code=atc_codes[1])
-  atc<-2
-  while(atc <= length(atc_codes)){
-    no_records_emp<-rbind(no_records_emp,cbind(no_emp, atc_code=atc_codes[atc]))
-    atc<-atc+1
-  }
-  no_records_emp[,truncated_atc_code:=NULL]
-  setnames(no_records_emp,"atc_code","truncated_atc_code")
-  no_records_agg<-rbind(no_records_agg,no_records_emp)
-  rm(no_records_emp)
   
-  no_records_agg[,medicines_per_1000_py:=round(((count_medicines/person_years)*1000),2)]
-  no_records_agg[,users_per_1000_py:=round(((no_users/person_years)*1000),2)]
+  no_records_agg[,medicines_per_100_py:=round(((count_medicines/person_years)*100),2)]
+  no_records_agg[,users_per_100_py:=round(((no_users/person_years)*100),2)]
+  no_records_agg[,subjects_per_100_py:=round(((no_subjects/person_years)*100),2)]
   
   if(subpopulations_present=="Yes"){
-    write.csv(no_records_agg, paste0(med_dir, subpopulations_names[s], "/", subpopulations_names[s], "_medicines_rates_year_atc.csv"), row.names = F)
+    fwrite(no_records_agg, paste0(med_dir, subpopulations_names[s], "/", subpopulations_names[s], "_medicines_rates_year_atc.csv"), row.names = F)
   } else {
-    write.csv(no_records_agg, paste0(med_dir, "medicines_rates_year_atc.csv"), row.names = F)
+    fwrite(no_records_agg, paste0(med_dir, "medicines_rates_year_atc.csv"), row.names = F)
   }
   
   ################
@@ -2535,17 +2641,19 @@ rm(no_records)
   
   no_records_agg[, count_medicines:= as.character(count_medicines)][as.numeric(count_medicines) > 0 & as.numeric(count_medicines) < 5, count_medicines := "<5"]
   no_records_agg[, no_users:= as.character(no_users)][as.numeric(no_users) > 0 & as.numeric(no_users) < 5, no_users := "<5"]
+  no_records_agg[, no_subjects:= as.character(no_subjects)][as.numeric(no_subjects) > 0 & as.numeric(no_subjects) < 5, no_subjects := "<5"]
   no_records_agg[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
-  no_records_agg[, medicines_per_1000_py:= as.character(medicines_per_1000_py)][count_medicines=="<5" | person_years=="<5", medicines_per_1000_py := "N/A"]
-  no_records_agg[, users_per_1000_py:= as.character(users_per_1000_py)][no_users=="<5" | person_years=="<5", users_per_1000_py := "N/A"]
+  no_records_agg[, medicines_per_100_py:= as.character(medicines_per_100_py)][count_medicines=="<5" | person_years=="<5", medicines_per_100_py := "N/A"]
+  no_records_agg[, users_per_100_py:= as.character(users_per_100_py)][no_users=="<5" | person_years=="<5", users_per_100_py := "N/A"]
+  no_records_agg[, subjects_per_100_py:= as.character(subjects_per_100_py)][no_subjects=="<5" | person_years=="<5", subjects_per_100_py := "N/A"]
   
   if(subpopulations_present=="Yes"){
-    write.csv(no_records_agg, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_rates_year_atc_masked.csv"), row.names = F)
+    fwrite(no_records_agg, paste0(med_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_medicines_rates_year_atc_masked.csv"), row.names = F)
   } else {
-    write.csv(no_records_agg, paste0(med_dir, "Masked/", "medicines_rates_year_atc_masked.csv"), row.names = F)
+    fwrite(no_records_agg, paste0(med_dir, "Masked/", "medicines_rates_year_atc_masked.csv"), row.names = F)
   }
   
-rm(no_records_agg) 
+  rm(no_records_agg) 
   
 }
 
