@@ -52,8 +52,8 @@ for(i in 1:nrow(SCHEME_0102)){
   gc()
   
   TEMP_SOURCE <- TEMP_SOURCE[is.na(age_op_start_date) | op_end_date < op_start_date, ':=' (Year_op = 9999, band = 9999, PY_OP = 0,num_spell = 0)]
-  COUNT_STUDY <- TEMP_STUDY[,.(No1 = sum(!is.na(person_id)),PY1 = sum(PY), last_spell1 = round(mean(num_spell),2)), keyby = list(Year_op,band)]
-  COUNT_SOURCE <- TEMP_SOURCE[,.(No0 = sum(!is.na(person_id)),PY0 = sum(PY_OP),last_spell0 = round(mean(num_spell),2)), keyby = list(Year_op,band,Order)]
+  COUNT_STUDY <- TEMP_STUDY[,.(No1 = sum(!is.na(person_id)),PY1 = sum(PY), last_spell1 = round(mean(!is.na(num_spell)),2)), keyby = list(Year_op,band)]
+  COUNT_SOURCE <- TEMP_SOURCE[,.(No0 = sum(!is.na(person_id)),PY0 = sum(PY_OP),last_spell0 = round(mean(!is.na(num_spell)),2)), keyby = list(Year_op,band,Order)]
   rm(TEMP_STUDY,TEMP_SOURCE)
   gc()
   

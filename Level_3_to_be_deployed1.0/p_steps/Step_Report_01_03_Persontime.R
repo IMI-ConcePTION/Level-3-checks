@@ -62,10 +62,9 @@ for(i in 1:nrow(SCHEME_0103)){
   ###
   
   #COUNT <- dcast(COUNT, band + Year ~ sex_at_instance_creation, value.var = c("count","mean","median"))
-  
-  
+  COUNT <- COUNT[is.na(count_F), count_F := 0][is.na(count_M), count_M := 0]
   COUNT <- COUNT[,Total := count_F + count_M]
-  
+
   order <- c("Year","band","Total","count_F","mean_F","median_F","count_M","mean_M","median_M")
   setcolorder(COUNT, neworder = order )
   new <- c("Year","Ageband","Total No","No Female","Mean Female","Median Female","No Male","Mean Male","Median Male")
