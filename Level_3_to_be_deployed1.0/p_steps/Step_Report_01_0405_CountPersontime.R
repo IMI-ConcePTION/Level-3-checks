@@ -52,8 +52,8 @@ for(i in 1:nrow(SCHEME_01_0405)){
   }else{
     COUNT <- dcast(COUNT, Ageband + Year ~ sex_at_instance_creation, value.var = c("PY","per"))
     lapply(c("PY_M","per_M","PY_F","per_F")[!c("PY_M","per_M","PY_F","per_F") %in% colnames(COUNT)],function(x) COUNT <- COUNT[,eval(x) := 0] )
-    #COUNT <- COUNT[is.na(PY_F), PY_F := 0]
-    #COUNT <- COUNT[is.na(PY_M), PY_F := 0]
+    
+    COUNT <- COUNT[is.na(PY_F), PY_F := 0][is.na(PY_M), PY_M := 0]
     COUNT <- COUNT[,Total := PY_F+PY_M]
     }
    
