@@ -167,8 +167,8 @@ projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_VACCINES<-paste0(pre_dir,"/VACCINES_L3.Rmd")
-system.time(source(paste0(pre_dir,"VACCINES_L3.R")))
+Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
+system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
 
 if(length(actual_tables$VACCINES)>0){
 if(subpopulations_present=="No"){
