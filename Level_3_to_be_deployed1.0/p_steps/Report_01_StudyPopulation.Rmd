@@ -67,6 +67,8 @@ TEMP <- t(TEMP)
 colnames(TEMP) <- TEMP[1,]
 TEMP <- TEMP[2:nrow(TEMP),] 
 TEMP[as.numeric(TEMP) < 5] <- "<5"  
+TEMP[TEMP[,1] == "<5" & TEMP[,2] != "<5",2] <- NA 
+TEMP[TEMP[,2] == "<5"& TEMP[,1] != "<5" ,1] <- NA 
   
 datatable(TEMP, options = list(scrollX=T), colnames = c('Number of females' = 'F', 'Number of males' = 'M'))
 } else {

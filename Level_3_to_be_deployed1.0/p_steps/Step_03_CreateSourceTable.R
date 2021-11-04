@@ -24,6 +24,11 @@ for(i in 1:nrow(SCHEME_03)){
   if(!SUBP) if(any(duplicated(SPELLS[["person_id"]]))) stop("Duplicates in person or observation_period table") 
   if(SUBP) if(any(duplicated(SPELLS[,.(person_id)]))) stop("Duplicates in person or observation_period table") 
   
+  #Overwrite num spell Request for  Vjola as extra check
+  setorder(SPELLS, person_id, op_start_date)
+  SPELLS <- SPELLS[, num_spell := seq_len(.N) , by = person_id]
+  #SPELLS <- SPELLS[, num_spell3 := cumsum(!is.na(op_start_date)) , by = person_id]
+  
   print(paste0("Merge person table with observation_periods table ",SCHEME_03[["subpopulations"]][i]))
   setkey(PERSONS,"person_id")
   setkey(SPELLS,"person_id")
