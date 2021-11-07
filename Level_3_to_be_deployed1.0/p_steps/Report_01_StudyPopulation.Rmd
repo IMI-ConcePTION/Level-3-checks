@@ -67,8 +67,8 @@ TEMP <- t(TEMP)
 colnames(TEMP) <- TEMP[1,]
 TEMP <- TEMP[2:nrow(TEMP),] 
 TEMP[as.numeric(TEMP) < 5] <- "<5"  
-TEMP[TEMP[,1] == "<5" & TEMP[,2] != "<5",2] <- NA 
-TEMP[TEMP[,2] == "<5"& TEMP[,1] != "<5" ,1] <- NA 
+TEMP[TEMP[,1] == "<5" & TEMP[,2] != "<5",2] <- "Not shown" 
+TEMP[TEMP[,2] == "<5"& TEMP[,1] != "<5" ,1] <- "Not shown" 
   
 datatable(TEMP, options = list(scrollX=T), colnames = c('Number of females' = 'F', 'Number of males' = 'M'))
 } else {
@@ -729,8 +729,13 @@ rm(TEMP,TEMP1)
 
 TEMP <- readRDS(paste0(report_dir1,"/",i,"_R_01_10_InDatabaseAtAfterBirth.rds")) 
 
-if (nrow(TEMP)>0){
-datatable(TEMP, options = list(scrollX=T), rownames = F)
+TEMP2<-as.data.table(t(TEMP))
+TEMP2<-cbind(colnames(TEMP),TEMP2)
+names(TEMP2)<-c("Weeks", "Percentage")
+TEMP2<-TEMP2[Percentage!=0]
+
+if (nrow(TEMP2)>0){
+datatable(TEMP2, options = list(scrollX=T), rownames = F)
 }else {
   print("This table has no information and cannot be displayed.")
 }
