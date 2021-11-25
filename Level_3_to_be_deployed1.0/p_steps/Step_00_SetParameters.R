@@ -21,7 +21,7 @@ rm(CDM_SOURCE, cdm_source_file)
 #######################################################
 start_study_date <- as.IDate(start_study_date,"%Y%m%d")
 end_study_date <- as.IDate(end_study_date,"%Y%m%d")
-date_creation<-as.IDate(end_study_date,"%Y%m%d")
+date_creation<-as.IDate(date_creation,"%Y%m%d")
 intv <- as.IDate(c(start_study_date, end_study_date))
 ##########################################################
 print("Check date creation is after end study date")
