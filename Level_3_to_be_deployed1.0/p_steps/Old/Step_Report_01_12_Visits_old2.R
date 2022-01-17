@@ -1,14 +1,5 @@
 
 
-#STUDY_POPULATION[,.(person_id, start_follow_up, end_follow_up)]
-
-#TEMP2 <- merge(x= STUDY_POPULATION[,.(person_id, start_follow_up, end_follow_up)], y = TEMP[, ':=' (start_follow_up = NULL, end_follow_up = NULL) ], by = "person_id", all.x = T)
-
-
-
-
-
-
 #Author: Roel Elbers MSc.
 #email: r.j.h.elbers@umcutrecht.nl
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
@@ -21,10 +12,10 @@ print('Import and append persons files')
 VISITS <- IMPORT_PATTERN(pat = "VISIT_OCCURRENCE", dir = path_dir)
 
 if(!is.null(VISITS)){
-  
-  VISITS<-VISITS[,.(person_id,visit_occurrence_id,visit_start_date,visit_end_date,meaning_of_visit)]
-  lapply(c("visit_start_date","visit_end_date"), function (x) VISITS <- VISITS[, eval(x) := as.IDate(as.character(get(x)),"%Y%m%d")]  ) 
-  
+
+VISITS<-VISITS[,.(person_id,visit_occurrence_id,visit_start_date,visit_end_date,meaning_of_visit)]
+lapply(c("visit_start_date","visit_end_date"), function (x) VISITS <- VISITS[, eval(x) := as.IDate(as.character(get(x)),"%Y%m%d")]  ) 
+
 }else{
   VISITS <- data.table(person_id = as.character(), visit_occurrence_id = as.character(),visit_start_date = as.character(),visit_end_date = as.character(),meaning_of_visit = as.character())
   
@@ -46,7 +37,7 @@ if(SUBP) SCHEME_0112 <- subpopulation_meanings[,
                                                  folder_in2 = std_pop_tmp, 
                                                  folder_out =paste0(std_source_pop_dir,subpopulations,"/"))
                                                
-]
+                                               ]
 
 
 if(!SUBP){ 
@@ -72,32 +63,6 @@ for(i in 1:nrow(SCHEME_0112)){
   STUDY_POPULATION <- readRDS(file = paste0(SCHEME_0112[["folder_in"]][i],SCHEME_0112[["file_in"]][i]))[, .(person_id, birth_date, start_follow_up, end_follow_up,PY)]
   VISITS <- readRDS(file = paste0(SCHEME_0112[["folder_in2"]][i],SCHEME_0112[["file_in2"]][i]))
   
-  TEMP <- CountPersonTime2(
-    Dataset = STUDY_POPULATION,
-    Dataset_events = VISITS[,.(person_id, visit_start_date, meaning_of_visit)],
-    
-    Name_event = "meaning_of_visit",
-    Date_event = "visit_start_date",
-    Outcomes_rec = unique(VISITS[["meaning_of_visit"]]),
-    Rec_period = rep(0, length(unique(VISITS[["meaning_of_visit"]]))),
-    Person_id = "person_id", 
-    Start_study_time = start_study_date2, 
-    End_study_time = end_study_date2, 
-    Start_date = "start_follow_up", 
-    End_date = "end_follow_up", 
-    Birth_date = "birth_date",
-    Age_bands = c(0,0,9,19,29,39,49,59,69,79,89,99), 
-    Unit_of_age = "year" , 
-    Increment = "year", 
-    include_remaning_ages = T, 
-    Aggregate = T
-    
-  )
-  
-  
-  
-  
-  
   TEMP <- merge(STUDY_POPULATION, VISITS, by = "person_id", allow.cartesian = T)
   
   TEMP <- TEMP[visit_start_date %between% list(start_follow_up,end_follow_up),]
@@ -112,12 +77,9 @@ for(i in 1:nrow(SCHEME_0112)){
                )
                
                
-  ]
-  
-  TEMP <- merge(x= STUDY_POPULATION[,.(person_id, start_follow_up, end_follow_up)], y = , all.x = "person_id")
-  
+               ]
   if(nrow(TEMP) > 0){
-    Agebands <- CreateBands(seq(from = 0 , to = 10 + max(TEMP[["Age_visit"]]), by = 10))
+  Agebands <- CreateBands(seq(from = 0 , to = 10 + max(TEMP[["Age_visit"]]), by = 10))
   }else{
     Agebands <- CreateBands(seq(from = 0 , to = 30, by = 10))
   }
