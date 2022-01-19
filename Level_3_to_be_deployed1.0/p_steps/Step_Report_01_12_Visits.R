@@ -64,7 +64,7 @@ for(i in 1:nrow(SCHEME_0112)){
   
   STUDY_POPULATION <- readRDS(file = paste0(SCHEME_0112[["folder_in"]][i],SCHEME_0112[["file_in"]][i]))[, .(person_id, birth_date, start_follow_up, end_follow_up,PY)]
   VISITS <- readRDS(file = paste0(SCHEME_0112[["folder_in2"]][i],SCHEME_0112[["file_in2"]][i]))
-  PT1 <- readRDS(file = paste0(SCHEME_0112[["folder_in2"]][i],SCHEME_0112[["file_in3"]][i]))[sex_at_instance_creation %in% c("F","M"),]
+  PT1 <- readRDS(file = paste0(SCHEME_0112[["folder_in2"]][i],SCHEME_0112[["file_in3"]][i]))
   PT1 <- PT1[, .(Persontime = sum(Persontime)), by = c("Year", "Ageband")] 
   
   TEMP <- merge(STUDY_POPULATION, VISITS, by = "person_id", allow.cartesian = T)
