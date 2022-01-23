@@ -111,6 +111,8 @@ if(length(actual_tables$MEDICINES)>0){
     #create year variable
     df[,year:=year(date_prescription)][!is.na(date_dispensing),year:=year(date_dispensing)]
     df[,medicines_date:=date_prescription][!is.na(date_dispensing),medicines_date:=date_dispensing]#date that will be used for person-years
+    #remove date_dispensing and date_prescription(added 23 January 2022)
+    df[,date_dispensing:=NULL][,date_prescription:=NULL]
     #number of records with both date dispensing/prescription missing
     med_date_miss[[w]]<-df[is.na(year),.N]
     #remove records with both dates missing
@@ -133,8 +135,7 @@ if(length(actual_tables$MEDICINES)>0){
     ############################
     med_study_population[[w]]<-df[,.N] #number of records in the study population
     med_study_population_meaning[[w]]<-df[,.N, by="meaning"] #number of records in the study population by meaning
-    med_study_population_meaning_year[[w]]<-df[,.N, by=c("meaning","year")] #number of records in the study population by meaning
-    
+    med_study_population_meaning_year[[w]]<-df[,.N, by=c("meaning","year")] #number of records in the study population by meaning and year
     ############################
     #Table 15
     ############################
@@ -167,6 +168,13 @@ if(length(actual_tables$MEDICINES)>0){
     comp_atc[[w]]<-df[!is.na(medicinal_product_atc_code), .N]
     #p_incomplete_7: sum of records with atc 1-6/ total no of records with complete atc code(comp_atc)
     #p_incomplete_5: sum of records with atc 1-4/ total no of records with complete atc code(comp_atc)
+	
+    ##############################
+    #save all person ids that are part of the medicines_study_population(added 23 January 2022)
+    ##############################
+    if (df[,.N]>0){
+      saveRDS(df[!duplicated(person_id),c("person_id","birth_date","start_follow_up","end_follow_up")], paste0(medicines_tmp, paste0("med_id_stdpop_", actual_tables$MEDICINES[y], ".rds")))
+    }
     ##############################
     #First section of the SAP
     ##############################
@@ -285,6 +293,32 @@ if(length(actual_tables$MEDICINES)>0){
     w<-w+1
     rm(df)
     ########
+  }
+  
+  #################################################################################################
+  #save all ids part of the medicines_study_population(added 23 January 2022)
+  #################################################################################################  
+  #number of subjects in the study population that do not have a prescription/dispensing
+  id_med_files<-list.files(medicines_tmp, pattern = "med_id_stdpop")
+  if (length(id_med_files)>0){
+    med_id<-readRDS(paste0(medicines_tmp, id_med_files[1]))
+    i<-2
+    while(i <= length(id_med_files)){
+      a<-readRDS(paste0(medicines_tmp, id_med_files[i]))
+      med_id<-rbind(med_id, a)
+      med_id<-med_id[!duplicated(person_id)]
+      i<-i+1
+      rm(a)
+    }
+    for(i in 1:length(id_med_files)){
+      unlink(paste0(medicines_tmp,id_med_files[i]))
+    }
+    rm(id_med_files)
+    
+    if (med_id[,.N]>0){
+      saveRDS(med_id, paste0(medicines_tmp, "med_ids_stdpop.rds"))
+    }
+    rm(med_id)
   }
   
   #################################################################################################
@@ -409,6 +443,11 @@ if(length(actual_tables$MEDICINES)>0){
       i<-i+1
       rm(a)
     }
+    
+    if(stdpop_not_med[,.N]>0){
+      saveRDS(stdpop_not_med, paste0(medicines_tmp, "med_id_no_rx.rds"))
+    }
+    
     stdpop_not_med<-stdpop_not_med[,.N]
     
     for(i in 1:length(stdpop_not_med_files)){
@@ -879,7 +918,7 @@ if(length(actual_tables$MEDICINES)>0){
         } else {
           median_male<-readRDS(paste0(medicines_pop, list_median_males[[med_males_index]][1]))
         }
-        #count by person_id, atc code meaning and year
+        #count by person_id, atc code meaning and year(concatenate records with the same atc code for the same person)
         median_male<-median_male[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code")]
         
         z<-2
@@ -889,8 +928,10 @@ if(length(actual_tables$MEDICINES)>0){
           } else {
             a<-readRDS(paste0(medicines_pop, list_median_males[[med_males_index]][[z]]))
           }
+          #concatenate data for the same person
           a<-a[,.(count=.N), by=c("person_id","meaning","year","medicinal_product_atc_code")]
           median_male<-rbind(median_male, a)
+          #concatenate results for the same person
           median_male<-median_male[,lapply(.SD, sum), by=c("person_id","meaning","year","medicinal_product_atc_code"), .SDcols="count"]
           z<-z+1
           rm(a)
@@ -907,7 +948,7 @@ if(length(actual_tables$MEDICINES)>0){
           setcolorder(res.tab13.m_records.my,c("meaning","year","atc_code_3","atc_code_7"))
           saveRDS(res.tab13.m_records.my,paste0(medicines_tmp,names(list_median_males)[med_males_index], "_tab13_m_rec_7.my_", med_males_index, ".rds"))
           rm(res.tab13.m_records.my)
-          #number of records by atc_code_7
+          #number of records by atc_code_7(irrespective of meaning and year)
           res.tab13.m_records.t<-median_male[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,sum),by=.(medicinal_product_atc_code), .SDcols="count"]
           res.tab13.m_records.t[,meaning:="All"][,year:="All"]
           setnames(res.tab13.m_records.t,"count","no_records")
@@ -950,10 +991,31 @@ if(length(actual_tables$MEDICINES)>0){
           setcolorder(res.tab13.m_users.med.t_7,c("meaning","year","atc_code_3","atc_code_7"))
           saveRDS(res.tab13.m_users.med.t_7,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab13_m_median_7.t_",med_males_index, ".rds"))
           rm(res.tab13.m_users.med.t_7)
+          
+          #mean prescription by meaning, year and atc_code_7
+          res.tab13.m_users.mean_7<-median_male[atc_level==7,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
+          setnames(res.tab13.m_users.mean_7,"count","mean_rx_male_users")
+          #round mean
+          res.tab13.m_users.mean_7[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          setnames(res.tab13.m_users.mean_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab13.m_users.mean_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab13.m_users.mean_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.mean_7,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab13_m_mean_7.my_",med_males_index, ".rds"))
+          rm(res.tab13.m_users.mean_7)
+          #mean prescriptions by atc_code_7
+          res.tab13.m_users.mean.t_7<-median_male[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(medicinal_product_atc_code)]
+          setnames(res.tab13.m_users.mean.t_7,"count","mean_rx_male_users")
+          res.tab13.m_users.mean.t_7[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          setnames(res.tab13.m_users.mean.t_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab13.m_users.mean.t_7[,meaning:="All"][,year:="All"]
+          res.tab13.m_users.mean.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab13.m_users.mean.t_7,c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.m_users.mean.t_7,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab13_m_mean_7.t_",med_males_index, ".rds"))
+          rm(res.tab13.m_users.mean.t_7)
         }
         
         #############
-        #number of records, male users, median male users (table 12)
+        #number of records, male users, median male users (table 12)(added 23 January 2022)
         if(median_male[atc_level==4|atc_level==5|atc_level==6|atc_level==7,.N]>0){
           median_male<-median_male[,atc_code_4:=substr(medicinal_product_atc_code,1,4)] #create atc_code_4
           #number of records by meaning, year, and atc_code_4
@@ -1001,6 +1063,24 @@ if(length(actual_tables$MEDICINES)>0){
           setcolorder(res.tab12.m_users.med.t_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
           saveRDS(res.tab12.m_users.med.t_4,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_4.t_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med.t_4)
+          
+          #mean prescription by meaning, year and atc_code_4(added 23 January 2022)
+          res.tab12.m_users.mean_4<-median_male[atc_level>=4,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_4)]
+          setnames(res.tab12.m_users.mean_4,"count","mean_rx_male_users")
+          res.tab12.m_users.mean_4[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
+          setcolorder(res.tab12.m_users.mean_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.mean_4,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_4.my_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean_4)
+          #mean prescriptions by atc_code_4
+          res.tab12.m_users.mean.t_4<-median_male[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_4)]
+          setnames(res.tab12.m_users.mean.t_4,"count","mean_rx_male_users")
+          res.tab12.m_users.mean.t_4[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean.t_4[,meaning:="All"][,year:="All"]
+          res.tab12.m_users.mean.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
+          setcolorder(res.tab12.m_users.mean.t_4,c("meaning","year","atc_code_1","atc_code_3","atc_code_4"))
+          saveRDS(res.tab12.m_users.mean.t_4,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_4.t_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean.t_4)
           median_male[,atc_code_4:=NULL]
         }
         
@@ -1046,6 +1126,23 @@ if(length(actual_tables$MEDICINES)>0){
           res.tab12.m_users.med.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
           saveRDS(res.tab12.m_users.med.t_3,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_3.t_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med.t_3,res.tab12.m)
+          
+          #mean prescription by meaning, year and atc_code_3(added 23 january 2022)
+          res.tab12.m_users.mean_3<-median_male[atc_level==3,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_3)]
+          setnames(res.tab12.m_users.mean_3,"count","mean_rx_male_users")
+          res.tab12.m_users.mean_3[mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
+          saveRDS(res.tab12.m_users.mean_3,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_3.my_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean_3)
+          #mean prescriptions by atc_code_3
+          res.tab12.m_users.mean.t_3<-median_male[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_3)]
+          setnames(res.tab12.m_users.mean.t_3,"count","mean_rx_male_users")
+          res.tab12.m_users.mean.t_3[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean.t_3[,meaning:="All"][,year:="All"]
+          res.tab12.m_users.mean.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
+          saveRDS(res.tab12.m_users.mean.t_3,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_3.t_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean.t_3,res.tab12.m)
+          
           median_male[,atc_code_3:=NULL]
         }
         
@@ -1091,6 +1188,22 @@ if(length(actual_tables$MEDICINES)>0){
           res.tab12.m_users.med.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
           saveRDS(res.tab12.m_users.med.t_1,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_median_1.t_",med_males_index, ".rds"))
           rm(res.tab12.m_users.med.t_1,res.tab12.m)
+          
+          #mean prescription by meaning, year and atc_code_1(added 23 January 2022)
+          res.tab12.m_users.mean_1<-median_male[atc_level==1,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_1)]
+          setnames(res.tab12.m_users.mean_1,"count","mean_rx_male_users")
+          res.tab12.m_users.mean_1[,mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean_1[,atc_code_4:=NA][,atc_code_3:=NA]
+          saveRDS(res.tab12.m_users.mean_1,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_1.my_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean_1)
+          #mean prescriptions by atc_code_1
+          res.tab12.m_users.mean.t_1<-median_male[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_1)]
+          setnames(res.tab12.m_users.mean.t_1,"count","mean_rx_male_users")
+          res.tab12.m_users.mean.t_1[mean_rx_male_users:=round(mean_rx_male_users,2)]
+          res.tab12.m_users.mean.t_1[,meaning:="All"][,year:="All"]
+          res.tab12.m_users.mean.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
+          saveRDS(res.tab12.m_users.mean.t_1,paste0(medicines_tmp,names(list_median_males)[med_males_index],"_tab12_m_mean_1.t_",med_males_index, ".rds"))
+          rm(res.tab12.m_users.mean.t_1,res.tab12.m)
           median_male[,atc_code_1:=NULL]
         }
       }
@@ -1157,6 +1270,17 @@ if(length(actual_tables$MEDICINES)>0){
       rm(tab12_male_median.my,m_median.my)
       #output: m_median.my
       
+      #combine results for mean male(added 23 January 2022)
+      tab12_male_mean.my<-c(list.files(medicines_tmp,pattern="tab12_m_mean_4.my"),list.files(medicines_tmp,pattern="tab12_m_mean_3.my"),list.files(medicines_tmp,pattern="tab12_m_mean_1.my"))
+      #load all files and rbind together
+      m_mean.my<-lapply(paste0(medicines_tmp,tab12_male_mean.my), readRDS)
+      m_mean.my<-do.call(rbind,m_mean.my)
+      for(i in 1:length(tab12_male_mean.my)){
+        unlink(paste0(medicines_tmp,tab12_male_mean.my[i]))
+      }
+      saveRDS(m_mean.my,paste0(medicines_tmp,"m_mean.my.rds"))
+      rm(tab12_male_mean.my,m_mean.my)
+      #output: m_mean.my
       print("Calculating total number of male users and number of median prescription/dispensings stratified by ATC code.")
       ########
       #total
@@ -1195,6 +1319,17 @@ if(length(actual_tables$MEDICINES)>0){
       rm(tab12_male_median.t,m_median.t)
       #output: m_median.t
       ########
+      #added 23 January 2022
+      tab12_male_mean.t<-c(list.files(medicines_tmp,pattern="tab12_m_mean_4.t"),list.files(medicines_tmp,pattern="tab12_m_mean_3.t"),list.files(medicines_tmp,pattern="tab12_m_mean_1.t"))
+      #load all files and rbind together
+      m_mean.t<-lapply(paste0(medicines_tmp,tab12_male_mean.t), readRDS)
+      m_mean.t<-do.call(rbind,m_mean.t)
+      for(i in 1:length(tab12_male_mean.t)){
+        unlink(paste0(medicines_tmp,tab12_male_mean.t[i]))
+      }
+      saveRDS(m_mean.t,paste0(medicines_tmp,"m_mean.t.rds"))
+      rm(tab12_male_mean.t,m_mean.t)
+      #output: m_mean.t
     }
   } else {
     tab12_males<-data.table(meaning="N/A", year="N/A", atc_code_1="N/A", atc_code_3="N/A", atc_code_4="N/A", no_male_users="N/A", median_rx_male_users="N/A")
@@ -1299,6 +1434,27 @@ if(length(actual_tables$MEDICINES)>0){
           setcolorder(res.tab13.f_users.med.t_7, c("meaning","year","atc_code_3","atc_code_7"))
           saveRDS(res.tab13.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab13_f_median_7.t_",med_females_index, ".rds"))
           rm(res.tab13.f_users.med.t_7)
+          
+          #mean prescription by meaning, year and atc_code_7
+          res.tab13.f_users.mean_7<-median_female[atc_level==7,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
+          setnames(res.tab13.f_users.mean_7,"count","mean_rx_female_users")
+          res.tab13.f_users.mean_7[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          setnames(res.tab13.f_users.mean_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab13.f_users.mean_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab13.f_users.mean_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.mean_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab13_f_mean_7.my_",med_females_index, ".rds"))
+          rm(res.tab13.f_users.mean_7)
+          
+          #mean prescriptions by atc_code_7(added 23 January 2022)
+          res.tab13.f_users.mean.t_7<-median_female[atc_level==7,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(medicinal_product_atc_code)]
+          setnames(res.tab13.f_users.mean.t_7,"count","mean_rx_female_users")
+          res.tab13.f_users.mean.t_7[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          setnames(res.tab13.f_users.mean.t_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab13.f_users.mean.t_7[,meaning:="All"][,year:="All"]
+          res.tab13.f_users.mean.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab13.f_users.mean.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab13.f_users.mean.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab13_f_mean_7.t_",med_females_index, ".rds"))
+          rm(res.tab13.f_users.mean.t_7)
         }
         
         #number of records, female users, median female users by atc_code_7 (table 14) in females of childbearing age
@@ -1355,6 +1511,26 @@ if(length(actual_tables$MEDICINES)>0){
           setcolorder(res.tab12.f_users.med.t_7, c("meaning","year","atc_code_3","atc_code_7"))
           saveRDS(res.tab12.f_users.med.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab14_f_median_7.t_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med.t_7)
+          
+          #mean prescription by meaning, year and atc_code_7(added 23 January 2022)
+          res.tab12.f_users.mean_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, medicinal_product_atc_code)]
+          setnames(res.tab12.f_users.mean_7,"count","mean_rx_female_users")
+          res.tab12.f_users.mean_7[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          setnames(res.tab12.f_users.mean_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab12.f_users.mean_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab12.f_users.mean_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.mean_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab14_f_mean_7.my_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean_7)
+          #mean prescriptions by atc_code_7
+          res.tab12.f_users.mean.t_7<-median_female[atc_level==7 & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,lapply(.SD,sum),by=.(person_id,medicinal_product_atc_code), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(medicinal_product_atc_code)]
+          setnames(res.tab12.f_users.mean.t_7,"count","mean_rx_female_users")
+          res.tab12.f_users.mean.t_7[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          setnames(res.tab12.f_users.mean.t_7,"medicinal_product_atc_code","atc_code_7")
+          res.tab12.f_users.mean.t_7[,meaning:="All"][,year:="All"]
+          res.tab12.f_users.mean.t_7[,atc_code_3:=substr(atc_code_7,1,3)]
+          setcolorder(res.tab12.f_users.mean.t_7, c("meaning","year","atc_code_3","atc_code_7"))
+          saveRDS(res.tab12.f_users.mean.t_7,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab14_f_mean_7.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean.t_7)
         }
         
         #############
@@ -1400,6 +1576,22 @@ if(length(actual_tables$MEDICINES)>0){
           res.tab12.f_users.med.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
           saveRDS(res.tab12.f_users.med.t_4,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_4.t_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med.t_4)
+          
+          #mean prescription by meaning, year and atc_code_4(added 23 January 2022)
+          res.tab12.f_users.mean_4<-median_female[atc_level>=4,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_4)]
+          setnames(res.tab12.f_users.mean_4,"count","mean_rx_female_users")
+          res.tab12.f_users.mean_4[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
+          saveRDS(res.tab12.f_users.mean_4,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_4.my_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean_4)
+          #mean prescriptions by atc_code_4
+          res.tab12.f_users.mean.t_4<-median_female[atc_level>=4,lapply(.SD,sum),by=.(person_id,atc_code_4), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_4)]
+          setnames(res.tab12.f_users.mean.t_4,"count","mean_rx_female_users")
+          res.tab12.f_users.mean.t_4[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean.t_4[,meaning:="All"][,year:="All"]
+          res.tab12.f_users.mean.t_4[,atc_code_3:=substr(atc_code_4,1,3)][,atc_code_1:=substr(atc_code_4,1,1)]
+          saveRDS(res.tab12.f_users.mean.t_4,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_4.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean.t_4)
           median_female[,atc_code_4:=NULL]
         }
         
@@ -1445,6 +1637,22 @@ if(length(actual_tables$MEDICINES)>0){
           res.tab12.f_users.med.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
           saveRDS(res.tab12.f_users.med.t_3,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_3.t_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med.t_3)
+          
+          #mean prescription by meaning, year and atc_code_3(added 23 january 2022)
+          res.tab12.f_users.mean_3<-median_female[atc_level==3,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_3)]
+          setnames(res.tab12.f_users.mean_3,"count","mean_rx_female_users")
+          res.tab12.f_users.mean_3[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
+          saveRDS(res.tab12.f_users.mean_3,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_3.my_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean_3)
+          #mean prescriptions by atc_code_3
+          res.tab12.f_users.mean.t_3<-median_female[atc_level==3,lapply(.SD,sum),by=.(person_id,atc_code_3), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_3)]
+          setnames(res.tab12.f_users.mean.t_3,"count","mean_rx_female_users")
+          res.tab12.f_users.mean.t_3[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean.t_3[,meaning:="All"][,year:="All"]
+          res.tab12.f_users.mean.t_3[,atc_code_4:=NA][,atc_code_1:=substr(atc_code_3,1,1)]
+          saveRDS(res.tab12.f_users.mean.t_3,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_3.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean.t_3)
           median_female[,atc_code_3:=NULL]
         }
         
@@ -1490,6 +1698,22 @@ if(length(actual_tables$MEDICINES)>0){
           res.tab12.f_users.med.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
           saveRDS(res.tab12.f_users.med.t_1,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_median_1.t_",med_females_index, ".rds"))
           rm(res.tab12.f_users.med.t_1)
+          
+          #mean prescription by meaning, year and atc_code_1(added 23 january 2022)
+          res.tab12.f_users.mean_1<-median_female[atc_level==1,lapply(.SD,mean),.SDcols="count", by=.(meaning, year, atc_code_1)]
+          setnames(res.tab12.f_users.mean_1,"count","mean_rx_female_users")
+          res.tab12.f_users.mean_1[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean_1[,atc_code_4:=NA][,atc_code_3:=NA]
+          saveRDS(res.tab12.f_users.mean_1,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_1.my_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean_1)
+          #mean prescriptions by atc_code_1
+          res.tab12.f_users.mean.t_1<-median_female[atc_level==1,lapply(.SD,sum),by=.(person_id,atc_code_1), .SDcols="count"][,lapply(.SD,mean),.SDcols="count", by=.(atc_code_1)]
+          setnames(res.tab12.f_users.mean.t_1,"count","mean_rx_female_users")
+          res.tab12.f_users.mean.t_1[,mean_rx_female_users:=round(mean_rx_female_users,2)]
+          res.tab12.f_users.mean.t_1[,meaning:="All"][,year:="All"]
+          res.tab12.f_users.mean.t_1[,atc_code_4:=NA][,atc_code_3:=NA]
+          saveRDS(res.tab12.f_users.mean.t_1,paste0(medicines_tmp,names(list_median_females)[med_females_index],"_tab12_f_mean_1.t_",med_females_index, ".rds"))
+          rm(res.tab12.f_users.mean.t_1)
           median_female[,atc_code_1:=NULL]
         }
       }
@@ -1556,6 +1780,17 @@ if(length(actual_tables$MEDICINES)>0){
       rm(tab12_female_median.my,f_median.my)
       #output: f_median.my
       
+      #mean(added 23 january 2022)
+      tab12_female_mean.my<-c(list.files(medicines_tmp,pattern="tab12_f_mean_4.my"),list.files(medicines_tmp,pattern="tab12_f_mean_3.my"),list.files(medicines_tmp,pattern="tab12_f_mean_1.my"))
+      f_mean.my<-lapply(paste0(medicines_tmp,tab12_female_mean.my), readRDS)
+      f_mean.my<-do.call(rbind,f_mean.my)
+      for(i in 1:length(tab12_female_mean.my)){
+        unlink(paste0(medicines_tmp,tab12_female_mean.my[i]))
+      }
+      saveRDS(f_mean.my,paste0(medicines_tmp,"f_mean.my.rds"))
+      rm(tab12_female_mean.my,f_mean.my)
+      #output: f_mean.my
+      
       print("Calculating total number of female users and number of median prescription/dispensings stratified by ATC code.")
       ########
       #total
@@ -1594,6 +1829,18 @@ if(length(actual_tables$MEDICINES)>0){
       saveRDS(f_median.t,paste0(medicines_tmp,"f_median.t.rds"))
       rm(tab12_female_median.t,f_median.t)
       #output:f_median.t
+      
+      #mean(added 23 january 2022)
+      tab12_female_mean.t<-c(list.files(medicines_tmp,pattern="tab12_f_mean_4.t"),list.files(medicines_tmp,pattern="tab12_f_mean_3.t"),list.files(medicines_tmp,pattern="tab12_f_mean_1.t"))
+      #load all files and rbind together
+      f_mean.t<-lapply(paste0(medicines_tmp,tab12_female_mean.t), readRDS)
+      f_mean.t<-do.call(rbind,f_mean.t)
+      for(i in 1:length(tab12_female_mean.t)){
+        unlink(paste0(medicines_tmp,tab12_female_mean.t[i]))
+      }
+      saveRDS(f_mean.t,paste0(medicines_tmp,"f_mean.t.rds"))
+      rm(tab12_female_mean.t,f_mean.t)
+      #output:f_mean.t
       ########
     } 
   } else {
@@ -1683,9 +1930,13 @@ if(length(actual_tables$MEDICINES)>0){
     med.f<-rbind(readRDS(paste0(medicines_tmp,"f_median.my.rds")),readRDS(paste0(medicines_tmp,"f_median.t.rds")))
     unlink(paste0(medicines_tmp,"f_median.my.rds"))
     unlink(paste0(medicines_tmp,"f_median.t.rds"))
+    mean.f<-rbind(readRDS(paste0(medicines_tmp,"f_mean.my.rds")),readRDS(paste0(medicines_tmp,"f_mean.t.rds")))
+    unlink(paste0(medicines_tmp,"f_mean.my.rds"))
+    unlink(paste0(medicines_tmp,"f_mean.t.rds"))
     #tab12: combined no_female_users(by meaning and year) no_female_users(total)
     #med.f combined median_rx_female_users(by_meaning and year) median_rx_female_users(total)
-  }
+    #mean.f combined mean_rx_female_users(by_meaning and year) mean_rx_female_users(total)
+     }
   
   if(male_population>0){
     males<-rbind(readRDS(paste0(medicines_tmp,"m_users.my.rds")),readRDS(paste0(medicines_tmp,"m_users.t.rds")))
@@ -1694,9 +1945,13 @@ if(length(actual_tables$MEDICINES)>0){
     med.m<-rbind(readRDS(paste0(medicines_tmp,"m_median.my.rds")),readRDS(paste0(medicines_tmp,"m_median.t.rds")))
     unlink(paste0(medicines_tmp,"m_median.my.rds"))
     unlink(paste0(medicines_tmp,"m_median.t.rds"))
+    mean.m<-rbind(readRDS(paste0(medicines_tmp,"m_mean.my.rds")),readRDS(paste0(medicines_tmp,"m_mean.t.rds")))
+    unlink(paste0(medicines_tmp,"m_mean.my.rds"))
+    unlink(paste0(medicines_tmp,"m_mean.t.rds"))
     #males: combined no_male_users(by meaning and year) no_male_users(total)
     #med.m combined median_rx_male_users(by_meaning and year) median_rx_male_users(total)
-  }
+    #mean.m combined mean_rx_male_users(by_meaning and year) mean_rx_male_users(total)
+    }
   
   #combine no_records(by meaning and year) with no_records(total)
   tot_rec.my<-rbind(tot_rec.my,tot_rec.t)
@@ -1728,9 +1983,17 @@ if(length(actual_tables$MEDICINES)>0){
     tab12<-merge(tab12,med.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.m)
     tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    mean.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tab12<-merge(tab12,mean.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
+    rm(mean.m)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.f)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    mean.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tab12<-merge(tab12,mean.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
+    rm(mean.f)
     tab12[is.na(median_rx_female_users),median_rx_female_users:=0][is.na(median_rx_male_users),median_rx_male_users:=0]
     setcolorder(tab12,c("meaning","year", "atc_code_4", "atc_code_3","atc_code_1","no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
     setorderv(tab12,c("meaning","year","atc_code_4","atc_code_3","atc_code_1"))
@@ -1745,6 +2008,10 @@ if(length(actual_tables$MEDICINES)>0){
     med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.f)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    mean.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tab12<-merge(tab12,mean.f, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
+    rm(mean.f)
     tab12[is.na(median_rx_female_users),median_rx_female_users:=0]
     tab12[,no_male_users:=0][,median_rx_male_users:=0]
     setcolorder(tab12,c("meaning","year", "atc_code_4", "atc_code_3","atc_code_1","no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
@@ -1761,6 +2028,10 @@ if(length(actual_tables$MEDICINES)>0){
     med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
     tab12<-merge(tab12,med.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
     rm(med.m)
+    tab12[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    mean.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_4:=as.character(atc_code_4)][,atc_code_3:=as.character(atc_code_3)][,atc_code_1:=as.character(atc_code_1)]
+    tab12<-merge(tab12,mean.m, by=c("meaning", "year", "atc_code_4", "atc_code_3", "atc_code_1"), all=T)
+    rm(mean.m)
     tab12[is.na(median_rx_male_users),median_rx_male_users:=0]
     tab12[,no_female_users:=0][,median_rx_female_users:=0]
     setcolorder(tab12,c("meaning","year", "atc_code_4", "atc_code_3","atc_code_1","no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
@@ -1863,6 +2134,17 @@ if(length(actual_tables$MEDICINES)>0){
     rm(tab13_male_median.my,tab13.m_median.my)
     #output: tab13.m_median.my
     
+    #combine results for mean presc/disp for male users
+    tab13_male_mean.my<-list.files(medicines_tmp,pattern="tab13_m_mean_7.my")
+    tab13.m_mean.my<-lapply(paste0(medicines_tmp,tab13_male_mean.my), readRDS)
+    tab13.m_mean.my<-do.call(rbind,tab13.m_mean.my)
+    for(i in 1:length(tab13_male_mean.my)){
+      unlink(paste0(medicines_tmp,tab13_male_mean.my[i]))
+    }
+    saveRDS(tab13.m_mean.my,paste0(medicines_tmp,"tab13.m_mean.my.rds"))
+    rm(tab13_male_mean.my,tab13.m_mean.my)
+    #output: tab13.m_mean.my
+    
     ########
     #total
     ########
@@ -1898,6 +2180,19 @@ if(length(actual_tables$MEDICINES)>0){
     }
     saveRDS(tab13.m_median.t,paste0(medicines_tmp,"tab13.m_median.t.rds"))
     rm(tab13_male_median.t,tab13.m_median.t)
+    
+    #mean total
+    tab13_male_mean.t<-list.files(medicines_tmp,pattern="tab13_m_mean_7.t")
+    #load all files and rbind together
+    tab13.m_mean.t<-lapply(paste0(medicines_tmp,tab13_male_mean.t), readRDS)
+    tab13.m_mean.t<-do.call(rbind,tab13.m_mean.t)
+    for(i in 1:length(tab13_male_mean.t)){
+      unlink(paste0(medicines_tmp,tab13_male_mean.t[i]))
+    }
+    saveRDS(tab13.m_mean.t,paste0(medicines_tmp,"tab13.m_mean.t.rds"))
+    rm(tab13_male_mean.t,tab13.m_mean.t)
+    #output:tab13.m_mean.t
+    
   } 
   #output:tab13.m_median.t
   ########
@@ -1941,6 +2236,17 @@ if(length(actual_tables$MEDICINES)>0){
     rm(tab13_female_median.my,tab13.f_median.my)
     #output: tab13.f_median.my
     
+    #mean female users
+    tab13_female_mean.my<-list.files(medicines_tmp,pattern="tab13_f_mean_7.my")
+    tab13.f_mean.my<-lapply(paste0(medicines_tmp,tab13_female_mean.my), readRDS)
+    tab13.f_mean.my<-do.call(rbind,tab13.f_mean.my)
+    for(i in 1:length(tab13_female_mean.my)){
+      unlink(paste0(medicines_tmp,tab13_female_mean.my[i]))
+    }
+    saveRDS(tab13.f_mean.my,paste0(medicines_tmp,"tab13.f_mean.my.rds"))
+    rm(tab13_female_mean.my,tab13.f_mean.my)
+    #output: tab13.f_mean.my
+    
     #########
     #total
     #########
@@ -1977,6 +2283,19 @@ if(length(actual_tables$MEDICINES)>0){
     saveRDS(tab13.f_median.t,paste0(medicines_tmp,"tab13.f_median.t.rds"))
     rm(tab13_female_median.t,tab13.f_median.t)
     #output: tab13.f_median.t
+    
+    #mean
+    tab13_female_mean.t<-list.files(medicines_tmp,pattern="tab13_f_mean_7.t")
+    #load all files and rbind together
+    tab13.f_mean.t<-lapply(paste0(medicines_tmp,tab13_female_mean.t), readRDS)
+    tab13.f_mean.t<-do.call(rbind,tab13.f_mean.t)
+    for(i in 1:length(tab13_female_mean.t)){
+      unlink(paste0(medicines_tmp,tab13_female_mean.t[i]))
+    }
+    saveRDS(tab13.f_mean.t,paste0(medicines_tmp,"tab13.f_mean.t.rds"))
+    rm(tab13_female_mean.t,tab13.f_mean.t)
+    #output: tab13.f_mean.t
+    
   }
   ########
   #Info input
@@ -2060,9 +2379,14 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.med.f<-rbind(readRDS(paste0(medicines_tmp,"tab13.f_median.my.rds")),readRDS(paste0(medicines_tmp,"tab13.f_median.t.rds")))
     unlink(paste0(medicines_tmp,"tab13.f_median.my.rds"))
     unlink(paste0(medicines_tmp,"tab13.f_median.t.rds"))
+    tab13.mean.f<-rbind(readRDS(paste0(medicines_tmp,"tab13.f_mean.my.rds")),readRDS(paste0(medicines_tmp,"tab13.f_mean.t.rds")))
+    unlink(paste0(medicines_tmp,"tab13.f_mean.my.rds"))
+    unlink(paste0(medicines_tmp,"tab13.f_mean.t.rds"))
     #tab13: combined no_female_users(by meaning and year) no_female_users(total)
     #tab13.med.f combined median_rx_female_users(by_meaning and year) median_rx_female_users(total)
-  }
+    #tab13.mean.f combined mean_rx_female_users(by_meaning and year) mean_rx_female_users(total)
+    
+    }
   
   if(male_population>0){
     tab13.males<-rbind(readRDS(paste0(medicines_tmp,"tab13.m_users.my.rds")),readRDS(paste0(medicines_tmp,"tab13.m_users.t.rds")))
@@ -2071,9 +2395,13 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.med.m<-rbind(readRDS(paste0(medicines_tmp,"tab13.m_median.my.rds")),readRDS(paste0(medicines_tmp,"tab13.m_median.t.rds")))
     unlink(paste0(medicines_tmp,"tab13.m_median.my.rds"))
     unlink(paste0(medicines_tmp,"tab13.m_median.t.rds"))
+    tab13.mean.m<-rbind(readRDS(paste0(medicines_tmp,"tab13.m_mean.my.rds")),readRDS(paste0(medicines_tmp,"tab13.m_mean.t.rds")))
+    unlink(paste0(medicines_tmp,"tab13.m_mean.my.rds"))
+    unlink(paste0(medicines_tmp,"tab13.m_mean.t.rds"))
     #tab13.males: combined no_male_users(by meaning and year) no_male_users(total)
     #tab13.med.m combined median_rx_male_users(by_meaning and year) median_rx_male_users(total)
-  }
+    #tab13.mean.m combined mean_rx_male_users(by_meaning and year) mean_rx_male_users(total)
+     }
   
   #combine no_records(by meaning and year) with no_records(total)
   tab13.tot_rec.my<-rbind(tab13.tot_rec.my,tab13.tot_rec.t)
@@ -2105,11 +2433,19 @@ if(length(actual_tables$MEDICINES)>0){
     tab13<-merge(tab13,tab13.med.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.med.m)
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.mean.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13<-merge(tab13,tab13.mean.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
+    rm(tab13.mean.m)
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7","atc_code_3"), all=T)
     rm(tab13.med.f)
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.mean.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13<-merge(tab13,tab13.mean.f, by=c("meaning", "year", "atc_code_7","atc_code_3"), all=T)
+    rm(tab13.mean.f)
     tab13[is.na(median_rx_female_users),median_rx_female_users:=0][is.na(median_rx_male_users),median_rx_male_users:=0]
-    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
+    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_male_users","median_rx_male_users","mean_rx_male_users","no_female_users","median_rx_female_users","mean_rx_female_users"))
     setorderv(tab13,c("meaning","year","atc_code_7","atc_code_3"))
   }
   if(male_population==0 & female_population>0){
@@ -2122,9 +2458,13 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(med.f)
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.mean.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13<-merge(tab13,tab13.mean.f, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
+    rm(tab13.mean.f)
     tab13[is.na(median_rx_female_users),median_rx_female_users:=0]
     tab13[,no_male_users:=0][,median_rx_male_users:=0]
-    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
+    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_male_users","median_rx_male_users","mean_rx_male_users", "no_female_users","median_rx_female_users", "mean_rx_female_users"))
     setorderv(tab13,c("meaning","year","atc_code_7","atc_code_3"))
   }
   if(male_population>0 & female_population==0){
@@ -2138,9 +2478,13 @@ if(length(actual_tables$MEDICINES)>0){
     tab13.med.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(tab13.med.m)
+    tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13.mean.m[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab13<-merge(tab13,tab13.mean.m, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
+    rm(tab13.mean.m)
     tab13[is.na(median_rx_male_users),median_rx_male_users:=0]
     tab13[,no_female_users:=0][,median_rx_female_users:=0]
-    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3", "no_records","no_male_users","median_rx_male_users","no_female_users","median_rx_female_users"))
+    setcolorder(tab13,c("meaning","year", "atc_code_7", "atc_code_3", "no_records","no_male_users","median_rx_male_users","mean_rx_male_users", "no_female_users","median_rx_female_users", "mean_rx_female_users"))
     setorderv(tab13,c("meaning","year","atc_code_7","atc_code_3"))
   }
   
@@ -2168,7 +2512,7 @@ if(length(actual_tables$MEDICINES)>0){
       fwrite(tab13, paste0(med_dir,"Masked/", "medicines_my_atc_7_masked.csv"), row.names = F)
     }
   }
-  
+  rm(tab13)
   #########################################
   #Table 14:Number of prescriptions/dispensings by ATC 3 & 7 level in the study population by year of dispensing/prescribing and by meaning for each ATC class
   #########################################
@@ -2223,6 +2567,16 @@ if(length(actual_tables$MEDICINES)>0){
     rm(tab14_female_median.my,tab14.f_median_my)
     #output: tab14.f_median_my
     
+    #mean female users
+    tab14_female_mean.my<-list.files(medicines_tmp,pattern="tab14_f_mean_7.my")
+    tab14.f_mean_my<-lapply(paste0(medicines_tmp,tab14_female_mean.my), readRDS)
+    tab14.f_mean_my<-do.call(rbind,tab14.f_mean_my)
+    for(i in 1:length(tab14_female_mean.my)){
+      unlink(paste0(medicines_tmp,tab14_female_mean.my[i]))
+    }
+    saveRDS(tab14.f_mean_my,paste0(medicines_tmp,"tab14.f_mean_my.rds"))
+    rm(tab14_female_mean.my,tab14.f_mean_my)
+    #output: tab14.f_mean_my
     
     #########
     #total
@@ -2262,6 +2616,17 @@ if(length(actual_tables$MEDICINES)>0){
     rm(tab14_female_median.t,tab14.f_median_t)
     #output: tab14.f_median_t
     
+    #mean
+    tab14_female_mean.t<-list.files(medicines_tmp,pattern="tab14_f_mean_7.t")
+    #load all files and rbind together
+    tab14.f_mean_t<-lapply(paste0(medicines_tmp,tab14_female_mean.t), readRDS)
+    tab14.f_mean_t<-do.call(rbind,tab14.f_mean_t)
+    for(i in 1:length(tab14_female_mean.t)){
+      unlink(paste0(medicines_tmp,tab14_female_mean.t[i]))
+    }
+    saveRDS(tab14.f_mean_t,paste0(medicines_tmp,"tab14.f_mean_t.rds"))
+    rm(tab14_female_mean.t,tab14.f_mean_t)
+    #output: tab14.f_mean_t
     
     ########
     #Info input
@@ -2286,6 +2651,10 @@ if(length(actual_tables$MEDICINES)>0){
     median[,year:=as.character(year)]
     unlink(paste0(medicines_tmp,"tab14.f_median_my.rds"))
     unlink(paste0(medicines_tmp,"tab14.f_median_t.rds"))
+    mean<-rbind(readRDS(paste0(medicines_tmp,"tab14.f_mean_my.rds")),readRDS(paste0(medicines_tmp,"tab14.f_mean_t.rds")))
+    mean[,year:=as.character(year)]
+    unlink(paste0(medicines_tmp,"tab14.f_mean_my.rds"))
+    unlink(paste0(medicines_tmp,"tab14.f_mean_t.rds"))
     tab14[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     users[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab14<-merge(tab14,users, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
@@ -2294,7 +2663,11 @@ if(length(actual_tables$MEDICINES)>0){
     median[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab14<-merge(tab14,median, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
     rm(median)
-    setcolorder(tab14,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_female_users","median_rx_female_users"))
+    tab14[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    mean[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
+    tab14<-merge(tab14,mean, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
+    rm(mean)
+    setcolorder(tab14,c("meaning","year", "atc_code_7", "atc_code_3","no_records","no_female_users","median_rx_female_users","mean_rx_female_users"))
     setorderv(tab14,c("meaning","year","atc_code_7","atc_code_3"))
     
     #######
@@ -2324,12 +2697,21 @@ if(length(actual_tables$MEDICINES)>0){
     }
   }
   
-  rm(tab13.tot_rec.t,tot_rec.t, empty_atc_code_m, empty_atc_code_m_f, empty_atc_code_m_y, empty_atc_code_m_y_f,
+  rm(Res.1_total,Res.2_total)
+  rm(comb_tab10,comb_tab11)
+  rm(tab13.tot_rec.t, tab13.tot_rec_f.t, tab13.tot_rec_m.t)
+  rm(tab14)
+  rm(tot_rec.t)
+  rm(empty_atc_code_m, empty_atc_code_m_f, empty_atc_code_m_y, empty_atc_code_m_y_f,
      meaning_info, med_study_population_f, med_study_population_meaning, med_study_population_meaning_f, med_study_population_meaning_info, presc_info,
-     presc_unit_info, prescriber_info, years_this_table, colnames)
+     presc_unit_info, prescriber_info, years_this_table, disp_info, indication_info)
   ########################################################################################################
   #Rates in females of childbearing age by year and atc/ by year, atc and age band
   #######################################################################################################
+  #calculate counts and person time for all females irrespective of age at start follow up
+  #keep only data from 12 years old onwards
+  #if a female is included in the data base from 0 years old she will not contribute to the person time from 0 t0 11 years old
+  
   print("Calculating rates of medicine use.")
   if(subpopulations_present=="Yes"){
     medicines_files<-list.files(paste0(medicines_pop, subpopulations_names[s]), pattern = "f_population")
@@ -2371,8 +2753,6 @@ if(length(actual_tables$MEDICINES)>0){
         medicines<-lapply(paste0(medicines_pop, medicines_files[[med_files]]), readRDS)
       }
       medicines<-do.call(rbind,medicines)
-      #select only female 12-55 years old
-      medicines<-medicines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg]
       #create char: number of characters for medicinal_product_atc_code
       medicines[,char:=nchar(medicinal_product_atc_code)]
       #remove rows where atc code<3 characters
@@ -2401,10 +2781,13 @@ if(length(actual_tables$MEDICINES)>0){
                                  Name_event = "truncated_atc_code",
                                  Date_event = "medicines_date",
                                  Rec_period = rep(0, length(outcomes_list)),
-                                 Age_bands = c(12,19,29,39,49),
+                                 Age_bands = c(0,11,19,29,39,49,55),
                                  print = F, 
                                  check_overlap = F) #results will be used only for counts
         rm(medicines)  
+        #remove all data before 12 years old or after 55 years old
+        output<-output[Ageband != paste0("0-", min_age_preg-1)]
+        output<-output[Ageband != paste0(max_age_preg+1,"+")]
         
         #from wide to long(remove all person time)
         output[,colnames(output)[str_detect(colnames(output), "^Persontime")]]<-NULL
@@ -2436,8 +2819,6 @@ if(length(actual_tables$MEDICINES)>0){
       }
       medicines<-do.call(rbind,medicines)
       medicines<-medicines[!duplicated(person_id)]
-      #select only female 12-55 years old
-      medicines<-medicines[age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg]
       #create char: number of characters for medicinal_product_atc_code
       medicines[,char:=nchar(medicinal_product_atc_code)]
       #remove rows where atc code<3 characters
@@ -2459,9 +2840,12 @@ if(length(actual_tables$MEDICINES)>0){
                                  Unit_of_age = "year",
                                  include_remaning_ages = TRUE,
                                  Aggregate = F,
-                                 Age_bands = c(12,19,29,39,49),
+                                 Age_bands = c(0,11,19,29,39,49,55),
                                  print = F, 
                                  check_overlap = F)
+        #remove all data before 12 years old or after 55
+        output<-output[Ageband != paste0("0-", min_age_preg-1)]
+        output<-output[Ageband != paste0(max_age_preg+1,"+")]
         #trasform from days into person-years
         output<-output[,Persontime:=round(Persontime/365.25,3)]
         no_subjects<-output[,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year","Ageband"), .SDcols="person_id"]
@@ -2477,6 +2861,46 @@ if(length(actual_tables$MEDICINES)>0){
         rm(output,no_subjects_agg,no_subjects)
       }
     }
+  }
+  
+  ####################################
+  #Calculate person time for all subjects that never had a prescription(are part of study population but not the medicicines_study_population)
+  ####################################
+  med_no_rx_files<-list.files(medicines_tmp, "med_id_no_rx.rds")
+  if(length(med_no_rx_files)>0){
+    pers_not_med<-readRDS(paste0(medicines_tmp,"med_id_no_rx.rds"))
+    
+    output<-CountPersonTime2(Dataset = unique(pers_not_med[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
+                             Person_id = "person_id",
+                             Start_study_time =start_study_date2,
+                             End_study_time = end_study_date2,
+                             Start_date = "start_follow_up",
+                             End_date = "end_follow_up",
+                             Birth_date = "birth_date",
+                             Increment = "year",
+                             Unit_of_age = "year",
+                             include_remaning_ages = TRUE,
+                             Aggregate = F,
+                             Age_bands = c(0,11,19,29,39,49,55),
+                             print = F, 
+                             check_overlap = F)
+    #remove all data before 12 years old or after 55
+    output<-output[Ageband != paste0("0-", min_age_preg-1)]
+    output<-output[Ageband != paste0(max_age_preg+1,"+")]
+    
+    #trasform from days into person-years
+    output<-output[,Persontime:=round(Persontime/365.25,3)]
+    no_subjects<-output[,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year","Ageband"), .SDcols="person_id"]
+    no_subjects_agg<-output[,lapply(.SD, function(x) length(unique(na.omit(x)))), by=c("year"), .SDcols="person_id"]
+    output<-output[,lapply(.SD, sum), by=c("year","Ageband"), .SDcols="Persontime"]
+    #results will be used only for py
+    rm(pers_not_med)  
+    saveRDS(output, paste0(medicines_tmp, "no_id_rates_py.rds"))
+    saveRDS(no_subjects_agg, paste0(medicines_tmp, "no_id_subjects_agg.rds"))
+    saveRDS(no_subjects, paste0(medicines_tmp, "no_id_subjects.rds"))
+    
+    rm(output,no_subjects_agg,no_subjects)
+    
   }
   
   #####################################
