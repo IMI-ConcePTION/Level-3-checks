@@ -6,6 +6,7 @@
 ##############################################################################################
 source(paste0(pre_dir, "DAP_info.R"))
 source(paste0(pre_dir, "info.R"))
+source(paste0(pre_dir,"date_parameters.R"))
 ###############################################################################################
 
 #functions
@@ -137,7 +138,7 @@ if (subpopulations_present=="Yes"){
     #MEANINGS TO BE EXCLUDED
     meanings_exclude_vx<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="VACCINES" & other==subpopulations_names[s],values], pattern = " "))
     
-    source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_2.R"))
+    source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_25012022.R"))
     
     #clean vaccines_tmp
     for(i in 1:length(list.files(vaccines_tmp))){
@@ -153,7 +154,7 @@ if (subpopulations_present=="Yes"){
   #MEANINGS TO BE EXCLUDED
   meanings_exclude_vx<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="VACCINES",values], pattern = " "))
   
-  source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_2.R"))
+  source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_25012022.R"))
  
   do.call(file.remove, list(list.files(vaccines_tmp, full.names = T)))
   
