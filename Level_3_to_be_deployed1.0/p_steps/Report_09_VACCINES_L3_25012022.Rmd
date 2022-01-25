@@ -935,46 +935,6 @@ htmltools::tagList(list(fig.tab16_subjects))
 
 <div class = 'box7'>
 
-## 6. Data completeness
-
-#### Number of records with incomplete data
-
-```{r completeness, echo=F}
-if (subpopulations_present=="No"){
-  if(sum(grepl(list.files(paste0(vacc_dir,"Masked/")), pattern="vaccines_completeness_masked.csv"))>0){
-tab15<-fread(paste0(vacc_dir,"Masked/", "vaccines_completeness_masked.csv"))
-if (tab15[,.N]>0){
-datatable(tab15, options = list(scrollX=T))
-} else {
-  tab15<-NULL
-    print("This table cannot be produced based on the available data.")
-}
-  } else {
-    tab15<-NULL
-    print("This table cannot be produced based on the available data.")
-}
-} else {
-    if(sum(grepl(list.files(paste0(vacc_dir,subpopulations_names[a], "/Masked/")), pattern="vaccines_completeness_masked.csv"))>0){
-  tab15<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_completeness_masked.csv"))
-  if (tab15[,.N]>0){
-datatable(tab15, options = list(scrollX=T))
-  } else {
-    tab15<-NULL
-      print("This table cannot be produced based on the available data.")
-  }
-    } else {
-      tab15<-NULL
-    print("This table cannot be produced based on the available data.")
-    }
-}
-```
-
-</div>
-
-<br>
-
-<div class = 'box8'>
-
 ## 7. Calculations
 
 
