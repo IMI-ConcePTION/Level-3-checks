@@ -6,6 +6,7 @@
 ##############################################################################################
 source(paste0(pre_dir, "DAP_info.R"))
 source(paste0(pre_dir, "info.R"))
+source(paste0(pre_dir,"date_parameters.R"))
 ###############################################################################################
 #functions
 #calculate the number of records for desired atc level by meaning and year
@@ -169,6 +170,7 @@ unlink(paste0(tmp,"MEDICINES"), recursive = T)
 
 keep_environment<-c("StudyName", "data_access_provider_name", "data_source_name", "subpopulations_names", "subpopulations_present", "subpopulations","SUBP",
                     "Age_max","Age_min", "min_age_preg","max_age_preg",
+                    "start_study_date","end_study_date", "lookback_period", "intv","recommended_end_date", "date_creation","start_study_date2","end_study_date2",
                     "METADATA_subp", "actual_tables", "tmp", "s", "meanings_birth_registry","CountPersonTime2",
                     "diagnoses","pregnancies","diagnoses_pregnancy_med_vacc","diagnoses_pregnancy_med","diagnoses_pregnancy_vacc","pregnancy_only_med_vacc","pregnancy_only_med","pregnancy_only_vacc",
                     "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","path_output",
