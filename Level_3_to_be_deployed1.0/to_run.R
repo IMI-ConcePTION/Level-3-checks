@@ -147,13 +147,13 @@ Rmd_MEDICINES<-paste0(pre_dir,"/Report_08_MEDICINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_08_00_MEDICINES_L3.R")))
 
 if(length(actual_tables$MEDICINES)>0){
-if(subpopulations_present=="No"){
-  system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_L3.html")) 
-} else {
-  for (a in 1: length(subpopulations_names)){
-    system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_L3.html")))  
+  if(subpopulations_present=="No"){
+    system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_L3.html")) 
+  } else {
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_L3.html")))  
+    }
   }
-}
 }
 source(paste0(pre_dir,"save_environment.R"))
 ##################################################
@@ -167,17 +167,17 @@ projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
+Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3_25012022.Rmd")
 system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
 
 if(length(actual_tables$VACCINES)>0){
-if(subpopulations_present=="No"){
-  system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_L3.html")) 
-} else {
-  for (a in 1: length(subpopulations_names)){
-    system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_L3.html")))  
+  if(subpopulations_present=="No"){
+    system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_L3.html")) 
+  } else {
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_L3.html")))  
+    }
   }
-}
 }
 source(paste0(pre_dir,"save_environment.R"))
 #################################################
@@ -195,13 +195,13 @@ Rmd_DIAGNOSES<-paste0(pre_dir,"/DIAGNOSES_L3.Rmd")
 system.time(source(paste0(pre_dir,"DIAGNOSES_L3.R")))
 
 if(sum(length(actual_tables$EVENTS),length(actual_tables$MEDICAL_OBSERVATIONS),length(actual_tables$SURVEY_OBSERVATIONS))>0){
-if(subpopulations_present=="No"){
-system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), output_file = "DIAGNOSES_L3.html")) 
-} else {
-  for (a in 1: length(subpopulations_names)){
-    system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), output_file = paste0(subpopulations_names[a],"_DIAGNOSES_L3.html")))  
+  if(subpopulations_present=="No"){
+    system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), output_file = "DIAGNOSES_L3.html")) 
+  } else {
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(Rmd_DIAGNOSES, output_dir = paste0(output_dir,"DIAGNOSES/"), output_file = paste0(subpopulations_names[a],"_DIAGNOSES_L3.html")))  
+    }
   }
-}
 }
 source(paste0(pre_dir,"save_environment.R"))
 #################################################
@@ -219,13 +219,13 @@ Rmd_PREGNANCY<-paste0(pre_dir,"/PREGNANCY_L3.Rmd")
 source(paste0(pre_dir,"PREGNANCY_L3.R"))
 
 if(sum(length(actual_tables$EVENTS),length(actual_tables$MEDICAL_OBSERVATIONS),length(actual_tables$SURVEY_OBSERVATIONS), length(actual_tables$SURVEY_ID))>0){
-if(subpopulations_present=="No"){
-  system.time(render(Rmd_PREGNANCY, output_dir = paste0(output_dir,"PREGNANCY/"), output_file = "PREGNANCY_L3.html")) 
-} else {
-  for (a in 1: length(subpopulations_names)){
-    system.time(render(Rmd_PREGNANCY, output_dir = paste0(output_dir,"PREGNANCY/"), output_file = paste0(subpopulations_names[a],"_PREGNANCY_L3.html")))  
+  if(subpopulations_present=="No"){
+    system.time(render(Rmd_PREGNANCY, output_dir = paste0(output_dir,"PREGNANCY/"), output_file = "PREGNANCY_L3.html")) 
+  } else {
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(Rmd_PREGNANCY, output_dir = paste0(output_dir,"PREGNANCY/"), output_file = paste0(subpopulations_names[a],"_PREGNANCY_L3.html")))  
+    }
   }
-}
 }
 source(paste0(pre_dir,"save_environment.R"))
 #################################################
