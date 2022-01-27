@@ -277,7 +277,7 @@ if(length(actual_tables$VACCINES)>0){
     while(i <= length(id_vx_files)){
       a<-readRDS(paste0(vaccines_tmp, id_vx_files[i]))
       vx_id<-rbind(vx_id, a)
-      vx_id<-vx_id[!duplicated(person_id)]
+      vx_id<-vx_id[duplicated(person_id)]
       i<-i+1
       rm(a)
     }
