@@ -296,7 +296,7 @@ if(length(actual_tables$MEDICINES)>0){
   }
   
   #################################################################################################
-  #save all ids part of the medicines_study_population(added 23 January 2022)
+  #save all ids part of the medicines_study_population
   #################################################################################################  
   #number of subjects in the study population that do not have a prescription/dispensing
   id_med_files<-list.files(medicines_tmp, pattern = "med_id_stdpop")
@@ -306,7 +306,7 @@ if(length(actual_tables$MEDICINES)>0){
     while(i <= length(id_med_files)){
       a<-readRDS(paste0(medicines_tmp, id_med_files[i]))
       med_id<-rbind(med_id, a)
-      med_id<-med_id[!duplicated(person_id)]
+      med_id<-med_id[duplicated(person_id)]
       i<-i+1
       rm(a)
     }
@@ -2457,7 +2457,7 @@ if(length(actual_tables$MEDICINES)>0){
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.med.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.med.f, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
-    rm(med.f)
+    rm(tab13.med.f)
     tab13[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13.mean.f[,meaning:=as.character(meaning)][,year:=as.character(year)][,atc_code_7:=as.character(atc_code_7)][,atc_code_3:=as.character(atc_code_3)]
     tab13<-merge(tab13,tab13.mean.f, by=c("meaning", "year", "atc_code_7", "atc_code_3"), all=T)
@@ -2869,6 +2869,8 @@ if(length(actual_tables$MEDICINES)>0){
   med_no_rx_files<-list.files(medicines_tmp, "med_id_no_rx.rds")
   if(length(med_no_rx_files)>0){
     pers_not_med<-readRDS(paste0(medicines_tmp,"med_id_no_rx.rds"))
+    #select only females
+    pers_not_med<-pers_not_med[sex_at_instance_creation=="F"]
     
     output<-CountPersonTime2(Dataset = unique(pers_not_med[,.(person_id, birth_date, start_follow_up,end_follow_up)]),
                              Person_id = "person_id",
