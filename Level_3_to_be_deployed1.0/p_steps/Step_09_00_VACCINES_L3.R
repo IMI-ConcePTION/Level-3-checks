@@ -134,11 +134,12 @@ if (subpopulations_present=="Yes"){
     study_sub_population<-study_population_dir[grepl(study_population_dir, pattern=paste0(subpopulations_names[s],"_study_population"), fixed=T)]
     study_sub_population<-study_sub_population[grepl(study_sub_population, pattern=paste0("^", subpopulations_names[s]))]
     study_population<-readRDS(paste0(g_intermediate, "populations/", study_sub_population))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
+    study_population<-study_population[,person_id:=as.character(person_id)]
     nr_std<-study_population[,.N]
     #MEANINGS TO BE EXCLUDED
     meanings_exclude_vx<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="VACCINES" & other==subpopulations_names[s],values], pattern = " "))
     
-    source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_25012022.R"))
+    source(paste0(pre_dir, "Step_09_01_VACCINES_pre_script_08022022.R"))
     
     #clean vaccines_tmp
     for(i in 1:length(list.files(vaccines_tmp))){
@@ -150,11 +151,12 @@ if (subpopulations_present=="Yes"){
 } else {
   study_population_dir<-study_population_dir[grepl(study_population_dir, pattern="ALL_study_population", fixed=T)]
   study_population<-readRDS(paste0(g_intermediate, "populations/", study_population_dir))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
+  study_population<-study_population[,person_id:=as.character(person_id)]
   nr_std<-study_population[,.N]
   #MEANINGS TO BE EXCLUDED
   meanings_exclude_vx<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="VACCINES",values], pattern = " "))
   
-  source(paste0(pre_dir, "Step_09_01_VACCINES_L3_pre_script_25012022.R"))
+  source(paste0(pre_dir, "Step_09_01_VACCINES_pre_script_08022022.R"))
  
   do.call(file.remove, list(list.files(vaccines_tmp, full.names = T)))
   
