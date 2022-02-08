@@ -2781,7 +2781,7 @@ if(length(actual_tables$MEDICINES)>0){
                                  Name_event = "truncated_atc_code",
                                  Date_event = "medicines_date",
                                  Rec_period = rep(0, length(outcomes_list)),
-                                 Age_bands = c(0,11,19,29,39,49,55),
+                                 Age_bands = agebands_rates,
                                  print = F, 
                                  check_overlap = F) #results will be used only for counts
         rm(medicines)  
@@ -2840,7 +2840,7 @@ if(length(actual_tables$MEDICINES)>0){
                                  Unit_of_age = "year",
                                  include_remaning_ages = TRUE,
                                  Aggregate = F,
-                                 Age_bands = c(0,11,19,29,39,49,55),
+                                 Age_bands = agebands_rates,
                                  print = F, 
                                  check_overlap = F)
         #remove all data before 12 years old or after 55
@@ -2883,7 +2883,7 @@ if(length(actual_tables$MEDICINES)>0){
                              Unit_of_age = "year",
                              include_remaning_ages = TRUE,
                              Aggregate = F,
-                             Age_bands = c(0,11,19,29,39,49,55),
+                             Age_bands = agebands_rates,
                              print = F, 
                              check_overlap = F)
     #remove all data before 12 years old or after 55
