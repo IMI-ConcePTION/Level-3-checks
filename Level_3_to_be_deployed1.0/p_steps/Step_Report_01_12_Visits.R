@@ -48,7 +48,7 @@ if(!SUBP){
                             
                             file_in = paste0(subpopulations,"_study_population.rds"), 
                             file_in2 = "VISITS.rds",
-                            file_in3 = "_PersonTime1.rds",
+                            file_in3 = paste0(subpopulations,"_PersonTime1.rds"),
                             file_out = paste0(subpopulations,"_R_01_12_VISITS.csv"), 
                             folder_in = populations_dir,
                             folder_in2 = std_pop_tmp, 
