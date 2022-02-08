@@ -5,10 +5,36 @@
 
 `%!in%` = Negate(`%in%`)
 #load codelist
-codelist<-fread(paste0(pre_dir,"Data_characterisation_EVENTS_codelist.csv"))
+if(!is.null(study_name_codelist)){
+  codelist_directory<-list.files(pre_dir,paste0("^", study_name_codelist))
+  codelist<-fread(paste0(pre_dir,codelist_directory))
+  names(codelist)<-c("Condition","Coding system", "Code", "Code name", "Concept", "Concept name","Tags","System", "Event abreviation", "Type", "Code range")
+  codelist<-codelist[,c("Condition","Coding system", "Code", "Code name", "Concept", "Concept name","Tags", "Code range")]
+  codelist[,Condition:=gsub("-","_",Condition)]
+} else {
+  codelist<-fread(paste0(pre_dir,"Data_characterisation_EVENTS_codelist.csv"))
+}
 #select only necessary columns
 codelist<-codelist[,c("Condition", "Coding system", "Code")]
 setnames(codelist,"Coding system", "Coding_system")
+
+#select only necessary columns
+codelist<-codelist[,c("Condition", "Coding system", "Code")]
+setnames(codelist,"Coding system", "Coding_system")
+
+conditions_vocabularies<-codelist[!duplicated(Coding_system),Coding_system]
+conditions_to_start_with<-c(conditions_vocabularies[str_detect(conditions_vocabularies, "^ICD")], 
+                            conditions_vocabularies[str_detect(conditions_vocabularies, "^ICPC")], 
+                            conditions_vocabularies[str_detect(conditions_vocabularies, "^MTHICD")])
+conditions_rcd<-conditions_vocabularies[str_detect(conditions_vocabularies, "^RCD")]
+conditions_snomed_codes<-conditions_vocabularies[str_detect(conditions_vocabularies, "^SNOMED")]
+
+#remove dots for read codes
+codelist<-codelist[Coding_system %in% conditions_rcd, Code:=str_replace_all(Code,"[.]","")]
+while (codelist[Coding_system %in% conditions_rcd & str_detect(Code,"[.]"),.N]>0){
+  codelist<-codelist[Coding_system %in% conditions_rcd, Code:=str_replace_all(Code,"[.]","")]
+}
+
 #Create variable dot_present
 codelist[,dot_present:=str_detect(codelist[,Code],"\\.")]
 #Create variable code_no_dot by removing dot from all codes
@@ -35,9 +61,8 @@ conditions<-lapply(conditions, function(x) Filter(length, x))
 #Coding system: ICD9, ICD9CM, ICD10, ICD10CM, ICPC
 #################################################################################################################
 #vocabularies that will be filtered with start with
-conditions_start<-list()
 for(i in 1:length(conditions)){
-  conditions_start[[i]]<-conditions[[i]][names(conditions[[i]])%!in% c("SNOMEDCT_US","RCD2")]
+  conditions_start[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_to_start_with]
 }
 
 names(conditions_start)<-names(conditions)
@@ -45,24 +70,22 @@ names(conditions_start)<-names(conditions)
 for(i in 1:length(conditions_start)){
   lapply(conditions_start[[i]], function(x) x[names(x) %in% c("Code")])
 }
+conditions_start<-lapply(conditions_start, function(x) Filter(length, x))
+conditions_start<-Filter(function(k) length(k)>0, conditions_start)
 
 ################################################################################################################
 #Rule:Remove dot, start with
 #Coding system: Read codes v2
 ###############################################################################################################
-conditions_read<-vector(mode="list", length=length(unique(na.omit(codelist[,Condition]))))
-names(conditions_read)<-unique(na.omit(codelist[,Condition]))
+conditions_read<-list()
 
-for (i in 1:length(conditions_read)){
-  vocabularies_RCD<-vector(mode="list", length=1)
-  names(vocabularies_RCD)<-"RCD2"
-    vocabularies_RCD$RCD2<-codelist[Condition==names(conditions_read)[i] & Coding_system==names(vocabularies_RCD), code_no_dot]
-  conditions_read[[i]]<-list.append(conditions_read[[i]],vocabularies_RCD)
-  rm(vocabularies_RCD)
+for(i in 1:length(conditions)){
+  conditions_read[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_rcd]
 }
 
-#remove empty vocabularies
+names(conditions_read)<-names(conditions)
 conditions_read<-lapply(conditions_read, function(x) Filter(length, x))
+conditions_read<-Filter(function(k) length(k)>0, conditions_read)
 ################################################################################################################
 #Rule: match exactly
 #Coding system: SNOMEDCT_US
@@ -70,9 +93,12 @@ conditions_read<-lapply(conditions_read, function(x) Filter(length, x))
 #SNOMED codes
 conditions_snomed<-list()
 for(i in 1:length(conditions)){
-  conditions_snomed[[i]]<-conditions[[i]][names(conditions[[i]])%in% c("SNOMEDCT_US")]
+  conditions_snomed[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_snomed_codes]
 }
 names(conditions_snomed)<-names(conditions)
+
+conditions_snomed<-lapply(conditions_snomed, function(x) Filter(length, x))
+conditions_snomed<-Filter(function(k) length(k)>0, conditions_snomed)
 ################################################################################################################
 #output folder for Info report in g_output
 if ("Info" %in% list.files(output_dir)){
@@ -98,11 +124,24 @@ rm(codelist)
 #########################################################################################
 #load codelist
 codelist_pregnancy<-fread(paste0(pre_dir,"Data_characterisation_pregnancy_matcho_algorithm.csv"))
+#remove "/" if present
+codelist_pregnancy[,vocabulary:=gsub("/","",vocabulary)]
 #Create variable dot_present
-codelist_pregnancy[,dot_present:=str_detect(codelist_pregnancy[,code],"\\.")]
-#Create variable code_no_dot by removing dot from all codes
-codelist_pregnancy[,code_no_dot:=gsub("\\.","",codelist_pregnancy[,code])]
+codelist_pregnancy[,dot_present:=str_detect(codelist_pregnancy[,code],"[.]")]
+
 vocabularies_list_pregnancy<-codelist_pregnancy[!duplicated(vocabulary), vocabulary]
+
+pregnancy_to_start_with<-c(vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^ICD")], 
+                           vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^ICPC")], 
+                           vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^MTHICD")])
+pregnancy_rcd<-vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^RCD")]
+pregnancy_snomed_codes<-vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^SNOMED")]
+
+#Create variable code_no_dot by removing dot from all codes
+codelist_pregnancy<-codelist_pregnancy[vocabulary %in% conditions_rcd, code:=str_replace_all(code,"[.]","")]
+while (codelist_pregnancy[vocabulary %in% conditions_rcd & str_detect(code,"[.]"),.N]>0){
+  codelist_pregnancy<-codelist_pregnancy[vocabulary %in% conditions_rcd, code:=str_replace_all(code,"[.]","")]
+}
 
 #put all information in a list
 stage_pregnancy<-vector(mode="list", length=length(unique(na.omit(codelist_pregnancy[,pregnancy_filter]))))
@@ -119,7 +158,7 @@ for (i in 1:length(stage_pregnancy)){
 
 #remove empty vocabularies
 stage_pregnancy<-lapply(stage_pregnancy, function(x) Filter(length, x))
-
+stage_pregnancy<-Filter(function(k) length(k)>0, stage_pregnancy)
 #################################################################################################################
 #Rule: start with
 #Coding system: ICD9CM, ICD10CM, ICPC2P
@@ -127,7 +166,7 @@ stage_pregnancy<-lapply(stage_pregnancy, function(x) Filter(length, x))
 #vocabularies that will be filtered with start with
 stage_pregnancy_start<-list()
 for(i in 1:length(stage_pregnancy)){
-  stage_pregnancy_start[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]])%!in% c("SNOMEDCT_US","RCD2","RCD")]
+  stage_pregnancy_start[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]]) %in% pregnancy_to_start_with]
 }
 
 names(stage_pregnancy_start)<-names(stage_pregnancy)
@@ -140,16 +179,14 @@ stage_pregnancy_start<-lapply(stage_pregnancy_start, function(x) Filter(length, 
 #Rule:Remove dot, start with
 #Coding system: RCD, RCD2
 ###############################################################################################################
-stage_pregnancy_read<-vector(mode="list", length=length(unique(na.omit(codelist_pregnancy[,pregnancy_filter]))))
-names(stage_pregnancy_read)<-unique(na.omit(codelist_pregnancy[,pregnancy_filter]))
+stage_pregnancy_read<-list()
+for(i in 1:length(stage_pregnancy)){
+  stage_pregnancy_read[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]]) %in% pregnancy_rcd]
+}
+names(stage_pregnancy_read)<-names(stage_pregnancy)
 
-for (i in 1:length(stage_pregnancy_read)){
-  vocabularies_pregnancy_RCD<-vector(mode="list", length=2)
-  vocabularies_pregnancy_RCD$RCD2<-codelist_pregnancy[pregnancy_filter==names(stage_pregnancy_read)[i] & vocabulary=="RCD2", code_no_dot]
-  vocabularies_pregnancy_RCD$RCD<-codelist_pregnancy[pregnancy_filter==names(stage_pregnancy_read)[i] & vocabulary=="RCD", code_no_dot]
-  
-  stage_pregnancy_read[[i]]<-list.append(stage_pregnancy_read[[i]],vocabularies_pregnancy_RCD)
-  rm(vocabularies_pregnancy_RCD)
+for(i in 1:length(stage_pregnancy_read)){
+  lapply(stage_pregnancy_read[[i]], function(x) x[names(x) %in% c("Code")])
 }
 stage_pregnancy_read<-lapply(stage_pregnancy_read, function(x) Filter(length, x))
 
@@ -160,13 +197,13 @@ stage_pregnancy_read<-lapply(stage_pregnancy_read, function(x) Filter(length, x)
 #SNOMED codes
 stage_pregnancy_snomed<-list()
 for(i in 1:length(stage_pregnancy)){
-  stage_pregnancy_snomed[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]])%in% c("SNOMEDCT_US")]
+  stage_pregnancy_snomed[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]]) %in% pregnancy_snomed_codes]
 }
 names(stage_pregnancy_snomed)<-names(stage_pregnancy)
 
 ################################################################################################################
 
-codelist_pregnancy[,dot_present:=NULL][,code_no_dot:=NULL][,code:=NULL]
+codelist_pregnancy[,dot_present:=NULL][,code:=NULL]
 setnames(codelist_pregnancy, "original_code", "code")
 
 write.csv(codelist_pregnancy, paste0(info_dir, "data_characterisation_codelist_pregnancy.csv"), row.names = F)
