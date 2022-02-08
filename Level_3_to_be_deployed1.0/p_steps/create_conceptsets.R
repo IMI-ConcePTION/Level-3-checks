@@ -18,10 +18,6 @@ if(!is.null(study_name_codelist)){
 codelist<-codelist[,c("Condition", "Coding system", "Code")]
 setnames(codelist,"Coding system", "Coding_system")
 
-#select only necessary columns
-codelist<-codelist[,c("Condition", "Coding system", "Code")]
-setnames(codelist,"Coding system", "Coding_system")
-
 conditions_vocabularies<-codelist[!duplicated(Coding_system),Coding_system]
 conditions_to_start_with<-c(conditions_vocabularies[str_detect(conditions_vocabularies, "^ICD")], 
                             conditions_vocabularies[str_detect(conditions_vocabularies, "^ICPC")], 
@@ -55,12 +51,14 @@ for (i in 1:length(conditions)){
 
 #remove empty vocabularies
 conditions<-lapply(conditions, function(x) Filter(length, x))
-
+conditions<-Filter(function(k) length(k)>0, conditions)
 #################################################################################################################
 #Rule: start with
 #Coding system: ICD9, ICD9CM, ICD10, ICD10CM, ICPC
 #################################################################################################################
 #vocabularies that will be filtered with start with
+#vocabularies that will be filtered with start with
+conditions_start<-list()
 for(i in 1:length(conditions)){
   conditions_start[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_to_start_with]
 }

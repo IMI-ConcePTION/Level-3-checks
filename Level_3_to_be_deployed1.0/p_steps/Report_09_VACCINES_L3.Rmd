@@ -18,6 +18,8 @@ div.box4 {border-style: solid; border-color: #f5f5f0; border-width: medium; bord
 div.box5 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 div.box6 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 div.box7 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box8 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box9 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
 
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {background-color: #76b82a; border-color: #76b82a}
 h1 {text-align: center; color: #3c7b8a}
@@ -62,7 +64,7 @@ In case there is an overlapping subpopulation only subjects in the overlap perio
 
 ## 1. Flowchart
 
-```{r echo=F}
+```{r flowchart, echo=F}
 if (subpopulations_present=="No"){
 flowchart<-fread(paste0(vacc_dir,"Masked/", "vaccines_flowchart_masked.csv"))
 datatable(flowchart, options = list(scrollX=T))
@@ -80,7 +82,7 @@ datatable(flowchart, options = list(scrollX=T))
 
 ## 2. Description of vaccines_study_population
 
-```{r echo=F}
+```{r description, echo=F}
 if (subpopulations_present=="No"){
 description<-fread(paste0(vacc_dir,"Masked/", "vaccines_description_masked.csv"))
 datatable(description, options = list(scrollX=T))
@@ -145,9 +147,12 @@ datatable(head(tab10,12000), options = list(scrollX=T))
 
 <br>
 
+All counts smaller than 5, are replaced with 3 for visualization purposes.   
+
+
 ```{r tab10_graph, echo=FALSE, warning=FALSE}
 if(!is.null(tab10)){
-tab10_graph<-tab10[count=="<5", count:= 0.9]
+tab10_graph<-tab10[count=="<5", count:= 3]
 tab10_graph<-tab10_graph[,count:=as.numeric(count)]
 tab10_graph<-tab10_graph[!is.na(atc_code_1) | atc_code_1!="All"]
 tab10_graph<-tab10_graph[,year:=as.factor(year)]
@@ -190,7 +195,7 @@ if (subpopulations_present=="No"){
   if(sum(grepl(list.files(paste0(vacc_dir,"Masked/")), pattern="vaccines_my_atc_4_masked.csv"))>0){
 tab12<-fread(paste0(vacc_dir,"Masked/", "vaccines_my_atc_4_masked.csv"))
 if(tab12[,.N]>0){
-setcolorder(tab12,c("atc_code_4", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3","atc_code_1", "data_access_provider", "data_source"))
+setcolorder(tab12,c("atc_code_4", "no_records", "no_male_users", "median_rx_male_users","mean_rx_male_users", "no_female_users", "median_rx_female_users","mean_rx_female_users", "meaning", "year", "atc_code_3","atc_code_1", "data_access_provider", "data_source"))
   if(tab12[,.N]>12000){
     print("If the table contanins more than 12000 records it can not be displayed in the report. For the complete table, go to g_output/VACCINES/vaccines_my_atc_4_masked.csv")
     datatable(head(tab12,12000), options = list(scrollX=T))
@@ -229,12 +234,16 @@ if(tab12[,.N]>12000){
 
 <br>
 
+All counts smaller than 5 are replaced with 3 for visualization purposes.   
+
+### Number of records
+
 ```{r tab12_records_graph, echo=FALSE, warning=FALSE}
 if(!is.null(tab12)){
-tab12_graph<-tab12[,.(meaning,year,atc_code_4,no_records,no_male_users, no_female_users, median_rx_male_users, median_rx_female_users)]
-tab12_graph<-tab12_graph[no_records=="<5",no_records:=0.9]
-tab12_graph<-tab12_graph[no_male_users=="<5",no_male_users:=0.9]
-tab12_graph<-tab12_graph[no_female_users=="<5",no_female_users:=0.9]
+tab12_graph<-tab12[,.(meaning,year,atc_code_4,no_records,no_male_users, no_female_users, median_rx_male_users, median_rx_female_users, mean_rx_male_users, mean_rx_female_users)]
+tab12_graph<-tab12_graph[no_records=="<5",no_records:=3]
+tab12_graph<-tab12_graph[no_male_users=="<5",no_male_users:=3]
+tab12_graph<-tab12_graph[no_female_users=="<5",no_female_users:=3]
 tab12_graph<-tab12_graph[,year:=as.factor(year)][,no_records:=as.numeric(no_records)][,no_male_users:=as.numeric(no_male_users)][,no_female_users:=as.numeric(no_female_users)]
 }
 
@@ -267,12 +276,14 @@ ggplotly(ggplot(tab12_graph[meaning!="All"], aes(x = year, y = no_records, group
 
 <br>
 
+### Number of users
 
 ```{r tab12_users_graph, echo=FALSE, warning=FALSE}
 if(!is.null(tab12_graph)){
 tab12_graph_users<-tab12_graph[meaning!="All",.(meaning,year,atc_code_4,no_male_users,no_female_users)]
 tab12_graph_users<-melt(tab12_graph_users, id.vars = c("meaning", "year","atc_code_4"), variable.name = "sex")
 setnames(tab12_graph_users, "value", "count")
+tab12_graph_users<-as.data.table(tab12_graph_users)
 tab12_graph_users<-tab12_graph_users[,count:=as.numeric(count)]
 tab12_graph_users<-tab12_graph_users[sex=="no_male_users", sex:="Male"][sex=="no_female_users", sex:="Female"]
 fig.tab12_users<-vector(mode="list", length=length(unique(tab12_graph_users[,meaning])))
@@ -316,12 +327,15 @@ htmltools::tagList(list(fig.tab12_users))
 
 <br>
 
+### Median number of administrations  
+
 ```{r tab12_median_graph, echo=FALSE, warning=FALSE}
 if(!is.null(tab12_graph)){
 tab12_graph_median<-tab12_graph[meaning!="All",.(meaning,year,atc_code_4,median_rx_male_users,median_rx_female_users)]
 tab12_graph_median[,meaning:=as.character(meaning)][,year:=as.character(year)][,median_rx_male_users:=as.numeric(median_rx_male_users)][,median_rx_female_users:=as.numeric(median_rx_female_users)]
 tab12_graph_median<-melt(tab12_graph_median, id.vars = c("meaning", "year","atc_code_4"), variable.name = "sex")
 setnames(tab12_graph_median, "value", "median_administrations")
+tab12_graph_median<-as.data.table(tab12_graph_median)
 tab12_graph_median<-tab12_graph_median[,median_administrations:=as.numeric(median_administrations)]
 tab12_graph_median<-tab12_graph_median[sex=="median_rx_male_users", sex:="Male"][sex=="median_rx_female_users", sex:="Female"]
 fig.tab12_median<-vector(mode="list", length=length(unique(tab12_graph_median[,meaning])))
@@ -329,7 +343,7 @@ for(i in 1:length(unique(tab12_graph_median[,meaning]))) {
 fig.tab12_median[[i]]<-ggplotly(ggplot(tab12_graph_median[meaning==unique(tab12_graph_median[,meaning])[i]], aes(x = year, y = median_administrations, group=atc_code_4)) +
                            geom_line(aes(color=atc_code_4)) +
                            geom_point(aes(color=atc_code_4)) + 
-                            facet_wrap(~ sex, ncol=2, scales = "fixed") +
+                             facet_wrap(~ sex, ncol=2, scales = "fixed") +
                                ggtitle(paste0("Median number of administrations by ATC code, year and sex, meaning:",unique(tab12_graph_median[,meaning])[i])) + 
                                xlab("Year") +
                                ylab("Count")+
@@ -365,6 +379,56 @@ htmltools::tagList(list(fig.tab12_median))
 
 <br>
 
+### Mean number of administrations
+
+```{r tab12_mean_graph, echo=FALSE, warning=FALSE}
+if(!is.null(tab12_graph)){
+tab12_graph_mean<-tab12_graph[meaning!="All",.(meaning,year,atc_code_4,mean_rx_male_users,mean_rx_female_users)]
+tab12_graph_mean<-melt(tab12_graph_mean, id.vars = c("meaning", "year","atc_code_4"), variable.name = "sex")
+setnames(tab12_graph_mean, "value", "mean_administrations")
+tab12_graph_mean<-tab12_graph_mean[,mean_administrations:=as.numeric(mean_administrations)]
+tab12_graph_mean<-tab12_graph_mean[sex=="mean_rx_male_users", sex:="Male"][sex=="mean_rx_female_users", sex:="Female"]
+fig.tab12_mean<-vector(mode="list", length=length(unique(tab12_graph_mean[,meaning])))
+for(i in 1:length(unique(tab12_graph_mean[,meaning]))) {
+fig.tab12_mean[[i]]<-ggplotly(ggplot(tab12_graph_mean[meaning==unique(tab12_graph_mean[,meaning])[i]], aes(x = year, y = mean_administrations, group=atc_code_4)) +
+                           geom_line(aes(color=atc_code_4)) +
+                           geom_point(aes(color=atc_code_4)) + 
+                            facet_wrap(~ sex, ncol=2, scales = "fixed") +
+                               ggtitle(paste0("Mean number of administrations by ATC code, year and sex, meaning:",unique(tab12_graph_mean[,meaning])[i])) + 
+                               xlab("Year") +
+                               ylab("Count")+
+                             theme_classic() +
+                             guides(shape = guide_legend(override.aes = list(size = 0.3))) +
+                               theme(text=element_text(size=10),
+                                 axis.text.x = element_text(angle = 90, hjust = 1),
+                                     axis.title.x = element_text(colour = "#76b82a"),
+                                     axis.title.y = element_text(colour = "#76b82a"),
+                                     plot.title = element_text(colour = "#76b82a"),
+                                     strip.text.y = element_text(angle = 0),
+                                     legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))) 
+                                     
+}
+
+#Move the x axis title down so it doesn't overlap with the labels
+for (i in 1: length(fig.tab12_mean)){
+fig.tab12_mean[[i]][['x']][['layout']][['annotations']][[1]][['y']] <--0.15
+}
+}
+
+
+```
+
+```{r display_tab12_mean_graph, echo=FALSE}
+if(!is.null(tab12_graph)){
+htmltools::tagList(list(fig.tab12_mean))
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+```
+
+<br>
+
 
 #### Number of records and users by ATC code, year and meaning
 
@@ -372,7 +436,7 @@ htmltools::tagList(list(fig.tab12_median))
 if (subpopulations_present=="No"){
   if(sum(grepl(list.files(paste0(vacc_dir,"Masked/")), pattern="vaccines_my_atc_7_masked.csv"))>0){
 tab13<-fread(paste0(vacc_dir,"Masked/", "vaccines_my_atc_7_masked.csv"))
-setcolorder(tab13,c("atc_code_7", "no_records", "no_male_users", "median_rx_male_users", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
+setcolorder(tab13,c("atc_code_7", "no_records", "no_male_users", "median_rx_male_users","mean_rx_male_users", "no_female_users", "median_rx_female_users","mean_rx_female_users", "meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
 
 if(tab13[,.N]>0){
   if(tab13[,.N]>12000){
@@ -467,7 +531,7 @@ if(tab11[,.N]>0){
 
 ```{r tab11_graph, echo=FALSE, warning=FALSE}
 if(!is.null(tab11)){
-tab11_graph<-tab11[count=="<5", count:= 0.9]
+tab11_graph<-tab11[count=="<5", count:= 3]
 tab11_graph<-tab11_graph[,count:=as.numeric(count)]
 tab11_graph<-tab11_graph[is.na(atc_code_1),atc_code_1:="All"]
 tab11_graph<-tab11_graph[,year:=as.factor(year)]
@@ -510,7 +574,7 @@ if (subpopulations_present=="No"){
   if(sum(grepl(list.files(paste0(vacc_dir,"Masked/")), pattern="vaccines_my_atc_7_f_masked.csv"))>0){
 tab14<-fread(paste0(vacc_dir,"Masked/", "vaccines_my_atc_7_f_masked.csv"))
 if (tab14[,.N]>0){
-  setcolorder(tab14,c("atc_code_7", "no_records", "no_female_users", "median_rx_female_users","meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
+  setcolorder(tab14,c("atc_code_7", "no_records", "no_female_users", "median_rx_female_users","mean_rx_female_users", "meaning", "year", "atc_code_3", "data_access_provider", "data_source"))
   if (tab14[,.N]>12000){
         print("If the table contanins more than 12000 records it can not be displayed in the report. For the complete table, go to g_output/VACCINES/_vaccines_my_atc_7_f_masked.csv")
    datatable(head(tab14,12000), options = list(scrollX=T)) 
@@ -560,7 +624,7 @@ datatable(tab14, options = list(scrollX=T))
 
 <br>
 
-When subjects are being followed(i.e. they contribute to the person time in a particular year) but do not have a dispensed/prescribed medicine, the truncated_atc_code variable will be set to N/A.
+When subjects are being followed(i.e. they contribute to the person time in a particular year) but do not have aN administred vaccine, the truncated_atc_code variable will be set to N/A.
 
 ```{r rates_year, echo=F}
 if (subpopulations_present=="No"){
@@ -705,7 +769,7 @@ ggplotly(ggplot(tab15_graph, aes(x = year, y = no_subjects, group=truncated_atc_
 
 <br>
 
-When subjects are being followed(i.e. they contribute to the person time in a particular year) but do not have a dispensed/prescribed medicine, the `truncated_atc_code` variable will be set to N/A.
+When subjects are being followed(i.e. they contribute to the person time in a particular year) but do not have an administred vaccine, the `truncated_atc_code` variable will be set to N/A.
 
 ```{r rates_year_age, echo=F}
 if (subpopulations_present=="No"){
@@ -727,7 +791,7 @@ datatable(tab16, options = list(scrollX=T))
     print("This table cannot be produced based on the available data.")
 }
 } else {
-    if(sum(grepl(list.files(paste0(vacc_dir,subpopulations_names[a], "/Masked/")), pattern="VACCINES_rates_by_year_age_atc_masked.csv"))>0){
+    if(sum(grepl(list.files(paste0(vacc_dir,subpopulations_names[a], "/Masked/")), pattern="vaccines_rates_by_year_age_atc_masked.csv"))>0){
   tab16<-fread(paste0(vacc_dir,subpopulations_names[a], "/Masked/", subpopulations_names[a],"_vaccines_rates_year_age_atc_masked.csv"))
   if (tab16[,.N]>0){
     if(tab16[,.N]>12000){
