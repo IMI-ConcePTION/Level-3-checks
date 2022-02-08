@@ -167,7 +167,7 @@ projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3_25012022.Rmd")
+Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
 
 if(length(actual_tables$VACCINES)>0){
@@ -190,9 +190,10 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+study_name_codelist<-NULL
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_DIAGNOSES<-paste0(pre_dir,"/DIAGNOSES_L3.Rmd")
-system.time(source(paste0(pre_dir,"DIAGNOSES_L3.R")))
+Rmd_DIAGNOSES<-paste0(pre_dir,"/Report_10_DIAGNOSES_L3.Rmd")
+system.time(source(paste0(pre_dir,"Step_10_00_DIAGNOSES_L3.R")))
 
 if(sum(length(actual_tables$EVENTS),length(actual_tables$MEDICAL_OBSERVATIONS),length(actual_tables$SURVEY_OBSERVATIONS))>0){
   if(subpopulations_present=="No"){
