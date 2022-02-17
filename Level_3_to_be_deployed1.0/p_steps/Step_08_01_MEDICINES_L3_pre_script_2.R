@@ -79,7 +79,7 @@ if(length(actual_tables$MEDICINES)>0){
   
   for (y in 1:length(actual_tables$MEDICINES)){
     #Load the table
-    df<-fread(paste(path_dir, actual_tables$MEDICINES[y], sep=""), stringsAsFactors = FALSE)
+    df<-fread(paste(path_dir, actual_tables$MEDICINES[y], sep=""), stringsAsFactors = FALSE, colClasses = "character")
     df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "disp_number_medicinal_product", "presc_quantity_per_day", "presc_quantity_unit", "indication_code", "indication_code_vocabulary", "meaning_of_drug_record", "prescriber_speciality", "prescriber_speciality_vocabulary")]
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] #make sure missing data is read appropriately
     setnames(df, "meaning_of_drug_record", "meaning")

@@ -66,7 +66,7 @@ if(length(actual_tables$VACCINES)>0){
   
   for (y in 1:length(actual_tables$VACCINES)){
     #Load the table
-    df<-fread(paste(path_dir, actual_tables$VACCINES[y], sep=""), stringsAsFactors = FALSE)
+    df<-fread(paste(path_dir, actual_tables$VACCINES[y], sep=""), stringsAsFactors = FALSE,, colClasses = "character")
     df<-df[,c("person_id", "vx_atc", "vx_admin_date", "vx_record_date","meaning_of_vx_record")]
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] #make sure missing data is read appropriately
     setnames(df, "meaning_of_vx_record", "meaning")
