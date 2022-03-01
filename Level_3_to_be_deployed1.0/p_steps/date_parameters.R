@@ -27,6 +27,13 @@ end_study_date <- min(end_study_date,date_creation,recommended_end_date,na.rm = 
 start_study_date2 <- paste0(year(start_study_date),sprintf("%02d",month(start_study_date)),sprintf("%02d",day(start_study_date)))
 end_study_date2 <- paste0(year(end_study_date),sprintf("%02d",month(end_study_date)),sprintf("%02d",day(end_study_date)))
 
+if(end_study_date < as.IDate(paste0(year(end_study_date),"1231"), "%Y%m%d")){
+  end_study_rates<-paste0(year(end_study_date)-1, "1231")
+} else {
+  end_study_rates<-end_study_date2 
+}
+
 ##########################################################
 
 agebands_rates<-c(0,11,19,29,39,49,55)
+agebands_rates_pregnancy<-c(12,29,39,49)
