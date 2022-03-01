@@ -23,6 +23,7 @@ conditions_to_start_with<-c(conditions_vocabularies[str_detect(conditions_vocabu
                             conditions_vocabularies[str_detect(conditions_vocabularies, "^MTHICD")])
 conditions_rcd<-conditions_vocabularies[str_detect(conditions_vocabularies, "^RCD")]
 conditions_snomed_codes<-conditions_vocabularies[str_detect(conditions_vocabularies, "^SNOMED")]
+conditions_other_codes<-conditions_vocabularies[!(conditions_vocabularies %in% c(conditions_to_start_with,conditions_rcd,conditions_snomed_codes))]
 
 #remove dots for read codes
 codelist<-codelist[coding_system %in% conditions_rcd, code:=str_replace_all(code,"[.]","")]
@@ -93,6 +94,19 @@ names(conditions_snomed)<-names(conditions)
 
 conditions_snomed<-lapply(conditions_snomed, function(x) Filter(length, x))
 conditions_snomed<-Filter(function(k) length(k)>0, conditions_snomed)
+################################################################################################################
+#Rule: match exactly
+#Coding system: other codes
+#################################################################################################################
+#SNOMED codes
+conditions_other<-list()
+for(i in 1:length(conditions)){
+  conditions_other[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_other_codes]
+}
+names(conditions_other)<-names(conditions)
+
+conditions_other<-lapply(conditions_other, function(x) Filter(length, x))
+conditions_other<-Filter(function(k) length(k)>0, conditions_other)
 ################################################################################################################
 #output folder for Info report in g_output
 if ("Info" %in% list.files(output_dir)){
