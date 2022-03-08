@@ -105,7 +105,7 @@ source(paste0(pre_dir,"Step_04_CreateStudyPopulation.R"))
 #
 source(paste0(pre_dir,"Step_05_AddVariablesSourcePopulation.R"))
 source(paste0(pre_dir,"Step_06_AddVariablesStudyPopulation.R"))
-source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
+source(paste0(pre_dir,"Step_07_RunCountPersonTimeByN.R"))
 
 #Save analyses output tables in output
 source(paste0(pre_dir,"Step_Report_01_01_PopulationTree.R"))
