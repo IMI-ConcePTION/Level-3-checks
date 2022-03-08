@@ -28,7 +28,7 @@ if (subpopulations_present=="No"){
     dir.create(paste(std_source_pop_dir,"Masked", sep=""))
   }
   
-
+  
   #STUDY_SOURCE_POPULATION_tmp/STUDY_SOURCE_POPULATION folder where all intermediary files are saved
   if ("STUDY_SOURCE_POPULATION" %in% list.files(tmp)){
     unlink(paste0(tmp,"STUDY_SOURCE_POPULATION"), recursive = T)#delete folder
@@ -39,6 +39,19 @@ if (subpopulations_present=="No"){
     dir.create(paste(tmp, "STUDY_SOURCE_POPULATION", sep=""))
     std_pop_tmp<-paste(tmp, "STUDY_SOURCE_POPULATION/", sep="")
   }
+  
+  #output folder for STUDY_SOURCE_POPULATION report in g_intermediate/populations
+  if (length(list.files(populations_dir))>0){
+    unlink(paste0(g_intermediate, "populations"), recursive = T)#delete folder
+    dir.create(paste(g_intermediate, "populations", sep=""))
+  } 
+  
+  #delete environment.R file
+  if(length(list.files(g_intermediate,"environment"))>0){
+    unlink(paste0(g_intermediate,list.files(g_intermediate,"environment")))
+  }
+  
+  
 } else {
   #output folder for MEDICINES report in g_output
   if ("STUDY_SOURCE_POPULATION" %in% list.files(output_dir)){
@@ -67,7 +80,7 @@ if (subpopulations_present=="No"){
     }
   }
   
-
+  
   #STUDY_SOURCE_POPULATION_tmp/STUDY_SOURCE_POPULATION folder where all intermediary files are saved
   if ("STUDY_SOURCE_POPULATION" %in% list.files(tmp)){
     unlink(paste0(tmp,"STUDY_SOURCE_POPULATION"), recursive = T)#delete folder
@@ -78,6 +91,18 @@ if (subpopulations_present=="No"){
     dir.create(paste(tmp, "STUDY_SOURCE_POPULATION", sep=""))
     std_pop_tmp<-paste(tmp, "STUDY_SOURCE_POPULATION/", sep="")
   }
+  
+  #output folder for STUDY_SOURCE_POPULATION report in g_intermediate/populations
+  if (length(list.files(populations_dir))>0){
+    unlink(paste0(g_intermediate, "populations"), recursive = T)#delete folder
+    dir.create(paste(g_intermediate, "populations", sep=""))
+  } 
+  
+  #delete environment.R file
+  if(length(list.files(g_intermediate,"environment"))>0){
+    unlink(paste0(g_intermediate,list.files(g_intermediate,"environment")))
+  }
+  
   
 }
 #######################################################
