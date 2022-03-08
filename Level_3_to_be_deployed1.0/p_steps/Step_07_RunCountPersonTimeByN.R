@@ -28,7 +28,7 @@ if(!SUBP) SCHEME_07 <- data.frame(subpopulations = c("ALL"),
                                   folder_out = std_pop_tmp
                                   )
 
-NB <- 100
+NB <- 100000
 
 for(i in 1:nrow(SCHEME_07)){
   
@@ -118,5 +118,5 @@ for(i in 1:nrow(SCHEME_07)){
 
 saveRDS(SCHEME_07,file = paste0(std_pop_tmp,"SCHEME_07.rds"))
 
-rm(SCHEME_07)
+rm(SCHEME_07, NB)
 gc()
