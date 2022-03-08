@@ -39,19 +39,6 @@ if (subpopulations_present=="No"){
     dir.create(paste(tmp, "STUDY_SOURCE_POPULATION", sep=""))
     std_pop_tmp<-paste(tmp, "STUDY_SOURCE_POPULATION/", sep="")
   }
-  
-  #output folder for STUDY_SOURCE_POPULATION report in g_intermediate/populations
-  if (length(list.files(populations_dir))>0){
-    unlink(paste0(g_intermediate, "populations"), recursive = T)#delete folder
-    dir.create(paste(g_intermediate, "populations", sep=""))
-  } 
-  
-  #delete environment.R file
-  if(length(list.files(g_intermediate,"environment"))>0){
-    unlink(paste0(g_intermediate,list.files(g_intermediate,"environment")))
-  }
-  
-  
 } else {
   #output folder for MEDICINES report in g_output
   if ("STUDY_SOURCE_POPULATION" %in% list.files(output_dir)){
@@ -92,17 +79,6 @@ if (subpopulations_present=="No"){
     std_pop_tmp<-paste(tmp, "STUDY_SOURCE_POPULATION/", sep="")
   }
   
-  #output folder for STUDY_SOURCE_POPULATION report in g_intermediate/populations
-  if (length(list.files(populations_dir))>0){
-    unlink(paste0(g_intermediate, "populations"), recursive = T)#delete folder
-    dir.create(paste(g_intermediate, "populations", sep=""))
-  } 
-  
-  #delete environment.R file
-  if(length(list.files(g_intermediate,"environment"))>0){
-    unlink(paste0(g_intermediate,list.files(g_intermediate,"environment")))
-  }
-  
 }
 #######################################################
 #std_source_pop_dir output folder for study_source population
@@ -115,6 +91,7 @@ source(paste0(pre_dir,"functions/", "CountPersonTimeV12.5.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV13.6.R"))
 source(paste0(pre_dir,"functions/", "DRECountThresholdV3.R"))
 source(paste0(pre_dir,"functions/", "FUNCTIONS.R"))
+source(paste0(pre_dir,"functions/", "IMPORT_PATTERN.R"))
 
 #Set parameters
 source(paste0(pre_dir,"Step_00_SetParameters.R"))
