@@ -142,16 +142,25 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_MEDICINES<-paste0(pre_dir,"/Report_08_MEDICINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_08_00_MEDICINES_L3.R")))
 
 if(length(actual_tables$MEDICINES)>0){
   if(subpopulations_present=="No"){
-    system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Overview_Completeness_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_Overview_Completeness_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Counts_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_Counts_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Rates_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = "MEDICINES_Rates_L3.html")) 
+    
   } else {
     for (a in 1: length(subpopulations_names)){
-      system.time(render(Rmd_MEDICINES, output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_L3.html")))  
+      system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Overview_Completeness_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_Overview_Completeness_L3.html")))  
+    }
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Counts_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_Counts_L3.html")))  
+    }
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(paste0(pre_dir,"/Report_08_MEDICINES_Rates_L3.Rmd"), output_dir = paste0(output_dir,"MEDICINES/"), output_file = paste0(subpopulations_names[a],"_MEDICINES_Rates_L3.html")))  
     }
   }
 }
@@ -166,6 +175,7 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
@@ -190,6 +200,7 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 study_name_codelist<-NULL
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_DIAGNOSES<-paste0(pre_dir,"/Report_10_DIAGNOSES_L3.Rmd")
@@ -215,6 +226,7 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_PREGNANCY<-paste0(pre_dir,"/PREGNANCY_L3.Rmd")
 source(paste0(pre_dir,"PREGNANCY_L3.R"))
@@ -239,6 +251,7 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_POI<-paste0(pre_dir,"/POI_L3.Rmd")
 system.time(source(paste0(pre_dir,"POI_L3.R")))
@@ -262,6 +275,7 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 source("99_path.R")
+source("packages.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_EUROCAT<-paste0(pre_dir,"/EUROCAT_DQI_L3.Rmd")
 system.time(source(paste0(pre_dir,"eurocat_dqi.R")))
@@ -278,7 +292,7 @@ source(paste0(pre_dir,"save_environment.R"))
 ####################################################
 #Create ForDashboard folder
 ####################################################
-
+source("packages.R")
 source(paste0(pre_dir,"for_dashboard.R"))
 
 
