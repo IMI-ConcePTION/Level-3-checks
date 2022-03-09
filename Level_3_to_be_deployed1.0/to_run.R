@@ -141,8 +141,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
 system.time(source(paste0(pre_dir,"Step_08_00_MEDICINES_L3.R")))
 
@@ -174,8 +174,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
@@ -199,8 +199,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 study_name_codelist<-NULL
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_DIAGNOSES<-paste0(pre_dir,"/Report_10_DIAGNOSES_L3.Rmd")
@@ -225,8 +225,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_PREGNANCY<-paste0(pre_dir,"/PREGNANCY_L3.Rmd")
 source(paste0(pre_dir,"PREGNANCY_L3.R"))
@@ -250,8 +250,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_POI<-paste0(pre_dir,"/POI_L3.Rmd")
 system.time(source(paste0(pre_dir,"POI_L3.R")))
@@ -274,8 +274,8 @@ library(rstudioapi)
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
-source("99_path.R")
 source("packages.R")
+source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
 Rmd_EUROCAT<-paste0(pre_dir,"/EUROCAT_DQI_L3.Rmd")
 system.time(source(paste0(pre_dir,"eurocat_dqi.R")))
@@ -292,6 +292,13 @@ source(paste0(pre_dir,"save_environment.R"))
 ####################################################
 #Create ForDashboard folder
 ####################################################
+rm(list=ls())
+if(!require(rstudioapi)){install.packages("rstudioapi")}
+library(rstudioapi)
+
+projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(projectFolder)
+
 source("packages.R")
 source(paste0(pre_dir,"for_dashboard.R"))
 
