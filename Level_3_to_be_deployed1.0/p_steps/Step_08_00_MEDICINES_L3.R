@@ -7,6 +7,7 @@
 source(paste0(pre_dir, "DAP_info.R"))
 source(paste0(pre_dir, "info.R"))
 source(paste0(pre_dir,"date_parameters.R"))
+source(paste0(pre_dir,"/functions/create_age_band.R"))
 ###############################################################################################
 #functions
 #calculate the number of records for desired atc level by meaning and year
@@ -134,32 +135,43 @@ if (subpopulations_present=="Yes"){
     study_sub_population<-study_sub_population[grepl(study_sub_population, pattern=paste0("^", subpopulations_names[s]))]
     study_population<-readRDS(paste0(g_intermediate, "populations/", study_sub_population))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
     study_population<-study_population[,person_id:=as.character(person_id)]
+    study_population<-study_population[sex_at_instance_creation %in% c("F","M")]
+    study_population[,medicines_rec:=0]
     nr_std<-study_population[,.N]
     #MEANINGS TO BE EXCLUDED
     meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES" & other==subpopulations_names[s],values], pattern = " "))
     
     source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
+    source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
+    source(paste0(pre_dir, "Step_08_02_MEDICINES_L3_counts_new.R"))
+    source(paste0(pre_dir, "Step_08_03_MEDICINES_L3_rates_new.R"))
     
     #clean medicines_tmp
     for(i in 1:length(list.files(medicines_tmp))){
       unlink(paste0(medicines_tmp,list.files(medicines_tmp)[i]))
     }
     
-    rm(study_population, nr_std)
+    rm(nr_std)
   }
 } else {
   study_population_dir<-study_population_dir[grepl(study_population_dir, pattern="ALL_study_population", fixed=T)]
   study_population<-readRDS(paste0(g_intermediate, "populations/", study_population_dir))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
   study_population<-study_population[,person_id:=as.character(person_id)]
+  study_population<-study_population[sex_at_instance_creation %in% c("F","M")]
   nr_std<-study_population[,.N]
+  study_population[,medicines_rec:=0]
+  
   #MEANINGS TO BE EXCLUDED
   meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES",values], pattern = " "))
 
   source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
+  source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
+  source(paste0(pre_dir, "Step_08_02_MEDICINES_L3_counts_new.R"))
+  source(paste0(pre_dir, "Step_08_03_MEDICINES_L3_rates_new.R"))
 
   do.call(file.remove, list(list.files(medicines_tmp, full.names = T)))
   
-  rm(study_population, nr_std)
+  rm(nr_std)
   
 }
 }
