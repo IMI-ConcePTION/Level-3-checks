@@ -37,6 +37,14 @@ for(i in 1:nrow(SCHEME_01_0609)){
   
   for(j in Analyse_dates){
     
+    
+    if(j == "op_end_date"){
+      
+      STUDY_POPULATION <- STUDY_POPULATION[,op_end_date_year := fifelse(op_end_date_year > year(Sys.Date()) , year(Sys.Date()) + 1,op_end_date_year)]
+      
+      
+    }
+    
     TEMP <- STUDY_POPULATION[,.(count = sum(!is.na(person_id))), keyby = c(paste0(j,"_month"),paste0(j,"_year"))]
     
     

@@ -49,28 +49,28 @@ CreateBands <- function(bands, NEWBORNS = T){
   
 }
 
-IMPORT_PATTERN <- function(pat,dir){
-  obs_files<-list.files(dir, pattern=pat)
-  if(length(obs_files) > 0){
-  temp <- list()
-  for(i in 1:length(obs_files)){
-    TEMP <- fread(paste0(dir,"/",obs_files[i]), stringsAsFactors = F)
-    #TEMP[, (colnames(TEMP)) := lapply(.SD, as.character), .SDcols = colnames(TEMP)]
-    invisible(lapply(colnames(TEMP), function (x) if (class(TEMP[[x]]) != "character") TEMP[, eval(x) := as.character(get(x)) ]))
-    
-    if(i == 1) {FILE <- TEMP}
-    if(i > 1) {FILE <- rbindlist(list(TEMP,FILE),fill = T, use.names = T)}
-    rm(TEMP)
-    gc()
-    
-    
-  }
-  }else FILE <- NULL 
-    
-  return(FILE)
-  rm(FILE,obs_files)
-  gc()
-}
+# IMPORT_PATTERN <- function(pat,dir){
+#   obs_files<-list.files(dir, pattern=pat)
+#   if(length(obs_files) > 0){
+#   temp <- list()
+#   for(i in 1:length(obs_files)){
+#     TEMP <- fread(paste0(dir,"/",obs_files[i]), stringsAsFactors = F)
+#     #TEMP[, (colnames(TEMP)) := lapply(.SD, as.character), .SDcols = colnames(TEMP)]
+#     invisible(lapply(colnames(TEMP), function (x) if (class(TEMP[[x]]) != "character") TEMP[, eval(x) := as.character(get(x)) ]))
+#     
+#     if(i == 1) {FILE <- TEMP}
+#     if(i > 1) {FILE <- rbindlist(list(TEMP,FILE),fill = T, use.names = T)}
+#     rm(TEMP)
+#     gc()
+#     
+#     
+#   }
+#   }else FILE <- NULL 
+#     
+#   return(FILE)
+#   rm(FILE,obs_files)
+#   gc()
+# }
 
 
 

@@ -28,7 +28,7 @@ if (subpopulations_present=="No"){
     dir.create(paste(std_source_pop_dir,"Masked", sep=""))
   }
   
-
+  
   #STUDY_SOURCE_POPULATION_tmp/STUDY_SOURCE_POPULATION folder where all intermediary files are saved
   if ("STUDY_SOURCE_POPULATION" %in% list.files(tmp)){
     unlink(paste0(tmp,"STUDY_SOURCE_POPULATION"), recursive = T)#delete folder
@@ -80,7 +80,7 @@ if (subpopulations_present=="No"){
     }
   }
   
-
+  
   #STUDY_SOURCE_POPULATION_tmp/STUDY_SOURCE_POPULATION folder where all intermediary files are saved
   if ("STUDY_SOURCE_POPULATION" %in% list.files(tmp)){
     unlink(paste0(tmp,"STUDY_SOURCE_POPULATION"), recursive = T)#delete folder
@@ -103,6 +103,7 @@ if (subpopulations_present=="No"){
     unlink(paste0(g_intermediate,list.files(g_intermediate,"environment")))
   }
   
+  
 }
 #######################################################
 #std_source_pop_dir output folder for study_source population
@@ -115,6 +116,7 @@ source(paste0(pre_dir,"functions/", "CountPersonTimeV12.5.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV13.6.R"))
 source(paste0(pre_dir,"functions/", "DRECountThresholdV3.R"))
 source(paste0(pre_dir,"functions/", "FUNCTIONS.R"))
+source(paste0(pre_dir,"functions/", "IMPORT_PATTERN.R"))
 
 #Set parameters
 source(paste0(pre_dir,"Step_00_SetParameters.R"))
@@ -128,7 +130,7 @@ source(paste0(pre_dir,"Step_04_CreateStudyPopulation.R"))
 #
 source(paste0(pre_dir,"Step_05_AddVariablesSourcePopulation.R"))
 source(paste0(pre_dir,"Step_06_AddVariablesStudyPopulation.R"))
-source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
+source(paste0(pre_dir,"Step_07_RunCountPersonTimeByN.R"))
 
 #Save analyses output tables in output
 source(paste0(pre_dir,"Step_Report_01_01_PopulationTree.R"))
