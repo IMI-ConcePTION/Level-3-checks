@@ -16,3 +16,5 @@ pre_dir<-paste0(projectFolder,"/p_steps/")
 g_intermediate<-paste0(projectFolder,"/g_intermediate/")
 tmp<-paste0(g_intermediate,"tmp/")
 populations_dir<-paste0(g_intermediate,"populations/")
+
+eurocat_dir<-paste0(output_dir,"EUROCAT/")
