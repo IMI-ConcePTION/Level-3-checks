@@ -98,7 +98,7 @@ conditions_snomed<-Filter(function(k) length(k)>0, conditions_snomed)
 #Rule: match exactly
 #Coding system: other codes
 #################################################################################################################
-#SNOMED codes
+#other codes
 conditions_other<-list()
 for(i in 1:length(conditions)){
   conditions_other[[i]]<-conditions[[i]][names(conditions[[i]]) %in% conditions_other_codes]
