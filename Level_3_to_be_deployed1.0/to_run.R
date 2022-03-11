@@ -10,7 +10,7 @@ setwd(projectFolder)
 ########################################################################################################################
 #example meanings_birth_registry<-c("birth_registry", "birth_registry_meanings")
 #keep in mind this records will be classified as end_of_pregnancy so no spontaneous abortion registry should be included
-meanings_birth_registry<-c("birth_registry_mother")
+meanings_birth_registry<-c("birth_registry")
 ########################################################################################################################
 #Specify all variables of interest to generate the Lifestyle report
 ########################################################################################################################
@@ -177,15 +177,24 @@ setwd(projectFolder)
 source("packages.R")
 source("99_path.R")
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_VACCINES<-paste0(pre_dir,"/Report_09_VACCINES_L3.Rmd")
+
 system.time(source(paste0(pre_dir,"Step_09_00_VACCINES_L3.R")))
 
 if(length(actual_tables$VACCINES)>0){
   if(subpopulations_present=="No"){
-    system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Overview_Completeness_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_Overview_Completeness_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Counts_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_Counts_L3.html")) 
+    system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Rates_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = "VACCINES_Rates_L3.html")) 
+    
   } else {
     for (a in 1: length(subpopulations_names)){
-      system.time(render(Rmd_VACCINES, output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_L3.html")))  
+      system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Overview_Completeness_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_Overview_Completeness_L3.html")))  
+    }
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Counts_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_Counts_L3.html")))  
+    }
+    for (a in 1: length(subpopulations_names)){
+      system.time(render(paste0(pre_dir,"/Report_09_VACCINES_Rates_L3.Rmd"), output_dir = paste0(output_dir,"VACCINES/"), output_file = paste0(subpopulations_names[a],"_VACCINES_Rates_L3.html")))  
     }
   }
 }
