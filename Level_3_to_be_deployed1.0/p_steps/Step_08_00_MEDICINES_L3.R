@@ -142,7 +142,6 @@ if (subpopulations_present=="Yes"){
     meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES" & other==subpopulations_names[s],values], pattern = " "))
     
     source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
-    source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
     source(paste0(pre_dir, "Step_08_02_MEDICINES_L3_counts_new.R"))
     source(paste0(pre_dir, "Step_08_03_MEDICINES_L3_rates_new.R"))
     
@@ -164,7 +163,6 @@ if (subpopulations_present=="Yes"){
   #MEANINGS TO BE EXCLUDED
   meanings_exclude_med<-unlist(str_split(METADATA_subp[type_of_metadata=="exclude_meaning" & tablename=="MEDICINES",values], pattern = " "))
 
-  source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
   source(paste0(pre_dir, "Step_08_01_MEDICINES_L3_pre_script_2.R"))
   source(paste0(pre_dir, "Step_08_02_MEDICINES_L3_counts_new.R"))
   source(paste0(pre_dir, "Step_08_03_MEDICINES_L3_rates_new.R"))

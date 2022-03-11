@@ -28,7 +28,7 @@ if(!SUBP) SCHEME_07 <- data.frame(subpopulations = c("ALL"),
                                   folder_out = std_pop_tmp
                                   )
 
-NB <- 100000
+NB <- 200000
 
 for(i in 1:nrow(SCHEME_07)){
   
