@@ -22,10 +22,11 @@ rm(CDM_SOURCE, cdm_source_file)
 start_study_date <- as.IDate(start_study_date,"%Y%m%d")
 end_study_date <- as.IDate(end_study_date,"%Y%m%d")
 date_creation<-as.IDate(as.character(date_creation),"%Y%m%d")
-intv <- as.IDate(c(start_study_date, end_study_date))
+
 ##########################################################
 print("Check date creation is after end study date")
 end_study_date <- min(end_study_date,date_creation,recommended_end_date,na.rm = T)
+intv <- as.IDate(c(start_study_date, end_study_date))
 
 start_study_date2 <- paste0(year(start_study_date),sprintf("%02d",month(start_study_date)),sprintf("%02d",day(start_study_date)))
 end_study_date2 <- paste0(year(end_study_date),sprintf("%02d",month(end_study_date)),sprintf("%02d",day(end_study_date)))
