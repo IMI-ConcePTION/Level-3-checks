@@ -36,7 +36,7 @@ Sys.setlocale("LC_ALL", "C")
 
 <div class = 'box1'>
 
-**Level 3:** Vaccines exposure in the study population and in females of childbearing age (12-55 years old)  
+**Level 3:** Vaccines exposure in the study population      
 
  - **Script directory:** `r projectFolder`
  - **Date/time:** `r Sys.time()`
