@@ -347,6 +347,8 @@ fig.tab16_med_med_f[[i]]<-ggplotly(ggplot(tab16_graph_vacc[sex=="F"][age_band==u
                legend.text = element_text(size = 7))) 
                                      
 }
+  } else {
+    fig.tab16_med_med_f<-NULL
   }
 }
 ```
@@ -355,8 +357,10 @@ fig.tab16_med_med_f[[i]]<-ggplotly(ggplot(tab16_graph_vacc[sex=="F"][age_band==u
 
 ```{r display_tab16_med_graph_f, echo=FALSE}
 if(!is.null(tab16_graph_vacc)){
+  if(!is.null(fig.tab16_med_med_f)){
 htmltools::tagList(list(fig.tab16_med_med_f))
-} else {
+} 
+  } else {
   print("This table cannot be produced based on the available data.") 
 }
 ```
@@ -388,14 +392,18 @@ fig.tab16_med_med_m[[i]]<-ggplotly(ggplot(tab16_graph_vacc[sex=="M"][age_band==u
                legend.text = element_text(size = 7))) 
                                      
 }
+  } else {
+    fig.tab16_med_med_m<-NULL
   }
 }
 ```
 
 ```{r display_tab16_med_graph_m, echo=FALSE}
 if(!is.null(tab16_graph_vacc)){
+  if(!is.null(fig.tab16_med_med_m)){
 htmltools::tagList(list(fig.tab16_med_med_m))
-} else {
+} 
+  } else {
   print("This table cannot be produced based on the available data.") 
 }
 ```
