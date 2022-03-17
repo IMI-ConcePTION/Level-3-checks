@@ -139,7 +139,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       rm(pers_included_mo)
       
-      print(paste0("Extracting data for conditions_to_start_with:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for conditions_to_start_with:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
@@ -170,7 +170,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:ICD10,ICD10CM,ICPC,ICD9,ICD9CM)
       
-      print(paste0("Extracting data for conditions_rcd:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for conditions_rcd:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
         for (i in 1:length(conditions_read)){
           for(j in 1:length(conditions_read[[i]])){
@@ -201,7 +201,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:Read codes)
       
-      print(paste0("Extracting data for conditions_snomed:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for conditions_snomed:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
         for (i in 1:length(conditions_snomed)){
           for(j in 1:length(conditions_snomed[[i]])){
@@ -232,7 +232,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: SNOMED)
       
-      print(paste0("Extracting data for conditions_other:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for conditions_other:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
         for (i in 1:length(conditions_other)){
           for(j in 1:length(conditions_other[[i]])){
@@ -270,7 +270,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     if(persons_mo_prior[,.N]>0){
       years_study_prior_mo<-sort(persons_mo_prior[!duplicated(year), year])#years present in this table
       
-      print(paste0("Extracting data for prior events, conditions_to_start_with:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for prior events, conditions_to_start_with:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
@@ -301,7 +301,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:ICD10,ICD10CM,ICPC,ICD9,ICD9CM)
       
-      print(paste0("Extracting data for prior events, conditions_rcd:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for prior events, conditions_rcd:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
         for (i in 1:length(conditions_read)){
           for(j in 1:length(conditions_read[[i]])){
@@ -332,7 +332,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:Read codes)
       
-      print(paste0("Extracting data for prior events, conditions_snomed:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for prior events, conditions_snomed:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
         for (i in 1:length(conditions_snomed)){
           for(j in 1:length(conditions_snomed[[i]])){
@@ -363,7 +363,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: SNOMED)
    
-      print(paste0("Extracting data for prior events, conditions_other:",actual_tables$EVENTS[y]))
+      print(paste0("Extracting data for prior events, conditions_other:",actual_tables$MEDICAL_OBSERVATIONS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
         for (i in 1:length(conditions_other)){
           for(j in 1:length(conditions_other[[i]])){
