@@ -24,59 +24,58 @@ comp_vars_1<- c("sex","nbrbaby", "nbrmalf", "type","weight","gestlength","surviv
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 #3 == INTERMEDIATE
-# barplot(table(mydt$sex),main="sex")
-# barplot(table(is.na(mydt$sex)),main="sex, NA")
-unk_sex<-nrow(mydt[mydt$sex==9])
+
+unk_sex<-nrow(mydt[mydt$sex==9,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$nbrbaby),main="nbrbaby")
 # barplot(table(is.na(mydt$nbrbaby)),main="nbrbaby, NA")
-unk_nbrbaby<-nrow(mydt[mydt$nbrbaby==9])
+unk_nbrbaby<-nrow(mydt[mydt$nbrbaby==9,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$nbrmalf),main="nbrmalf")
 # barplot(table(is.na(mydt$nbrmalf)),main="nbrmalf, NA")
-unk_nbrmalf<- nrow(mydt[mydt$nbrmalf==9])
+unk_nbrmalf<- nrow(mydt[mydt$nbrmalf==9,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$type),main="type")
 # barplot(table(is.na(mydt$type)),main="type, NA")
-unk_type<-nrow(mydt[mydt$type==9])
+unk_type<-nrow(mydt[mydt$type==9,])
 
 # 9999== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$weight),main="weight")
 # barplot(table(is.na(mydt$weight)),main="weight, NA")
-unk_weight<-nrow(mydt[mydt$weight==9999])
+unk_weight<-nrow(mydt[mydt$weight==9999,])
 
 # 99== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$gestlength),main="gestlength")
 # barplot(table(is.na(mydt$gestlength)),main="gestlength, NA")
-unk_gestlength<-nrow(mydt[mydt$gestlength==99])
+unk_gestlength<-nrow(mydt[mydt$gestlength==99,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$survival),main="survival")
 # barplot(table(is.na(mydt$survival)),main="survival, NA")
-unk_survival<-nrow(mydt[mydt$survival==9])
+unk_survival<-nrow(mydt[mydt$survival==9,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$whendisc),main="whendisc")
 # barplot(table(is.na(mydt$whendisc)),main="whendisc, NA")
-unk_whendisc<-nrow(mydt[mydt$whendisc==9])
+unk_whendisc<-nrow(mydt[mydt$whendisc==9,])
 
 # 99== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$agedisc),main="agedisc")
 # barplot(table(is.na(mydt$agedisc)),main="agedisc, NA")
-unk_agedisc<-nrow(mydt[mydt$agedisc==99])
+unk_agedisc<-nrow(mydt[mydt$agedisc==99,])
 
 # 99== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$agemo),main="agemo")
 # barplot(table(is.na(mydt$agemo)),main="agemo, NA")
-unk_agemo<-nrow(mydt[mydt$agemo==99])
+unk_agemo<-nrow(mydt[mydt$agemo==99,])
 
 # 9== "not known" - IS THIS THE SAME AS MISSING?
 # barplot(table(mydt$civreg),main="civreg")
 # barplot(table(is.na(mydt$civreg)),main="civreg, NA")
-unk_civreg<-nrow(mydt[mydt$civreg==9])
+unk_civreg<-nrow(mydt[mydt$civreg==9,])
 
 comp_data_1<-c((unk_sex), (unk_nbrbaby), (unk_nbrmalf),
                (unk_type), (unk_weight), (unk_gestlength),
@@ -125,124 +124,125 @@ write.csv(comp90_tab, paste0(path_output,"EUROCAT/comp90.csv"), row.names = F )
 # table(mydt$death_date)
 # table(is.na(mydt$death_date))
 
-unk_death_date<-nrow(mydt[mydt$death_date==333333])
+unk_death_date<-nrow(mydt[mydt$death_date==333333,])
 
 # 9  = Not known
 # table(mydt$condisc)
 # table(is.na(mydt$condisc))
-unk_condisc<-nrow(mydt[mydt$condisc==9])
+unk_condisc<-nrow(mydt[mydt$condisc==9,])
 
 # 9  = Not known
 # table(mydt$karyo)
 # table(is.na(mydt$karyo))
-unk_karyo<-nrow(mydt[mydt$karyo==9])
+unk_karyo<-nrow(mydt[mydt$karyo==9,])
 
 # 9  = Not known
 # table(mydt$pm)
 # table(is.na(mydt$pm))
-unk_pm<-nrow(mydt[mydt$pm==9])
+unk_pm<-nrow(mydt[mydt$pm==9,])
 
 # Day, month, year 99 = Not known day or month,  44 = Not known year
 # table(mydt$datemo)
 # table(is.na(mydt$datemo))
-unk_datemo<-nrow(rbind(mydt[mydt$datemo==99], mydt[mydt$datemo==44]))
+
+unk_datemo<-mydt$datemo[mydt$datemo==99|mydt$datemo==44]
 
 
 # table(mydt$residmo)
 # table(is.na(mydt$residmo))
 # table (mydt$residmo)
 #99999 code unlike the others --> missing?
-unk_residmo<-nrow(mydt[mydt$residmo==99999])
+unk_residmo<-nrow(mydt[mydt$residmo==99999,])
 
 # 99  = Not known
 # table(mydt$totpreg)
 # table(is.na(mydt$totpreg))
-unk_totpreg<-nrow(mydt[mydt$totpreg==99])
+unk_totpreg<-nrow(mydt[mydt$totpreg==99,])
 
 # 9999  = Not known
 # table(mydt$occupmo)
 # table(is.na(mydt$occupmo))
-unk_occupmo<-nrow(mydt[mydt$occupmo==9999])
+unk_occupmo<-nrow(mydt[mydt$occupmo==9999,])
 
 # 9  = Not known
 # table(mydt$assconcept)
 # table(is.na(mydt$assconcept))
-unk_assconcept<-nrow(mydt[mydt$assconcept==9])
+unk_assconcept<-nrow(mydt[mydt$assconcept==9,])
 
 # 9  = Not known
 # table(mydt$illbef1)
 # table(is.na(mydt$illbef1))
-unk_illbef1<-nrow(mydt[mydt$illbef1==9])
+unk_illbef1<-nrow(mydt[mydt$illbef1==9,])
 
 # 9  = Not known
 # table(mydt$illdur1)
 # table(is.na(mydt$illdur1))
-unk_illdur1<-nrow(mydt[mydt$illdur1==9])
+unk_illdur1<-nrow(mydt[mydt$illdur1==9,])
 
 # 9  = Not known
 # table(mydt$consang)
 # table(is.na(mydt$consang))
-unk_consang<-nrow(mydt[mydt$consang==9])
+unk_consang<-nrow(mydt[mydt$consang==9,])
 
 # 9  = Not known
 # table(mydt$prevsib)
 # table(is.na(mydt$prevsib))
-unk_prevsib<-nrow(mydt[mydt$prevsib==9])
+unk_prevsib<-nrow(mydt[mydt$prevsib==9,])
 
 # is.na
 # table(mydt$sib1)
 # table(is.na(mydt$sib1))
-unk_sib1<-nrow(mydt[is.na(mydt$sib1)])
+unk_sib1<-nrow(mydt[is.na(mydt$sib1),])
 
 # 9  = Not known
 # table(mydt$sibanom)
 # table(is.na(mydt$sibanom))
-unk_sibanom<-nrow(mydt[mydt$sibanom==9])
+unk_sibanom<-nrow(mydt[mydt$sibanom==9,])
 
 # 9  = Not known
 # table(mydt$moanom)
 # table(is.na(mydt$moanom))
-unk_moanom<-nrow(mydt[mydt$moanom==9])
+unk_moanom<-nrow(mydt[mydt$moanom==9,])
 
 # 9  = Not known
 # table(mydt$faanom)
 # table(is.na(mydt$faanom))
-unk_faanom<-nrow(mydt[mydt$faanom==9])
+unk_faanom<-nrow(mydt[mydt$faanom==9,])
 
 # 9  = Not known
 # table(mydt$firstpre)
 # table(is.na(mydt$firstpre))
-unk_firstpre<-nrow(mydt[mydt$firstpre==9])
+unk_firstpre<-nrow(mydt[mydt$firstpre==9,])
 
 # 9  = Not known
 # table(mydt$surgery)
 # table(is.na(mydt$surgery))
-unk_surgery<-nrow(mydt[mydt$surgery==9])
+unk_surgery<-nrow(mydt[mydt$surgery==9,])
 
 # 9  = Not known
 # table(mydt$folic_g14)
 # table(is.na(mydt$folic_g14))
-unk_folic<-nrow(mydt[mydt$folic_g14==9])
+unk_folic<-nrow(mydt[mydt$folic_g14==9,])
 
 # 9  = Not known
 # table(mydt$matedu)
 # table(is.na(mydt$matedu))
-unk_matedu<-nrow(mydt[mydt$matedu==9])
+unk_matedu<-nrow(mydt[mydt$matedu==9,])
 
 # 9  = Not known
 # table(mydt$socm)
 # table(is.na(mydt$socm))
-unk_socm<-nrow(mydt[mydt$socm==9])
+unk_socm<-nrow(mydt[mydt$socm==9,])
 
 # 9  = Not known
 # table(mydt$socf)
 # table(is.na(mydt$socf))
-unk_socf<-nrow(mydt[mydt$socf==9])
+unk_socf<-nrow(mydt[mydt$socf==9,])
 
 # 9  = Not known
 # table(mydt$migrant)
 # table(is.na(mydt$migrant))
-unk_migrant<-nrow(mydt[mydt$migrant==9])
+unk_migrant<-nrow(mydt[mydt$migrant==9,])
 
 comp_vars_2<-c("death_date", "condisc", "karyo", "pm", "datemo", "residmo", "totpreg", "occumo", "assconcept", "illbef1", "illdur1",
                "consang","prevsib","sib1","sibanom", "moanom","faanom","firstpre","surgery","folic", "matedu", "socm", "socf", "migrant")
@@ -262,12 +262,15 @@ write.csv(comp80_tab, paste0(path_output,"EUROCAT/comp80.csv"), row.names = F )
 # 18.
 name_comp_18<- "% TOPFA with civil registration known"
 
-comp18<-round((((nrow(mydt[mydt$type==4])-nrow(mydt[mydt$type==4&mydt$civreg==3]))/nrow(mydt[mydt$type==4]))*100),4)
+comp18_prop<-(nrow(mydt[mydt$type==4,])-nrow(mydt[(mydt$type==4&mydt$civreg==3),]))/nrow(mydt[mydt$type==4,])
+comp18<-round((comp18_prop*100),2)
 #100% civreg==3==noregistration
 
 # 19.
 name_comp_19<- "% live births with one week survival known"
-comp19<-round((((nrow(mydt[mydt$type==1])-nrow(mydt[mydt$type==1 & mydt$survival==9]))/nrow(mydt[mydt$type==1]))*100),4)
+comp19_prop<-(((nrow(mydt[mydt$type==1,])-nrow(mydt[mydt$type==1 & mydt$survival==9,]))/nrow(mydt[mydt$type==1,])))
+
+comp19<-round((comp19_prop*100),2)
 #1 cases unknown
 
 # 20.	
@@ -292,18 +295,18 @@ for (i in 1:length(drug_codes)){
   if(((stringr::str_length(myex))==7)==T
      &all(is.na(as.numeric(myex.list[[1]]))==c(T,F,F,T,T,F,F))==T){comp_21_list[i]<-1}
   else {comp_21_list[i]<-0}}
-comp21<-round(((table(comp_21_list)[2])/comp_20_tab[2]*100),4)
+comp21<-round(((table(comp_21_list)[2])/comp_20_tab[2]*100),2)
 # warning is expected: the algorythm uses the NA generated by as.numeric 
 
 # 22.	
 name_comp_22<- "% genetic syndromes + microdeletions with syndrome text complete"
 #sydrome text== sp_syndrome?
 ind_5<-c("Q4471", "Q6190", "Q7484", "Q751", "Q754", "Q7581", "Q87", "Q936", "D821", "75581", "75601", "75604", "7598", "27910")
-comp_22_tab<-table((rbind(mydt[mydt$syndrome%in%ind_5],mydt[mydt$malfo1%in%ind_5], mydt[mydt$malfo2%in%ind_5],
-                          mydt[mydt$malfo3%in%ind_5], mydt[mydt$malfo4%in%ind_5], mydt[mydt$malfo5%in%ind_5], 
-                          mydt[mydt$malfo6%in%ind_5], mydt[mydt$malfo7%in%ind_5], mydt[mydt$malfo8%in%ind_5] ))$sp_syndrome=="")
+comp_22_tab<-table((rbind(mydt[mydt$syndrome%in%ind_5,],mydt[mydt$malfo1%in%ind_5,], mydt[mydt$malfo2%in%ind_5,],
+                          mydt[mydt$malfo3%in%ind_5,], mydt[mydt$malfo4%in%ind_5,], mydt[mydt$malfo5%in%ind_5,], 
+                          mydt[mydt$malfo6%in%ind_5,], mydt[mydt$malfo7%in%ind_5,], mydt[mydt$malfo8%in%ind_5,] ))$sp_syndrome=="")
 
-comp22<- round(((comp_22_tab[2]/sum(comp_22_tab))*100),4)
+comp22<- round(((comp_22_tab[2]/sum(comp_22_tab))*100),2)
 #7 cases no text of 70 total
 
 # 23.
@@ -311,7 +314,7 @@ name_comp_23<- "% malformation with 1 text complete"
 #sp_malfo1
 comp_23_tab<- table(mydt$sp_malfo1=="")
 
-comp23<- round(((comp_23_tab[2]/sum(comp_23_tab))*100),4)
+comp23<- round(((comp_23_tab[2]/sum(comp_23_tab))*100),2)
 #929 cases- but logic check for if text is necessary?
 
 # 24.	
