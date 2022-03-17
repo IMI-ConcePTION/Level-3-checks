@@ -139,7 +139,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       rm(pers_included_mo)
       
-      
+      print(paste0("Extracting data for conditions_to_start_with:",actual_tables$EVENTS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
@@ -170,6 +170,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:ICD10,ICD10CM,ICPC,ICD9,ICD9CM)
       
+      print(paste0("Extracting data for conditions_rcd:",actual_tables$EVENTS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
         for (i in 1:length(conditions_read)){
           for(j in 1:length(conditions_read[[i]])){
@@ -200,6 +201,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:Read codes)
       
+      print(paste0("Extracting data for conditions_snomed:",actual_tables$EVENTS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
         for (i in 1:length(conditions_snomed)){
           for(j in 1:length(conditions_snomed[[i]])){
@@ -229,6 +231,37 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
         }
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: SNOMED)
+      
+      print(paste0("Extracting data for conditions_other:",actual_tables$EVENTS[y]))
+      if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
+        for (i in 1:length(conditions_other)){
+          for(j in 1:length(conditions_other[[i]])){
+            z<-1
+            repeat{
+              if(df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
+                df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
+              }
+              z<-z+1
+              if(z>length(conditions_other[[i]][[j]])){
+                break
+              }
+            }
+            if("filter" %!in% names(df)){df[,filter:=0]}
+            m<-1
+            repeat{
+              if(df[filter==1 & year==years_study_mo[m],.N]>0){
+                saveRDS(data.table(df[filter==1 & year==years_study_mo[m]], condition=names(conditions_other[i])), paste0(mo_tmp,years_study_mo[m],"_", names(conditions_other[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "_other.rds"))
+              }
+              m<-m+1
+              if(m >length(years_study_mo)){
+                break
+              }
+            }
+            df[,filter:=NULL]
+          }
+        }
+      }
+      #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: other)
     }
     
     ##################################################################
@@ -237,6 +270,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     if(persons_mo_prior[,.N]>0){
       years_study_prior_mo<-sort(persons_mo_prior[!duplicated(year), year])#years present in this table
       
+      print(paste0("Extracting data for prior events, conditions_to_start_with:",actual_tables$EVENTS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
@@ -267,6 +301,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:ICD10,ICD10CM,ICPC,ICD9,ICD9CM)
       
+      print(paste0("Extracting data for prior events, conditions_rcd:",actual_tables$EVENTS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
         for (i in 1:length(conditions_read)){
           for(j in 1:length(conditions_read[[i]])){
@@ -297,6 +332,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(start with:Read codes)
       
+      print(paste0("Extracting data for prior events, conditions_snomed:",actual_tables$EVENTS[y]))
       if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
         for (i in 1:length(conditions_snomed)){
           for(j in 1:length(conditions_snomed[[i]])){
@@ -314,7 +350,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
             m<-1
             repeat{
               if(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],.N]>0){
-                saveRDS(data.table(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],c("person_id","event_date","event_code","prior")], condition=names(conditions_snomed[i])), paste0(mo_tmp,years_study_prior_mo[m],"_", names(conditions_snomed[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "__prior_SNOMED.rds"))
+                saveRDS(data.table(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],c("person_id","event_date","event_code","prior")], condition=names(conditions_snomed[i])), paste0(mo_tmp,years_study_prior_mo[m],"_", names(conditions_snomed[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "_prior_SNOMED.rds"))
               }
               m<-m+1
               if(m >length(years_study_prior_mo)){
@@ -326,7 +362,38 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
         }
       }
       #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: SNOMED)
-    }
+   
+      print(paste0("Extracting data for prior events, conditions_other:",actual_tables$EVENTS[y]))
+      if(sum(persons_mo_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
+        for (i in 1:length(conditions_other)){
+          for(j in 1:length(conditions_other[[i]])){
+            z<-1
+            repeat{
+              if(persons_mo_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_mo_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
+                persons_mo_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_mo_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
+              }
+              z<-z+1
+              if(z>length(conditions_other[[i]][[j]])){
+                break
+              }
+            }
+            if("filter" %!in% names(persons_mo_prior)){persons_mo_prior[,filter:=0]}
+            m<-1
+            repeat{
+              if(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],.N]>0){
+                saveRDS(data.table(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],c("person_id","event_date","event_code","prior")], condition=names(conditions_other[i])), paste0(mo_tmp,years_study_prior_mo[m],"_", names(conditions_other[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "_prior_other.rds"))
+              }
+              m<-m+1
+              if(m >length(years_study_prior_mo)){
+                break
+              }
+            }
+            persons_mo_prior[,filter:=NULL]
+          }
+        }
+      }
+      #output to g_intermediate/tmp/MEDICAL_OBSERVATIONS datasets splitted by condition, year, type of codes(exact match: other)
+       }
     
     
     
@@ -554,7 +621,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
   ################################################################################
   #combine all person_id that had a prior condition by condition
   ###############################################################################
-  conditions_prior<-c(list.files(mo_tmp, "\\_prior_start.rds$"),list.files(mo_tmp, "\\_prior_RCD.rds$"),list.files(mo_tmp, "\\_prior_SNOMED.rds$"))
+  conditions_prior<-c(list.files(mo_tmp, "\\_prior_start.rds$"),list.files(mo_tmp, "\\_prior_RCD.rds$"),list.files(mo_tmp, "\\_prior_SNOMED.rds$"),list.files(mo_tmp, "\\_prior_other.rds$"))
   if(length(conditions_prior)>0){
     files_prior<-vector(mode="list", length=length(conditions_codelist))
     names(files_prior)<-conditions_codelist
@@ -588,11 +655,11 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
   
   ############################################################
   #Combine dataset by year and condition
-  conditions_files<-c(list.files(mo_tmp, "\\_start.rds$"),list.files(mo_tmp, "\\_RCD.rds$"),list.files(mo_tmp, "\\_SNOMED.rds$"))
+  conditions_files<-c(list.files(mo_tmp, "\\_start.rds$"),list.files(mo_tmp, "\\_RCD.rds$"),list.files(mo_tmp, "\\_SNOMED.rds$"),list.files(mo_tmp, "\\_other.rds$"))
   if (length(conditions_files)>0){
     years_mo_filter<-Filter(length,years_mo_filter)
     years_mo_filter<-suppressWarnings(do.call(rbind, years_mo_filter))
-    years_mo_filter<-unique(c(years_mo_filter))
+    years_mo_filter<-sort(unique(c(years_mo_filter)))
     
     #create combination year_condition from years(years present in the study) and all names of conditions in the codelist
     filter_var<-as.data.table(expand.grid(years_mo_filter,conditions_codelist))
@@ -617,8 +684,8 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
       combined_diagnosis_mo<-lapply(paste0(mo_tmp,files[[i]]), readRDS)
       combined_diagnosis_mo<-do.call(rbind,combined_diagnosis_mo)
       combined_diagnosis_mo[,code_nodot:=gsub("\\.","",event_code)]
-      combined_diagnosis_mo[event_vocabulary!=conditions_snomed_codes,truncated_code:=substr(code_nodot,1,4)]
-      combined_diagnosis_mo[event_vocabulary==conditions_snomed_codes,truncated_code:=event_code]
+      combined_diagnosis_mo[!(event_vocabulary %in% c(conditions_snomed_codes, conditions_other_codes)),truncated_code:=substr(code_nodot,1,4)]
+      combined_diagnosis_mo[event_vocabulary %in% c(conditions_snomed_codes, conditions_other_codes),truncated_code:=event_code]
       #remove duplicates between person_id,event_date,truncated_code, vocabulary and meaning
       combined_diagnosis_mo[,combined:=paste(person_id,event_date,truncated_code,event_vocabulary,meaning, sep = "_")]
       combined_diagnosis_mo<-combined_diagnosis_mo[!duplicated(combined)]
