@@ -1457,7 +1457,7 @@ table(as.vector(T))
 
 mydt_flowchart<-unique(mydt_flowchart)
 
-write.csv(mydt_flowchart, paste0(eurocat_tmp, "mydt_flowchart.csv"))
+write.csv(mydt_flowchart, paste0(path, "mydt_flowchart.csv"))
 
 mydt_files<-ls(pattern="mydt")
 rm(list=mydt_files)

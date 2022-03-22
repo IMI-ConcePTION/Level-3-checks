@@ -31,7 +31,7 @@ step_1.5<-all_codes[(startsWith(all_codes, ("759")))]
 step_1.6<-step_1.5[step_1.5!=7594]
 step_1.7<-c(step_1.4, step_1.6)
 
-#fixed bug equal should be with ==(23 Aug 2021:Vjola)
+
 for(i in 1:nrow(mydt)){
   if(any(mydt[i,]%in%step_1.7)==T){mydt$flowchart[i]<-"C"}
 }

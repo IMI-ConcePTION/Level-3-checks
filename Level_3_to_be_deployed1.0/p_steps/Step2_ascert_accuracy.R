@@ -3,18 +3,14 @@
 #SETUP#
 
 library(data.table)
+library(dplyr)
 
 
 mydt<-data.table::fread (file=(paste0(path, "mydt_flowchart.csv")))
 
-# colnames(mydt)
-#what syndrome codes are in the data?
-#EUROCAT codes aren't only in syndrome, but also the malfo variables... more complicated 
+all_codes<-unique(as.vector(as.matrix(mydt[,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")])))
 
-
-all_codes<-unique(c(mydt$syndrome, mydt$malfo1, mydt$malfo2, mydt$malfo3, mydt$malfo4, mydt$malfo5, mydt$malfo6, mydt$malfo7,mydt$malfo8))
-
-
+my_malfo_vars<-c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")
 
 ####################################
 #define each of the EUROCAT indicators
@@ -92,33 +88,68 @@ prev_ind_0<-length(unique(mydt$numloc))
 #cases defined as individual fetuses/babies--> 1-5 singletons to quintuplets, but 6, 7, 8 and 9 are unspecified.
 # table(mydt$nbrbaby)
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_1)==T) {mydt$ind_1[i]<-1} else {mydt$ind_1[i]<-0}}
-prev_ind_1<-table(mydt$ind_1)[2]
+mydt$ind_1<-0
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_2)==T) {mydt$ind_2[i]<-1} else {mydt$ind_2[i]<-0}}
-prev_ind_2<-table(mydt$ind_2)[2]
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_1[(mydt[,my_malfo_vars[i]]%in%ind_1)]<-1
+}
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_3)==T) {mydt$ind_3[i]<-1} else {mydt$ind_3[i]<-0}}
-prev_ind_3<-table(mydt$ind_3)[2]
+prev_ind_1<-sum(mydt$ind_1)
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,]%in%ind_4)==T) {mydt$ind_4[i]<-1} else {mydt$ind_4[i]<-0}}
-prev_ind_4<-table(mydt$ind_4)[2]
+###########################################################
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_5)==T) {mydt$ind_5[i]<-1} else {mydt$ind_5[i]<-0}}
-prev_ind_5<-table(mydt$ind_5)[2]
+mydt$ind_2<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_2[(mydt[,my_malfo_vars[i]]%in%ind_2)]<-1
+}
+
+prev_ind_2<-sum(mydt$ind_2)
+
+###########################################################
+
+mydt$ind_3<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_3[(mydt[,my_malfo_vars[i]]%in%ind_3)]<-1
+}
+
+prev_ind_3<-sum(mydt$ind_3)
+###########################################################
+
+mydt$ind_4<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_4[(mydt[,my_malfo_vars[i]]%in%ind_4)]<-1
+}
+
+prev_ind_4<-sum(mydt$ind_4)
+###########################################################
+
+mydt$ind_5<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_5[(mydt[,my_malfo_vars[i]]%in%ind_5)]<-1
+}
+
+prev_ind_5<-sum(mydt$ind_5)
+
+##########################################################
 
 mydt$ind_6<-0
 mydt$ind_6[(mydt$fetaldeath==1)&(mydt$nbrmalf>=1)]<-1
-prev_ind_6<-table(mydt$ind_6)[2]
+prev_ind_6<-sum(mydt$ind_6)
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_7)==T) {mydt$ind_7[i]<-1} else {mydt$ind_7[i]<-0}}
-prev_ind_7<-table(mydt$ind_7)[2]
+###########################################################
+
+mydt$ind_7<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_7[(mydt[,my_malfo_vars[i]]%in%ind_7)]<-1
+}
+
+prev_ind_7<-sum(mydt$ind_7)
+
 
 # export indicator data
 
@@ -148,17 +179,22 @@ write.csv(asc_tab,paste0(path_output,"EUROCAT/ascertainment.csv"), row.names = F
 # maternal age and birth type total dataset 
 
 mydt$agemocat<-(cut(mydt$agemo,c(0,19, 24, 29, 34, 39, 44,100)))
-
+mydt$type_name<-mydt$type
+mydt$type_name[mydt$type==1]<-"Live Birth"
+mydt$type_name[mydt$type==2]<-"Still Birth"
+mydt$type_name[mydt$type==3]<-"Spontaneous Abortion"
+mydt$type_name[mydt$type==4]<-"TOPFA"
+mydt$type_name[mydt$type==9]<-"Not Known"
 # 1= Live birth, 2 = Stillbirth, 3 = Spontaneous abortion, 4 = TOPFA, 9 = Not known
-type_table<-(table(mydt$agemocat, mydt$type))
-names_type<-c("Live Birth", "Stillbirth", "spontaneos abortion", "TOPFA", "unknown")
-type_df<- cbind(type_table[,1], type_table[,2], names_type)
-colnames(type_df)<-c("Maternal Age", "# of Type of Birth", "Birth Type")
+type_table<-(table(mydt$agemocat, mydt$type_name))
+
 
 down_table<-(table(mydt$agemocat, mydt$ind_7))
-down_perc<-round(((down_table[,2]/prev_ind_7)*100),4)
-age_type_down<-cbind(type_table, down_table[,2],down_perc)
-colnames(age_type_down)<-c("Live Birth", "Still Birth", "Spontaneous Abortion", "TOPFA", "# of Downs Cases", "% of total Down's Cases")
+colnames(down_table)<-c("Not Downs", "Down's Syndrome")
+Percentage_Total_Downs<-round(((down_table[,2]/prev_ind_7)*100),4)
+age_type_down<-cbind(type_table, down_table, Percentage_Total_Downs)
+
+
 write.csv(age_type_down, paste0(path_output,"EUROCAT/birthtype_downs_by_agemo_categorical.csv"), row.names = F )
 
 
@@ -172,8 +208,6 @@ write.csv(age_type_down, paste0(path_output,"EUROCAT/birthtype_downs_by_agemo_ca
 
 name_ind_8<-"% potential multiples according to the flowchart variable"
 #VJOLA 31/5 FLOWCHART --> a.	Section 3.4 Step 22 EUROCAT
-# ind_8<-
-
 
 
 name_ind_9<- "% fetal death with  post-mortem"
@@ -221,35 +255,68 @@ ind_15<-c("Q210", "7454", "al21", "Q211", "7455", "Q2111", "al22", "Q620", "7532
 #1 = Performed (or expected) in the first year of life2 = Performed (or expected) after the first year of life 3 = Prenatal surgery
 #4 = No surgery required5= Too severe for surgery6 = Died before surgery 9 = Not known
 
-#%in% function delivers T or F if the value of syndrome or malfo variables matches any value in ind_x
-# https://stat.ethz.ch/R-manual/R-devel/library/base/html/match.html
 
-prev_ind_8<-nrow(mydt[mydt$flowchart=="M"])
+#################################################
 
-prev_ind_9<-nrow(mydt[(mydt$fetaldeath==1)&(mydt$postmortemYN==1)])
+prev_ind_8<-nrow(mydt[mydt$flowchart=="M",])
 
-for(i in 1:nrow(mydt)){
-  if((mydt$type[i]==4 & mydt$pm[i]==(1|2))==T) {mydt$ind_10[i]<-1} else {mydt$ind_10[i]<-0}}
-prev_ind_10<-prev_ind_0-table(mydt$ind_10)[1]
+#################################################
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_11)==T) {mydt$ind_11[i]<-1} else {mydt$ind_11[i]<-0}}
-prev_ind_11<-table(mydt$ind_11)[2]
+prev_ind_9<-nrow(mydt[(mydt$fetaldeath==1)&(mydt$postmortemYN==1),])
 
-prev_ind_12<-nrow(mydt[mydt$flowchart=="M"& (mydt$karyo==1)])
+#################################################
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_13)==T) {mydt$ind_13[i]<-1} else {mydt$ind_13[i]<-0}}
-prev_ind_13<-table(mydt$ind_13)[2]
+mydt$ind_10<-0
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_14)==T) {mydt$ind_14[i]<-1} else {mydt$ind_14[i]<-0}}
-prev_ind_14<-table(mydt$ind_14)[2]
+mydt$ind_10[(mydt$type==4)&(mydt$postmortemYN==1)]<-1
 
-for(i in 1:nrow(mydt)){
-  if(any(mydt[i,c("syndrome", "malfo1", "malfo2", "malfo3", "malfo4", "malfo5", "malfo6", "malfo7","malfo8")]%in%ind_15)==T) {mydt$ind_15[i]<-1} else {mydt$ind_15[i]<-0}}
-prev_ind_15<-table(mydt$ind_15)[2]
+prev_ind_10<-sum(mydt$ind_10)
 
+#################################################
+
+mydt$ind_11<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_11[(mydt[,my_malfo_vars[i]]%in%ind_11)]<-1
+}
+
+prev_ind_11<-sum(mydt$ind_11)
+
+##########################################################
+
+prev_ind_12<-nrow(mydt[(mydt$flowchart=="M" & mydt$karyo==1),])
+
+##########################################################
+
+mydt$ind_13<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_13[(mydt[,my_malfo_vars[i]]%in%ind_13)]<-1
+}
+
+prev_ind_13<-sum(mydt$ind_13)
+
+##########################################################
+
+mydt$ind_14<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_14[(mydt[,my_malfo_vars[i]]%in%ind_14)]<-1
+}
+
+prev_ind_14<-sum(mydt$ind_14)
+
+##########################################################
+
+mydt$ind_15<-0
+
+for(i in 1:length(my_malfo_vars)){
+  mydt$ind_15[(mydt[,my_malfo_vars[i]]%in%ind_15)]<-1
+}
+
+prev_ind_15<-sum(mydt$ind_15)
+
+##########################################################
 
 # export accuracy tables
 
@@ -259,12 +326,12 @@ totals_acc<-c((prev_ind_8), (prev_ind_9), (prev_ind_10), (prev_ind_11), (prev_in
 
 ind_8_perc<-prev_ind_8/prev_ind_0
 ind_9_perc<-prev_ind_9/(sum(mydt$fetaldeath))
-ind_10_perc<-prev_ind_10/nrow(mydt[mydt$type==4])
-ind_11_perc<- nrow(mydt[(mydt$ind_11==1)&(mydt$karyo==1)])/prev_ind_11
+ind_10_perc<-prev_ind_10/nrow(mydt[mydt$type==4,])
+ind_11_perc<- nrow(mydt[(mydt$ind_11==1&mydt$karyo==1),])/prev_ind_11
 ind_12_perc<-prev_ind_12/prev_ind_8
 ind_13_perc<-prev_ind_13/prev_ind_0
 ind_14_perc<-prev_ind_14/prev_ind_0
-ind_15_perc<-perc_LB_ASD<-prev_ind_15/nrow(mydt[mydt$type==1])
+ind_15_perc<-perc_LB_ASD<-prev_ind_15/nrow(mydt[mydt$type==1,])
 
 perc_acc<-c(ind_8_perc, ind_9_perc, ind_10_perc, ind_11_perc, ind_12_perc, ind_13_perc, ind_14_perc, ind_15_perc)
 perc_acc<-(round(perc_acc, 4)*100)
