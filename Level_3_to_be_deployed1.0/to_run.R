@@ -213,7 +213,6 @@ source("99_path.R")
 study_name_codelist<-NULL
 recurrent_event_analysis<-"Yes"
 load(paste0(g_intermediate,"environment.RData"))
-Rmd_DIAGNOSES<-paste0(pre_dir,"/Report_10_DIAGNOSES_L3.Rmd")
 system.time(source(paste0(pre_dir,"Step_10_00_DIAGNOSES_L3.R")))
 
 
