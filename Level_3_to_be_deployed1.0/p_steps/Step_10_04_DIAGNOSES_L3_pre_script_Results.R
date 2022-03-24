@@ -109,7 +109,7 @@ for (size_ind in 1:length(chunks)){
     
 names(ps_no_diag)<-c("sex", "year","age_band","person_years")    
 #save results in diag_tmp
-saveRDS(ps_no_diag, paste0(diag_tmp,chunks[size_ind],"no_id_py.rds"))
+saveRDS(ps_no_diag, paste0(diag_tmp,size_ind,"_no_id_py.rds"))
 rm(ps_no_diag)
   }
 }
@@ -214,7 +214,7 @@ if(study_population[,.N]>0){
                                   check_overlap = F)
     
     names(ps_all_diag)<-c("person_id", "sex", "age_band","year","person_years")
-    saveRDS(ps_all_diag,paste0(diag_tmp, chunks[size_ind], "py_diagnosis.rds"))
+    saveRDS(ps_all_diag,paste0(diag_tmp, size_ind, "_py_diagnosis.rds"))
     rm(ps_all_diag)
   }
 }
