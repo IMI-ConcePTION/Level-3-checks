@@ -177,6 +177,8 @@ for (s in 1: length(subpopulations_names)){
   study_sub_population<-study_population_dir[grepl(study_population_dir, pattern=paste0(subpopulations_names[s],"_study_population"), fixed=T)]
   study_sub_population<-study_sub_population[grepl(study_sub_population, pattern=paste0("^", subpopulations_names[s]))]
   study_population<-readRDS(paste0(g_intermediate, "populations/", study_sub_population))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
+  study_population<-study_population[,person_id:=as.character(person_id)]
+  study_population<-study_population[sex_at_instance_creation %in% c("F","M")]
   nr_std<-study_population[,.N]
 
     #MEANINGS TO BE EXCLUDED
@@ -194,11 +196,13 @@ for (s in 1: length(subpopulations_names)){
   do.call(file.remove, list(list.files(so_tmp, full.names = T)))
   do.call(file.remove, list(list.files(diag_tmp, full.names = T)))
 
-  rm(study_population, nr_std)
+  rm(nr_std)
   }
 } else {
   study_population_dir<-study_population_dir[grepl(study_population_dir, pattern="ALL_study_population", fixed=T)]
   study_population<-readRDS(paste0(g_intermediate, "populations/", study_population_dir))[,c("person_id","sex_at_instance_creation","birth_date","end_follow_up","start_follow_up","age_start_follow_up")]
+  study_population<-study_population[,person_id:=as.character(person_id)]
+  study_population<-study_population[sex_at_instance_creation %in% c("F","M")]
   nr_std<-study_population[,.N]
 
   #MEANINGS TO BE EXCLUDED
@@ -216,6 +220,8 @@ for (s in 1: length(subpopulations_names)){
   do.call(file.remove, list(list.files(so_tmp, full.names = T)))
   do.call(file.remove, list(list.files(diag_tmp, full.names = T)))
   
+  rm(nr_std)
+  
 }
 }
 
@@ -227,15 +233,16 @@ unlink(paste0(tmp,"DIAGNOSES"), recursive = T)
 
 
 keep_environment<-c("StudyName", "data_access_provider_name", "data_source_name", "subpopulations_names", "subpopulations_present", "subpopulations","SUBP",
-                    "Age_max","Age_min", "min_age_preg","max_age_preg", 
+                    "Age_max","Age_min", "min_age_preg","max_age_preg",
                     "start_study_date","end_study_date", "lookback_period", "intv","recommended_end_date", "date_creation","start_study_date2","end_study_date2",
-                    "METADATA_subp", "actual_tables", "tmp", "s", "meanings_birth_registry", "CountPersonTime2",
+                    "METADATA_subp", "actual_tables", "tmp", "s", "meanings_birth_registry","CountPersonTime2",
                     "diagnoses","pregnancies","diagnoses_pregnancy_med_vacc","diagnoses_pregnancy_med","diagnoses_pregnancy_vacc","pregnancy_only_med_vacc","pregnancy_only_med","pregnancy_only_vacc",
-                    "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","output_path",
+                    "dir_base", "populations_dir", "output_dir", "pre_dir", "study_population_dir", "g_intermediate", "path_dir","projectFolder","path","path_output",
                     "med_dir","medicines_tmp","medicines_pop", "Rmd_MEDICINES",
                     "vacc_dir", "vaccines_tmp", "vaccines_pop","Rmd_VACCINES",
-                    "diag_dir", "events_tmp","mo_tmp","so_tmp","diag_tmp", "diag_pop","Rmd_DIAGNOSES", "conditions","diagnoses")
-
+                    "diag_dir", "events_tmp","mo_tmp","so_tmp","diag_tmp", "diag_pop","Rmd_DIAGNOSES", "conditions","diagnoses","duplicated_event_dates","remove_subj",
+                    "preg_dir","preg_ev_tmp","preg_m_tmp","preg_s_tmp","preg_si_tmp","preg_tmp", "preg_pop","Rmd_PREGNANCY","pregnancies",
+                    "poi_dir","ev_preg_dir","med_preg_dir","vacc_preg_dir","ev_med_preg_dir","ev_vacc_preg_dir","ev_med_dir","ev_vacc_dir","ev_preg_pop","med_preg_pop","vacc_preg_pop","ev_med_preg_pop","ev_vacc_preg_pop","ev_med_pop","ev_vacc_pop","poi_tmp","Rmd_POI")
 
 list_rm<-ls()[ls() %!in% keep_environment]
 rm(list = list_rm)

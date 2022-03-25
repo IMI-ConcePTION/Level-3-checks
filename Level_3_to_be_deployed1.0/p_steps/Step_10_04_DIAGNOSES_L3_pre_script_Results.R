@@ -61,34 +61,73 @@
 #   rm(ids_no_diagnosis_so)
 # }
 
+print("Calculating person time for subject that do not have a diagnoses.")
 study_population[no_event_id==1 & no_mo_id==1 & no_so_id==1, no_diagosis:=1]
 study_population[,no_event_id:=NULL][,no_mo_id:=NULL][,no_so_id:=NULL]
 
-#apply count person time and save 
-if(study_population[no_diagosis==1,.N]>0){
-ps_no_diag<-CountPersonTime2(Dataset = unique(study_population[no_diagosis==1,.(person_id, birth_date, start_follow_up,end_follow_up, sex_at_instance_creation)]),
-                         Person_id = "person_id",
-                         Start_study_time =start_study_date2,
-                         End_study_time = end_study_date2,
-                         Start_date = "start_follow_up",
-                         End_date = "end_follow_up",
-                         Birth_date = "birth_date",
-                         Increment = "year",
-                         Unit_of_age = "year",
-                         include_remaning_ages = TRUE,
-                         Strata = c("sex_at_instance_creation"),
-                         Aggregate = T,
-                         Age_bands = agebands_rates,
-                         print = F, 
-                         check_overlap = F)
-
-names(ps_no_diag)<-c("sex", "year","age_band","person_years")
-#save results in diag_tmp
-saveRDS(ps_no_diag, paste0(diag_tmp,"no_id_py.rds"))
-rm(ps_no_diag)
+#apply count person time and save, in chunks
+#Create chunks of 100.000
+study_population_no_diag<-study_population[no_diagosis==1]
+study_population<-study_population[is.na(no_diagosis)]
+if(study_population_no_diag[,.N]>0){
+  size<-100000
+  groups<-round(study_population_no_diag[,.N]/size)
+  index<-1
+  min<-1
+  max<-study_population_no_diag[,.N]
+  chunks<-rep(NA, groups)
+  for (size_ind in 1: groups){
+    if(index< groups){
+      chunks[index]<-paste0(min,":", size_ind*size)
+      min<-size_ind*size+1
+      index<-index+1
+    } else {
+      chunks[index]<-paste0(min,":", study_population_no_diag[,.N]) 
+  }
 }
 
+#Apply countperson time by chunks
+for (size_ind in 1:length(chunks)){
+  min<-unlist(str_split(chunks[size_ind],":"))[1]
+  max<-unlist(str_split(chunks[size_ind],":"))[2]
+  print(paste0("Analysing chunk ", min,":",max," of the study population with no diagnosis in the study period." ))
+  ps_no_diag<-CountPersonTime2(Dataset = unique(study_population_no_diag[min:max,.(person_id, birth_date, start_follow_up,end_follow_up, sex_at_instance_creation)]),                                 
+                               Person_id = "person_id",
+                                Start_study_time =start_study_date2,
+                                End_study_time = end_study_rates,
+                                Start_date = "start_follow_up",
+                                End_date = "end_follow_up",
+                                Birth_date = "birth_date",
+                                Increment = "year",
+                                Unit_of_age = "year",
+                                include_remaning_ages = TRUE,
+                                Strata = c("sex_at_instance_creation"),
+                                Aggregate = T,
+                                Age_bands = agebands_rates,
+                                print = F, 
+                                check_overlap = F)
+    
+names(ps_no_diag)<-c("sex", "year","age_band","person_years")    
+#save results in diag_tmp
+saveRDS(ps_no_diag, paste0(diag_tmp,size_ind,"_no_id_py.rds"))
+rm(ps_no_diag)
+  }
+}
+rm(study_population_no_diag)
 
+#Combine all results of the study_population_no_diag
+#person_years are in days
+ps_no_diag_fl<-list.files(diag_tmp,"no_id_py.rds")
+if(length(ps_no_diag_fl)>0){
+  ps_no_diag<-lapply(paste0(diag_tmp, ps_no_diag_fl), readRDS)  
+  ps_no_diag<-do.call(rbind,ps_no_diag)
+  
+  for (i in 1:length(ps_no_diag_fl)){
+    file.remove(paste0(diag_tmp, ps_no_diag_fl[i]))
+  }
+  saveRDS(ps_no_diag, paste0(diag_tmp,"no_id_py.rds"))
+}
+rm(ps_no_diag_fl)
 ##########################
 #Identify all people present in the study population
 ##########################
@@ -130,28 +169,64 @@ if(length(pers_so_files)>0){
 study_population[pers_events==1 | pers_mo==1 | pers_so==1, pers_diagnosis:=1]
 study_population[,pers_events:=NULL][,pers_mo:=NULL][,pers_so:=NULL]
 
+#remove people that where excluded from the diagnoses_study_population
+excluded_people<-study_population[is.na(pers_diagnosis),.N]
+study_population<-study_population[pers_diagnosis==1]
 #Apply count person time to save the person time for all people that had a diagnosis 
-
-  ps_all_diag<-CountPersonTime2(Dataset = unique(study_population[pers_diagnosis==1,.(person_id, birth_date, start_follow_up,end_follow_up, sex_at_instance_creation)]),
-                               Person_id = "person_id",
-                               Start_study_time =start_study_date2,
-                               End_study_time = end_study_date2,
-                               Start_date = "start_follow_up",
-                               End_date = "end_follow_up",
-                               Birth_date = "birth_date",
-                               Increment = "year",
-                               Unit_of_age = "year",
-                               include_remaning_ages = TRUE,
-                               Strata = c("sex_at_instance_creation"),
-                               Aggregate = F,
-                               Age_bands = agebands_rates,
-                               print = F, 
-                               check_overlap = F)
+#Apply countperson time in  chunks
+if(study_population[,.N]>0){
+  size<-100000
+  groups<-round(study_population[,.N]/size)
+  index<-1
+  min<-1
+  max<-study_population[,.N]
+  chunks<-rep(NA, groups)
+  for (size_ind in 1: groups){
+    if(index< groups){
+      chunks[index]<-paste0(min,":", size_ind*size)
+      min<-size_ind*size+1
+      index<-index+1
+    } else {
+      chunks[index]<-paste0(min,":", study_population[,.N]) 
+    }
+  }
   
-  names(ps_all_diag)<-c("person_id", "sex", "age_band","year","person_years")
-
-  #remove study_population
+  #Apply countperson time by chunks
+  for (size_ind in 1:length(chunks)){
+    min<-unlist(str_split(chunks[size_ind],":"))[1]
+    max<-unlist(str_split(chunks[size_ind],":"))[2]
+    print(paste0("Analysing chunk ", min,":",max," of the study population with at least one diagnosis in the study period." ))
+    
+    ps_all_diag<-CountPersonTime2(Dataset = unique(study_population[min:max,.(person_id, birth_date, start_follow_up,end_follow_up, sex_at_instance_creation)]),
+                                  Person_id = "person_id",
+                                  Start_study_time =start_study_date2,
+                                  End_study_time = end_study_rates,
+                                  Start_date = "start_follow_up",
+                                  End_date = "end_follow_up",
+                                  Birth_date = "birth_date",
+                                  Increment = "year",
+                                  Unit_of_age = "year",
+                                  include_remaning_ages = TRUE,
+                                  Strata = c("sex_at_instance_creation"),
+                                  Aggregate = F,
+                                  Age_bands = agebands_rates,
+                                  print = F, 
+                                  check_overlap = F)
+    
+    names(ps_all_diag)<-c("person_id", "sex", "age_band","year","person_years")
+    saveRDS(ps_all_diag,paste0(diag_tmp, size_ind, "_py_diagnosis.rds"))
+    rm(ps_all_diag)
+  }
+}
+#remove study_population
 rm(study_population)
+
+#Load all files for py and combine
+py_fl<-list.files(diag_tmp, "py_diagnosis.rds")
+if(length(py_fl)>0){
+  py_diag<-lapply(paste0(diag_tmp,py_fl), readRDS)  
+  py_diag<-do.call(rbind,py_diag)
+}
 
 ###################
 #flowchart
@@ -247,7 +322,7 @@ if(subpopulations_present=="Yes"){
 rm(tab20)
 
 ###########################
-#Rates of recurrent events
+#Rates of recurrent events and data cleanup
 ###########################
 diagnoses_files<-list.files(paste0(populations_dir, "DIAGNOSES/"))
 files<-list()
@@ -274,8 +349,8 @@ rm(diagnoses_list)
 #time lags more than 1 year will not be considered
 time_lag<-data.table(condition=c("Depression", "Elective abortion",
                                  "Gestational diabetes","Multiple gestation"," Preeclampsia", "Spontaneous abortion",
-                                 "TOPFA"),
-                     time_lag=c(3*30, 8*7, 23*7, 23*7, 8*7, 8*7, 8*7))
+                                 "TOPFA", "Breast cancer"),
+                     time_lag=c(3*30, 8*7, 23*7, 23*7, 8*7, 8*7, 8*7,0))
 
 #create a loop that woud run count person time for each diagnoses separately
 duplicated_event_dates<-data.table(event_definition=names(diagnoses_files),original_rows=0,duplicates=0,duplicates_time_lag=as.character(0))
@@ -369,9 +444,10 @@ for (condition_ind in 1:length(diagnoses_files)){
   #remove event_code and vocabulary, condition will be used as event count and remove all other uneccessary columns
   diag_file[,event_code:=NULL][,event_vocabulary:=NULL][,meaning:=NULL][,age_start_follow_up:=NULL][,obs_out:=NULL][,filter:=NULL][,code_nodot:=NULL][,truncated_code:=NULL]
   
-  
+  if(recurrent_event_analysis %in% c("Yes","yes")){
+    print("Calculating rates of recurrent events")
   #grab and combine person time for all people that had a diagnoses that are not part of the diagoses of interest
-  py_other<-ps_all_diag[!(person_id %in% diag_file[!duplicated(person_id),person_id])][,lapply(.SD, sum), by=c("sex", "year", "age_band"), .SDcols="person_years"]
+  py_other<-py_diag[!(person_id %in% diag_file[!duplicated(person_id),person_id])][,lapply(.SD, sum), by=c("sex", "year", "age_band"), .SDcols="person_years"]
   py_other[,no_records:=0]  
   #calculate counts
   if(diag_file[,.N]!=0){
@@ -382,7 +458,7 @@ for (condition_ind in 1:length(diagnoses_files)){
                                Dataset = unique(diag_file[,.(person_id, birth_date, start_follow_up, end_follow_up, sex_at_instance_creation)]),
                                Person_id = "person_id",
                                Start_study_time =start_study_date2,
-                               End_study_time =end_study_date2,
+                               End_study_time =end_study_rates,
                                Start_date = "start_follow_up",
                                End_date = "end_follow_up",
                                Birth_date = "birth_date",
@@ -407,7 +483,7 @@ for (condition_ind in 1:length(diagnoses_files)){
                                Dataset = unique(diag_file[,.(person_id, birth_date, start_follow_up, end_follow_up, sex_at_instance_creation)]),
                                Person_id = "person_id",
                                Start_study_time =start_study_date2,
-                               End_study_time =end_study_date2,
+                               End_study_time =end_study_rates,
                                Start_date = "start_follow_up",
                                End_date = "end_follow_up",
                                Birth_date = "birth_date",
@@ -416,10 +492,10 @@ for (condition_ind in 1:length(diagnoses_files)){
                                Strata = c("sex_at_instance_creation"),
                                include_remaning_ages = TRUE,
                                Aggregate = T,
-                               Outcomes_nrec = outcomes_list,
+                               Outcomes_rec = outcomes_list,
                                Name_event = "condition",
                                Date_event = "event_date",
-                               Rec_period = NULL,
+                               Rec_period = rep(0, length(outcomes_list)),
                                Age_bands = agebands_rates,
                                print = F, 
                                check_overlap = F)
@@ -480,7 +556,7 @@ for (condition_ind in 1:length(diagnoses_files)){
   saveRDS(output, paste0(diag_tmp, names(diagnoses_files)[condition_ind], "_rates_rec.rds"))
     rm(output)
   }
-
+}
 rm(diagnoses_files)
 ####################################################################################################
  
@@ -530,7 +606,7 @@ rm(diagnoses_files)
   # rm(tab21_counts)
   
   ##############################
-  #tab22
+  #removed subjects
   #############################
 
   if(subpopulations_present=="Yes"){
@@ -541,37 +617,50 @@ rm(diagnoses_files)
   
   rm(duplicated_event_dates)
   
+  excluded_people<-data.table(Indicator="People removed due to exclusion criteria", Number=excluded_people)
+  if(subpopulations_present=="Yes"){
+    write.csv(excluded_people, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_excluded_people_diagoses.csv"), row.names = F)
+  } else {
+    write.csv(excluded_people, paste0(diag_dir, "excluded_people_diagoses.csv"), row.names = F)
+  }
+  
+  rm(excluded_people)
+  
+  ############################
+  #tab22
+  ############################
+  if(recurrent_event_analysis %in% c("Yes","yes")){
   diagnoses_files<-list.files(diag_tmp, "rates_rec")
   tab22<-lapply(paste0(diag_tmp, diagnoses_files), readRDS)
   tab22<-do.call(rbind, tab22)
   
   #combine counts by year and sex
   tab22_counts_year_sex<-tab22[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records", "person_years")]
-  tab22_counts_year_sex[,age_band:="All"]
+  # tab22_counts_year_sex[,age_band:="All"]
   
   
   tab22_counts_year<-tab22[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("no_records", "person_years")]
-  tab22_counts_year[,age_band:="All"][,sex:="All"]
+  # tab22_counts_year[,age_band:="All"][,sex:="All"]
   
   
-  ######table 22a
-  tab22a_py<-tab22[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("person_years")]
-  tab22a_counts<-tab22[,-c("person_years")]
-  tab22a_counts<-merge(tab22a_counts, tab22a_py, by=c("event_definition","year"))
+  # ######table 22a
+  # tab22a_py<-tab22[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("person_years")]
+  # tab22a_counts<-tab22[,-c("person_years")]
+  # tab22a_counts<-merge(tab22a_counts, tab22a_py, by=c("event_definition","year"))
 
   
-  tab22a_counts_year_sex<-tab22a_counts[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records")]
-  tab22a_counts_year_sex[,age_band:="All"]
-  tab22a_counts_year_sex<-merge(tab22a_counts_year_sex, tab22a_py, by=c("event_definition","year"))
-  rm(tab22a_py)
+  # tab22a_counts_year_sex<-tab22a_counts[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records")]
+  # tab22a_counts_year_sex[,age_band:="All"]
+  # tab22a_counts_year_sex<-merge(tab22a_counts_year_sex, tab22a_py, by=c("event_definition","year"))
+  # rm(tab22a_py)
  
   
   #combine tab22
-  tab22<-rbind(tab22, tab22_counts_year_sex,tab22_counts_year)
-  rm(tab22_counts_year_sex,tab22_counts_year)
-  #combine tab22a
-  tab22a<-rbind(tab22a_counts,tab22a_counts_year_sex)
-  rm(tab22a_counts_year_sex)
+  # tab22<-rbind(tab22, tab22_counts_year_sex,tab22_counts_year)
+  # rm(tab22_counts_year_sex,tab22_counts_year)
+  # # #combine tab22a
+  # tab22a<-rbind(tab22a_counts,tab22a_counts_year_sex)
+  # rm(tab22a_counts_year_sex)
   
 for (i in 1:length(diagnoses_files)){
   file.remove(paste0(diag_tmp, diagnoses_files[[i]]))
@@ -579,50 +668,70 @@ for (i in 1:length(diagnoses_files)){
   
   
   tab22<-data.table(tab22, data_access_provider= data_access_provider_name, data_source=data_source_name)
-  tab22a<-data.table(tab22a, data_access_provider= data_access_provider_name, data_source=data_source_name)
-  
+  tab22_counts_year_sex<-data.table(tab22_counts_year_sex, data_access_provider= data_access_provider_name, data_source=data_source_name)
+  tab22_counts_year<-data.table(tab22_counts_year, data_access_provider= data_access_provider_name, data_source=data_source_name)
+  # tab22a<-data.table(tab22a, data_access_provider= data_access_provider_name, data_source=data_source_name)
   tab22[,rate_per_100_py:=round((no_records/person_years)*100,2)]
-  tab22a[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+  # tab22a[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+  tab22_counts_year_sex[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+  tab22_counts_year[,rate_per_100_py:=round((no_records/person_years)*100,2)]
   
   if(subpopulations_present=="Yes"){
-    write.csv(tab22, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_recurrent.csv"), row.names = F)
+    write.csv(tab22, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_yas_recurrent.csv"), row.names = F)
+    write.csv(tab22_counts_year_sex, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_ys_recurrent.csv"), row.names = F)
+    write.csv(tab22_counts_year, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_y_recurrent.csv"), row.names = F)
   } else {
-    write.csv(tab22, paste0(diag_dir, "diagnoses_rates_recurrent.csv"), row.names = F)
+    write.csv(tab22, paste0(diag_dir, "diagnoses_rates_yas_recurrent.csv"), row.names = F)
+    write.csv(tab22_counts_year_sex, paste0(diag_dir, "diagnoses_rates_ys_recurrent.csv"), row.names = F)
+    write.csv(tab22_counts_year, paste0(diag_dir, "diagnoses_rates_y_recurrent.csv"), row.names = F)
   }
   
-  if(subpopulations_present=="Yes"){
-    write.csv(tab22a, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_agg_recurrent.csv"), row.names = F)
-  } else {
-    write.csv(tab22a, paste0(diag_dir, "diagnoses_rates_agg_recurrent.csv"), row.names = F)
-  }
+  # if(subpopulations_present=="Yes"){
+  #   write.csv(tab22a, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_agg_recurrent.csv"), row.names = F)
+  # } else {
+  #   write.csv(tab22a, paste0(diag_dir, "diagnoses_rates_agg_recurrent.csv"), row.names = F)
+  # }
   
   tab22[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
   tab22[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
   tab22[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
   
-  tab22a[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
-  tab22a[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
-  tab22a[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+  tab22_counts_year_sex[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+  tab22_counts_year_sex[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+  tab22_counts_year_sex[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
   
+  tab22_counts_year[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+  tab22_counts_year[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+  tab22_counts_year[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+  
+  # tab22a[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+  # tab22a[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+  # tab22a[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+  # 
   if(subpopulations_present=="Yes"){
-    write.csv(tab22, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_yas_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22_counts_year_sex, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_ys_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22_counts_year, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_y_recurrent_masked.csv"), row.names = F)
   } else {
-    write.csv(tab22, paste0(diag_dir, "Masked/", "diagnoses_rates_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22, paste0(diag_dir, "Masked/", "diagnoses_rates_yas_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22_counts_year_sex, paste0(diag_dir, "Masked/", "diagnoses_rates_ys_recurrent_masked.csv"), row.names = F)
+    write.csv(tab22_counts_year, paste0(diag_dir, "Masked/", "diagnoses_rates_y_recurrent_masked.csv"), row.names = F)
+  }
+  # 
+  # if(subpopulations_present=="Yes"){
+  #   write.csv(tab22a, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_agg_recurrent_masked.csv"), row.names = F)
+  # } else {
+  #   write.csv(tab22a, paste0(diag_dir, "Masked/", "diagnoses_rates_agg_recurrent_masked.csv"), row.names = F)
+  # }
+  
+  
+  rm(tab22, tab22_counts_year_sex, tab22_counts_year)
   }
   
-  if(subpopulations_present=="Yes"){
-    write.csv(tab22a, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_agg_recurrent_masked.csv"), row.names = F)
-  } else {
-    write.csv(tab22a, paste0(diag_dir, "Masked/", "diagnoses_rates_agg_recurrent_masked.csv"), row.names = F)
-  }
-  
-  
-  rm(tab22)
-  
-
 ######################################################
 #first event
 ######################################################
+  print("Calculating rates of first events")
 diagnoses_files<-list.files(paste0(populations_dir, "DIAGNOSES/"))
 files<-list()
 for (i in 1: length(diagnoses_files)){
@@ -713,7 +822,7 @@ for (condition_ind in 1:length(diagnoses_files)){
   diag_file[,event_code:=NULL][,event_vocabulary:=NULL][,meaning:=NULL][,age_start_follow_up:=NULL][,obs_out:=NULL][,filter:=NULL][,code_nodot:=NULL][,truncated_code:=NULL]
   
   #grab and combine person time for all people that had a diagnoses that are not part of the diagoses of interest
-  py_other<-ps_all_diag[!(person_id %in% diag_file[!duplicated(person_id),person_id])][,lapply(.SD, sum), by=c("sex", "year", "age_band"), .SDcols="person_years"]
+  py_other<-py_diag[!(person_id %in% diag_file[!duplicated(person_id),person_id])][,lapply(.SD, sum), by=c("sex", "year", "age_band"), .SDcols="person_years"]
   py_other[,no_records:=0]  
   
   
@@ -723,7 +832,7 @@ for (condition_ind in 1:length(diagnoses_files)){
                            Dataset = unique(diag_file[,.(person_id, birth_date, start_follow_up, end_follow_up, sex_at_instance_creation)]),
                            Person_id = "person_id",
                            Start_study_time =start_study_date2,
-                           End_study_time =end_study_date2,
+                           End_study_time =end_study_rates,
                            Start_date = "start_follow_up",
                            End_date = "end_follow_up",
                            Birth_date = "birth_date",
@@ -788,31 +897,31 @@ tab23<-do.call(rbind, tab23)
 
 #combine counts by year and sex
 tab23_counts_year_sex<-tab23[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records", "person_years")]
-tab23_counts_year_sex[,age_band:="All"]
+# tab23_counts_year_sex[,age_band:="All"]
 
 
 tab23_counts_year<-tab23[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("no_records", "person_years")]
-tab23_counts_year[,age_band:="All"][,sex:="All"]
+# tab23_counts_year[,age_band:="All"][,sex:="All"]
 
 
-######table 23a
-tab23a_py<-tab23[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("person_years")]
-tab23a_counts<-tab23[,-c("person_years")]
-tab23a_counts<-merge(tab23a_counts, tab23a_py, by=c("event_definition","year"))
-
-
-tab23a_counts_year_sex<-tab23a_counts[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records")]
-tab23a_counts_year_sex[,age_band:="All"]
-tab23a_counts_year_sex<-merge(tab23a_counts_year_sex, tab23a_py, by=c("event_definition","year"))
-rm(tab23a_py)
-
-
-#combine tab23
-tab23<-rbind(tab23, tab23_counts_year_sex,tab23_counts_year)
-rm(tab23_counts_year_sex,tab23_counts_year)
-#combine tab23a
-tab23a<-rbind(tab23a_counts,tab23a_counts_year_sex)
-rm(tab23a_counts_year_sex)
+# ######table 23a
+# tab23a_py<-tab23[,lapply(.SD,sum), by=c("event_definition","year"), .SDcols=c("person_years")]
+# tab23a_counts<-tab23[,-c("person_years")]
+# tab23a_counts<-merge(tab23a_counts, tab23a_py, by=c("event_definition","year"))
+# 
+# 
+# tab23a_counts_year_sex<-tab23a_counts[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records")]
+# tab23a_counts_year_sex[,age_band:="All"]
+# tab23a_counts_year_sex<-merge(tab23a_counts_year_sex, tab23a_py, by=c("event_definition","year"))
+# rm(tab23a_py)
+# 
+# 
+# #combine tab23
+# tab23<-rbind(tab23, tab23_counts_year_sex,tab23_counts_year)
+# rm(tab23_counts_year_sex,tab23_counts_year)
+# #combine tab23a
+# tab23a<-rbind(tab23a_counts,tab23a_counts_year_sex)
+# rm(tab23a_counts_year_sex)
 
 for (i in 1:length(diagnoses_files)){
   file.remove(paste0(diag_tmp, diagnoses_files[[i]]))
@@ -820,44 +929,65 @@ for (i in 1:length(diagnoses_files)){
 
 
 tab23<-data.table(tab23, data_access_provider= data_access_provider_name, data_source=data_source_name)
-tab23a<-data.table(tab23a, data_access_provider= data_access_provider_name, data_source=data_source_name)
+tab23_counts_year_sex<-data.table(tab23_counts_year_sex, data_access_provider= data_access_provider_name, data_source=data_source_name)
+tab23_counts_year<-data.table(tab23_counts_year, data_access_provider= data_access_provider_name, data_source=data_source_name)
+# tab23a<-data.table(tab23a, data_access_provider= data_access_provider_name, data_source=data_source_name)
 
 tab23[,rate_per_100_py:=round((no_records/person_years)*100,2)]
-tab23a[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+tab23_counts_year_sex[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+tab23_counts_year[,rate_per_100_py:=round((no_records/person_years)*100,2)]
+# tab23a[,rate_per_100_py:=round((no_records/person_years)*100,2)]
 
 if(subpopulations_present=="Yes"){
-  write.csv(tab23, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_first.csv"), row.names = F)
+  write.csv(tab23, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_yas_first.csv"), row.names = F)
+  write.csv(tab23_counts_year_sex, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_ys_first.csv"), row.names = F)
+  write.csv(tab23_counts_year, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_y_first.csv"), row.names = F)
 } else {
-  write.csv(tab23, paste0(diag_dir, "diagnoses_rates_first.csv"), row.names = F)
+  write.csv(tab23, paste0(diag_dir, "diagnoses_rates_yas_first.csv"), row.names = F)
+  write.csv(tab23_counts_year_sex, paste0(diag_dir, "diagnoses_rates_ys_first.csv"), row.names = F)
+  write.csv(tab23_counts_year, paste0(diag_dir, "diagnoses_rates_y_first.csv"), row.names = F)
 }
 
-if(subpopulations_present=="Yes"){
-  write.csv(tab23a, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_agg_first.csv"), row.names = F)
-} else {
-  write.csv(tab23a, paste0(diag_dir, "diagnoses_rates_agg_first.csv"), row.names = F)
-}
+# if(subpopulations_present=="Yes"){
+#   write.csv(tab23a, paste0(diag_dir, subpopulations_names[s], "/", subpopulations_names[s], "_diagnoses_rates_agg_first.csv"), row.names = F)
+# } else {
+#   write.csv(tab23a, paste0(diag_dir, "diagnoses_rates_agg_first.csv"), row.names = F)
+# }
 
 tab23[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
 tab23[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
 tab23[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
 
-tab23a[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
-tab23a[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
-tab23a[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+tab23_counts_year_sex[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+tab23_counts_year_sex[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+tab23_counts_year_sex[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+
+tab23_counts_year[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+tab23_counts_year[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+tab23_counts_year[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
+
+# tab23a[, no_records:= as.character(no_records)][as.numeric(no_records) > 0 & as.numeric(no_records) < 5, no_records := "<5"]
+# tab23a[, person_years:= as.character(person_years)][as.numeric(person_years) > 0 & as.numeric(person_years) < 5, person_years := "<5"]
+# tab23a[, rate_per_100_py:= as.character(rate_per_100_py)][no_records=="<5" | person_years=="<5", rate_per_100_py := "N/A"]
 
 if(subpopulations_present=="Yes"){
-  write.csv(tab23, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_first_masked.csv"), row.names = F)
+  write.csv(tab23, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_yas_first_masked.csv"), row.names = F)
+  write.csv(tab23_counts_year_sex, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_ys_first_masked.csv"), row.names = F)
+  write.csv(tab23_counts_year, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_y_first_masked.csv"), row.names = F)
 } else {
-  write.csv(tab23, paste0(diag_dir, "Masked/", "diagnoses_rates_first_masked.csv"), row.names = F)
+  write.csv(tab23, paste0(diag_dir, "Masked/", "diagnoses_rates_yas_first_masked.csv"), row.names = F)
+  write.csv(tab23_counts_year_sex, paste0(diag_dir, "Masked/", "diagnoses_rates_ys_first_masked.csv"), row.names = F)
+  write.csv(tab23_counts_year, paste0(diag_dir, "Masked/", "diagnoses_rates_y_first_masked.csv"), row.names = F)
 }
 
-if(subpopulations_present=="Yes"){
-  write.csv(tab23a, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_agg_first_masked.csv"), row.names = F)
-} else {
-  write.csv(tab23a, paste0(diag_dir, "Masked/", "diagnoses_rates_agg_first_masked.csv"), row.names = F)
-}
+
+# if(subpopulations_present=="Yes"){
+#   write.csv(tab23a, paste0(diag_dir,subpopulations_names[s], "/","Masked/", subpopulations_names[s],"_diagnoses_rates_agg_first_masked.csv"), row.names = F)
+# } else {
+#   write.csv(tab23a, paste0(diag_dir, "Masked/", "diagnoses_rates_agg_first_masked.csv"), row.names = F)
+# }
 
 
-rm(tab23,tab23a)
+rm(tab23,tab23_counts_year_sex,tab23_counts_year)
 
 ###############################

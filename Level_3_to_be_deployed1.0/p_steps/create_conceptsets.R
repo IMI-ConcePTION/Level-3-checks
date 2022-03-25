@@ -144,6 +144,7 @@ pregnancy_to_start_with<-c(vocabularies_list_pregnancy[str_detect(vocabularies_l
                            vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^MTHICD")])
 pregnancy_rcd<-vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^RCD")]
 pregnancy_snomed_codes<-vocabularies_list_pregnancy[str_detect(vocabularies_list_pregnancy, "^SNOMED")]
+pregnancy_other_codes<-vocabularies_list_pregnancy[!(vocabularies_list_pregnancy %in% c(pregnancy_to_start_with,pregnancy_rcd,pregnancy_snomed_codes))]
 
 #Create variable code_no_dot by removing dot from all codes
 #remove dots for read codes
@@ -210,7 +211,18 @@ for(i in 1:length(stage_pregnancy)){
   stage_pregnancy_snomed[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]]) %in% pregnancy_snomed_codes]
 }
 names(stage_pregnancy_snomed)<-names(stage_pregnancy)
-
+stage_pregnancy_snomed<-lapply(stage_pregnancy_snomed, function(x) Filter(length, x))
+################################################################################################################
+#Rule: match exactly
+#Coding system: other codes
+#################################################################################################################
+#other codes
+stage_pregnancy_other<-list()
+for(i in 1:length(stage_pregnancy)){
+  stage_pregnancy_other[[i]]<-stage_pregnancy[[i]][names(stage_pregnancy[[i]]) %in% pregnancy_other_codes]
+}
+names(stage_pregnancy_other)<-names(stage_pregnancy)
+stage_pregnancy_other<-lapply(stage_pregnancy_other, function(x) Filter(length, x))
 ################################################################################################################
 
 codelist_pregnancy[,dot_present:=NULL][,code:=NULL]
