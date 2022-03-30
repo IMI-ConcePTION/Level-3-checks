@@ -99,8 +99,8 @@ for(i in 1:nrow(SCHEME_0112)){
   
   
   
-  if(any(!sort(unique(COUNT[["band"]])) %in% sort(unique(PT1[["band"]])))){stop("Agebands do not match")}
-  if(any(!sort(unique(COUNT[["Year_visit"]])) %in% sort(unique(PT1[["Year_visit"]])))){stop("Years do not match")}
+  if(any(!sort(unique(COUNT[["band"]])) %in% sort(unique(PT1[["band"]])))){warning("Agebands do not match")}
+  if(any(!sort(unique(COUNT[["Year_visit"]])) %in% sort(unique(PT1[["Year_visit"]])))){warning("Years do not match")}
   
   before <- nrow(COUNT)
   
@@ -109,7 +109,7 @@ for(i in 1:nrow(SCHEME_0112)){
   
   after <- nrow(COUNT)
   
-  if(before != after){stop("With adding person time to counts rows are not equal")}
+  if(before != after){warning("With adding person time to counts rows are not equal")}
   
   rm(TEMP, before, after)
   
