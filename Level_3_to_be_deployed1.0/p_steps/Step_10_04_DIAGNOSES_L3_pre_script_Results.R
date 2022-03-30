@@ -812,11 +812,15 @@ for (condition_ind in 1:length(diagnoses_files)){
   diag_file<-lapply(paste0(populations_dir,"DIAGNOSES/", diagnoses_files[[condition_ind]]), readRDS)
   diag_file<-do.call(rbind,diag_file)
   
+  if(!is.null(prior)){
   ids_remove<-prior[condition==names(diagnoses_files)[condition_ind],person_id]
   #remove subject who had an event in the year prior to start of follow up
   remove_subj[[condition_ind]]<-data.table(event_definition=names(diagnoses_files)[condition_ind], diag_file[person_id %in% ids_remove,.N])
   #remove all subjects that had a prior event
   diag_file<-diag_file[!(person_id %in% ids_remove)]
+  } else {
+    remove_subj[[condition_ind]]<-data.table(event_definition=names(diagnoses_files)[condition_ind], 0)
+  }
   
   #remove event_code and vocabulary, condition will be used as event count and remove all other uneccessary columns
   diag_file[,event_code:=NULL][,event_vocabulary:=NULL][,meaning:=NULL][,age_start_follow_up:=NULL][,obs_out:=NULL][,filter:=NULL][,code_nodot:=NULL][,truncated_code:=NULL]
