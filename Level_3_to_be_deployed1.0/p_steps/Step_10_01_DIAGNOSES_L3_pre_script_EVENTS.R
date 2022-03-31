@@ -122,7 +122,7 @@ if(length(actual_tables$EVENTS)>0){
       years_events_filter[[w]]<-unique(na.omit(df[, year])) #will be used for description
       male_population_events[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="M",.N]>0,1,0)
       female_population_events[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F",.N]>0,1,0)
-      females_childbearing_events[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F" & age_start_follow_up>=12 & age_start_follow_up<=55,.N]>0,1,0)
+      females_childbearing_events[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F" & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,.N]>0,1,0)
       ############################
       #Table 20
       ###########################
@@ -149,18 +149,27 @@ if(length(actual_tables$EVENTS)>0){
       
       print(paste0("Extracting data for conditions_to_start_with:",actual_tables$EVENTS[y]))
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
+        df[,code_no_dot:=as.character(gsub("\\.","", event_code))]
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
             z<-1
-            repeat{
-              if(df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j]][,.N]>0){
-                df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
-              }
-              z<-z+1
-              if(z>length(conditions_start[[i]][[j]])){
-                break
-              }
-            }
+            # repeat{
+            #   if(df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j]][,.N]>0){
+            #     df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
+            #   }
+            #   z<-z+1
+            #   if(z>length(conditions_start[[i]][[j]])){
+            #     break
+            #   }
+            # }
+            #remove dots before filtering
+            codes_no_dot<-gsub("\\.","", conditions_start[[i]][[j]])
+            
+            pattern_to_search<-paste(paste0("^",codes_no_dot), collapse = "|")
+            df[grepl(pattern_to_search, df[["code_no_dot"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
+            rm(pattern_to_search,codes_no_dot)
+            
+            
             if("filter" %!in% names(df)){df[,filter:=0]}
             m<-1
             repeat{
@@ -182,16 +191,21 @@ if(length(actual_tables$EVENTS)>0){
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
         for (i in 1:length(conditions_read)){
           for(j in 1:length(conditions_read[[i]])){
-            z<-1
-            repeat{
-              if(df[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j]][,.N]>0){
-                df[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
-              }
-              z<-z+1
-              if(z>length(conditions_read[[i]][[j]])){
-                break
-              }
-            }
+            # z<-1
+            # repeat{
+            #   if(df[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j]][,.N]>0){
+            #     df[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
+            #   }
+            #   z<-z+1
+            #   if(z>length(conditions_read[[i]][[j]])){
+            #     break
+            #   }
+            # }
+            
+            pattern_to_search<-paste(paste0("^",conditions_read[[i]][[j]]), collapse = "|")
+            df[grepl(pattern_to_search, df[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
+            rm(pattern_to_search)
+            
             if("filter" %!in% names(df)){df[,filter:=0]}
             m<-1
             repeat{
@@ -213,16 +227,23 @@ if(length(actual_tables$EVENTS)>0){
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
         for (i in 1:length(conditions_snomed)){
           for(j in 1:length(conditions_snomed[[i]])){
-            z<-1
-            repeat{
-              if(df[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j]][,.N]>0){
-                df[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j],filter:=1]
-              }
-              z<-z+1
-              if(z>length(conditions_snomed[[i]][[j]])){
-                break
-              }
+            
+            if("filter" %in% names(df)){
+              df[,filter:=NULL]
             }
+            codes<-data.table(event_vocabulary=names(conditions_snomed[[i]])[j], event_code=conditions_snomed[[i]][[j]], filter=1)
+            df<-merge(df,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            
+            # z<-1
+            # repeat{
+            #   if(df[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j]][,.N]>0){
+            #     df[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j],filter:=1]
+            #   }
+            #   z<-z+1
+            #   if(z>length(conditions_snomed[[i]][[j]])){
+            #     break
+            #   }
+            # }
             if("filter" %!in% names(df)){df[,filter:=0]}
             m<-1
             repeat{
@@ -244,16 +265,23 @@ if(length(actual_tables$EVENTS)>0){
       if(sum(df[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
         for (i in 1:length(conditions_other)){
           for(j in 1:length(conditions_other[[i]])){
-            z<-1
-            repeat{
-              if(df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
-                df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
-              }
-              z<-z+1
-              if(z>length(conditions_other[[i]][[j]])){
-                break
-              }
+            
+            if("filter" %in% names(df)){
+              df[,filter:=NULL]
             }
+            codes<-data.table(event_vocabulary=names(conditions_other[[i]])[j], event_code=conditions_other[[i]][[j]], filter=1)
+            df<-merge(df,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            
+            # z<-1
+            # repeat{
+            #   if(df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
+            #     df[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
+            #   }
+            #   z<-z+1
+            #   if(z>length(conditions_other[[i]][[j]])){
+            #     break
+            #   }
+            # }
             if("filter" %!in% names(df)){df[,filter:=0]}
             m<-1
             repeat{
@@ -281,18 +309,27 @@ if(length(actual_tables$EVENTS)>0){
         
         print(paste0("Extracting data for prior events, conditions_to_start_with:",actual_tables$EVENTS[y]))
         if(sum(persons_event_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_to_start_with)>0){
+          persons_event_prior[,code_no_dot:=as.character(gsub("\\.","", event_code))]
           for (i in 1:length(conditions_start)){
             for(j in 1:length(conditions_start[[i]])){
-              z<-1
-              repeat{
-                if(persons_event_prior[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j]][,.N]>0){
-                  persons_event_prior[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
-                }
-                z<-z+1
-                if(z>length(conditions_start[[i]][[j]])){
-                  break
-                }
-              }
+              # z<-1
+              # repeat{
+              #   if(persons_event_prior[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j]][,.N]>0){
+              #     persons_event_prior[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
+              #   }
+              #   z<-z+1
+              #   if(z>length(conditions_start[[i]][[j]])){
+              #     break
+              #   }
+              # }
+              
+              #remove dots before filtering
+              codes_no_dot<-gsub("\\.","", conditions_start[[i]][[j]])
+              
+              pattern_to_search<-paste(paste0("^",codes_no_dot), collapse = "|")
+              persons_event_prior[grepl(pattern_to_search, persons_event_prior[["code_no_dot"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
+              rm(pattern_to_search,codes_no_dot)
+              
               if("filter" %!in% names(persons_event_prior)){persons_event_prior[,filter:=0]}
               m<-1
               repeat{
@@ -314,16 +351,21 @@ if(length(actual_tables$EVENTS)>0){
         if(sum(persons_event_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_rcd)>0){
           for (i in 1:length(conditions_read)){
             for(j in 1:length(conditions_read[[i]])){
-              z<-1
-              repeat{
-                if(persons_event_prior[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j]][,.N]>0){
-                  persons_event_prior[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
-                }
-                z<-z+1
-                if(z>length(conditions_read[[i]][[j]])){
-                  break
-                }
-              }
+              # z<-1
+              # repeat{
+              #   if(persons_event_prior[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j]][,.N]>0){
+              #     persons_event_prior[grepl(paste0("^",paste(conditions_read[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
+              #   }
+              #   z<-z+1
+              #   if(z>length(conditions_read[[i]][[j]])){
+              #     break
+              #   }
+              # }
+              
+              pattern_to_search<-paste(paste0("^",conditions_read[[i]][[j]]), collapse = "|")
+              persons_event_prior[grepl(pattern_to_search, persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_read[[i]])[j],filter:=1]
+              rm(pattern_to_search)
+              
               if("filter" %!in% names(persons_event_prior)){persons_event_prior[,filter:=0]}
               m<-1
               repeat{
@@ -345,16 +387,23 @@ if(length(actual_tables$EVENTS)>0){
         if(sum(persons_event_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_snomed_codes)>0){
           for (i in 1:length(conditions_snomed)){
             for(j in 1:length(conditions_snomed[[i]])){
-              z<-1
-              repeat{
-                if(persons_event_prior[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j]][,.N]>0){
-                  persons_event_prior[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j],filter:=1]
-                }
-                z<-z+1
-                if(z>length(conditions_snomed[[i]][[j]])){
-                  break
-                }
+              # z<-1
+              # repeat{
+              #   if(persons_event_prior[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j]][,.N]>0){
+              #     persons_event_prior[grepl(paste0("^",paste(conditions_snomed[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_snomed[[i]])[j],filter:=1]
+              #   }
+              #   z<-z+1
+              #   if(z>length(conditions_snomed[[i]][[j]])){
+              #     break
+              #   }
+              # }
+              
+              if("filter" %in% names(persons_event_prior)){
+                persons_event_prior[,filter:=NULL]
               }
+              codes<-data.table(event_vocabulary=names(conditions_snomed[[i]])[j], event_code=conditions_snomed[[i]][[j]], filter=1)
+              persons_event_prior<-merge(persons_event_prior,codes,by=c("event_vocabulary","event_code"),all.x = T)
+              
               if("filter" %!in% names(persons_event_prior)){persons_event_prior[,filter:=0]}
               m<-1
               repeat{
@@ -376,16 +425,23 @@ if(length(actual_tables$EVENTS)>0){
         if(sum(persons_event_prior[!duplicated(event_vocabulary), event_vocabulary] %in% conditions_other_codes)>0){
           for (i in 1:length(conditions_other)){
             for(j in 1:length(conditions_other[[i]])){
-              z<-1
-              repeat{
-                if(persons_event_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
-                  persons_event_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
-                }
-                z<-z+1
-                if(z>length(conditions_other[[i]][[j]])){
-                  break
-                }
+              # z<-1
+              # repeat{
+              #   if(persons_event_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j]][,.N]>0){
+              #     persons_event_prior[grepl(paste0("^",paste(conditions_other[[i]][[j]][z])), persons_event_prior[["event_code"]]) & event_vocabulary==names(conditions_other[[i]])[j],filter:=1]
+              #   }
+              #   z<-z+1
+              #   if(z>length(conditions_other[[i]][[j]])){
+              #     break
+              #   }
+              # }
+              
+              if("filter" %in% names(persons_event_prior)){
+                persons_event_prior[,filter:=NULL]
               }
+              codes<-data.table(event_vocabulary=names(conditions_other[[i]])[j], event_code=conditions_other[[i]][[j]], filter=1)
+              persons_event_prior<-merge(persons_event_prior,codes,by=c("event_vocabulary","event_code"),all.x = T)
+              
               if("filter" %!in% names(persons_event_prior)){persons_event_prior[,filter:=0]}
               m<-1
               repeat{
