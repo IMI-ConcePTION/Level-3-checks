@@ -167,6 +167,9 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
             m<-1
             repeat{
               if(df[filter==1 & year==years_study_mo[m],.N]>0){
+                if("code_no_dot" %in% names(df)){
+                  df[,code_no_dot:=NULL]
+                }
                 saveRDS(data.table(df[filter==1 & year==years_study_mo[m]], condition=names(conditions_start[i])), paste0(mo_tmp,years_study_mo[m],"_", names(conditions_start[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "_start.rds"))
               }
               m<-m+1
@@ -327,6 +330,9 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
             m<-1
             repeat{
               if(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],.N]>0){
+                if("code_no_dot" %in% names(persons_mo_prior)){
+                  persons_mo_prior[,code_no_dot:=NULL]
+                }
                 saveRDS(data.table(persons_mo_prior[filter==1 & year==years_study_prior_mo[m],c("person_id","event_date","event_code","prior")], condition=names(conditions_start[i])), paste0(mo_tmp,years_study_prior_mo[m],"_", names(conditions_start[i]), "_",actual_tables$MEDICAL_OBSERVATIONS[y], "_prior_start.rds"))
               }
               m<-m+1

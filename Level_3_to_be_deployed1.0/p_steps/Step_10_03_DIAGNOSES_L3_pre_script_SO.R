@@ -166,6 +166,9 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
             m<-1
             repeat{
               if(df[filter==1 & year==years_study_so[m],.N]>0){
+                if("code_no_dot" %in% names(df)){
+                  df[,code_no_dot:=NULL]
+                }
                 saveRDS(data.table(df[filter==1 & year==years_study_so[m]], condition=names(conditions_start[i])), paste0(so_tmp,years_study_so[m],"_", names(conditions_start[i]), "_",actual_tables$SURVEY_OBSERVATIONS[y], "_start.rds"))
               }
               m<-m+1
@@ -326,6 +329,9 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
             m<-1
             repeat{
               if(persons_so_prior[filter==1 & year==years_study_prior_so[m],.N]>0){
+                if("code_no_dot" %in% names(persons_so_prior)){
+                  persons_so_prior[,code_no_dot:=NULL]
+                }
                 saveRDS(data.table(persons_so_prior[filter==1 & year==years_study_prior_so[m],c("person_id","event_date","event_code","prior")], condition=names(conditions_start[i])), paste0(so_tmp,years_study_prior_so[m],"_", names(conditions_start[i]), "_",actual_tables$SURVEY_OBSERVATIONS[y], "_prior_start.rds"))
               }
               m<-m+1

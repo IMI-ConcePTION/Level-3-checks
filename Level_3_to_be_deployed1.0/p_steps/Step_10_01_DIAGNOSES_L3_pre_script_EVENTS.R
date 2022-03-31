@@ -152,7 +152,7 @@ if(length(actual_tables$EVENTS)>0){
         df[,code_no_dot:=as.character(gsub("\\.","", event_code))]
         for (i in 1:length(conditions_start)){
           for(j in 1:length(conditions_start[[i]])){
-            z<-1
+            # z<-1
             # repeat{
             #   if(df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j]][,.N]>0){
             #     df[grepl(paste0("^",paste(conditions_start[[i]][[j]][z])), df[["event_code"]]) & event_vocabulary==names(conditions_start[[i]])[j],filter:=1]
@@ -174,6 +174,9 @@ if(length(actual_tables$EVENTS)>0){
             m<-1
             repeat{
               if(df[filter==1 & year==years_study_events[m],.N]>0){
+                if("code_no_dot" %in% names(df)){
+                  df[,code_no_dot:=NULL]
+                }
                 saveRDS(data.table(df[filter==1 & year==years_study_events[m]], condition=names(conditions_start[i])), paste0(events_tmp,years_study_events[m],"_", names(conditions_start[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
               }
               m<-m+1
@@ -334,6 +337,9 @@ if(length(actual_tables$EVENTS)>0){
               m<-1
               repeat{
                 if(persons_event_prior[filter==1 & year==years_study_prior_events[m],.N]>0){
+                  if("code_no_dot" %in% names(persons_event_prior)){
+                    persons_event_prior[,code_no_dot:=NULL]
+                  }
                   saveRDS(data.table(persons_event_prior[filter==1 & year==years_study_prior_events[m], c("person_id","event_date","event_code","prior")], condition=names(conditions_start[i])), paste0(events_tmp,years_study_prior_events[m],"_", names(conditions_start[i]), "_",actual_tables$EVENTS[y], "_prior_start.rds"))
                 }
                 m<-m+1
