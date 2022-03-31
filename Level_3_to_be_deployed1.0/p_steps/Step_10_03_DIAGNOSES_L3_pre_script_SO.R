@@ -237,7 +237,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
               df[,filter:=NULL]
             }
             codes<-data.table(event_vocabulary=names(conditions_snomed[[i]])[j], event_code=conditions_snomed[[i]][[j]], filter=1)
-            df<-merge(df,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            df<-merge.data.table(df,codes,by=c("event_vocabulary","event_code"),all.x = T,allow.cartesian = T)
             
             
             if("filter" %!in% names(df)){df[,filter:=0]}
@@ -276,7 +276,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
               df[,filter:=NULL]
             }
             codes<-data.table(event_vocabulary=names(conditions_other[[i]])[j], event_code=conditions_other[[i]][[j]], filter=1)
-            df<-merge(df,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            df<-merge.data.table(df,codes,by=c("event_vocabulary","event_code"),all.x = T,allow.cartesian = T)
             
             if("filter" %!in% names(df)){df[,filter:=0]}
             m<-1
@@ -400,7 +400,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
               persons_so_prior[,filter:=NULL]
             }
             codes<-data.table(event_vocabulary=names(conditions_snomed[[i]])[j], event_code=conditions_snomed[[i]][[j]], filter=1)
-            persons_so_prior<-merge(persons_so_prior,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            persons_so_prior<-merge.data.table(persons_so_prior,codes,by=c("event_vocabulary","event_code"),all.x = T,allow.cartesian = T)
             
             if("filter" %!in% names(persons_so_prior)){persons_so_prior[,filter:=0]}
             m<-1
@@ -438,7 +438,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
               persons_so_prior[,filter:=NULL]
             }
             codes<-data.table(event_vocabulary=names(conditions_other[[i]])[j], event_code=conditions_other[[i]][[j]], filter=1)
-            persons_so_prior<-merge(persons_so_prior,codes,by=c("event_vocabulary","event_code"),all.x = T)
+            persons_so_prior<-merge.data.table(persons_so_prior,codes,by=c("event_vocabulary","event_code"),all.x = T,allow.cartesian = T)
             
             if("filter" %!in% names(persons_so_prior)){persons_so_prior[,filter:=0]}
             m<-1
