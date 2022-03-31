@@ -16,6 +16,11 @@ if(!is.null(study_name_codelist)){
 #select only necessary columns
 codelist<-codelist[,c("event_definition", "coding_system", "code")]
 codelist<-codelist[,coding_system:=gsub("/","",coding_system)]
+#remove duplicates
+codelist[,comb:=paste(event_definition,coding_system,code,sep="^")]
+codelist<-codelist[!duplicated(comb)]
+codelist[,comb:=NULL]
+
 
 conditions_vocabularies<-codelist[!duplicated(coding_system),coding_system]
 conditions_to_start_with<-c(conditions_vocabularies[str_detect(conditions_vocabularies, "^ICD")], 
@@ -136,6 +141,11 @@ codelist_pregnancy<-fread(paste0(pre_dir,"Data_characterisation_pregnancy_matcho
 codelist_pregnancy[,coding_system:=gsub("/","",coding_system)]
 #Create variable dot_present
 codelist_pregnancy[,dot_present:=str_detect(codelist_pregnancy[,code],"[.]")]
+#remove duplicates
+codelist_pregnancy[,comb:=paste(event_definition,coding_system,code,sep="^")]
+codelist_pregnancy<-codelist_pregnancy[!duplicated(comb)]
+codelist_pregnancy[,comb:=NULL]
+
 
 vocabularies_list_pregnancy<-codelist_pregnancy[!duplicated(coding_system), coding_system]
 
