@@ -115,7 +115,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     years_mo_filter[[w]]<-unique(na.omit(df[, year])) #will be used for description
     male_population_mo[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="M",.N]>0,1,0)
     female_population_mo[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F",.N]>0,1,0)
-    females_childbearing_mo[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F" & age_start_follow_up>=12 & age_start_follow_up<=55,.N]>0,1,0)
+    females_childbearing_mo[[w]]<-ifelse(df[is.na(obs_out)][sex_at_instance_creation=="F" & age_start_follow_up>=min_age_preg & age_start_follow_up<=max_age_preg,.N]>0,1,0)
     ############################
     #Table 20
     ###########################
