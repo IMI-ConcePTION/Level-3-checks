@@ -106,7 +106,7 @@ for (size_ind in 1:length(chunks)){
                                 Age_bands = agebands_rates,
                                 print = F, 
                                 check_overlap = F)
-    
+ps_no_diag<-as.data.table(ps_no_diag)  
 names(ps_no_diag)<-c("sex", "year","age_band","person_years")    
 #save results in diag_tmp
 saveRDS(ps_no_diag, paste0(diag_tmp,size_ind,"_no_id_py.rds"))
@@ -121,6 +121,7 @@ ps_no_diag_fl<-list.files(diag_tmp,"no_id_py.rds")
 if(length(ps_no_diag_fl)>0){
   ps_no_diag<-lapply(paste0(diag_tmp, ps_no_diag_fl), readRDS)  
   ps_no_diag<-do.call(rbind,ps_no_diag)
+  ps_no_diag<-as.data.table(ps_no_diag)
   
   for (i in 1:length(ps_no_diag_fl)){
     file.remove(paste0(diag_tmp, ps_no_diag_fl[i]))
@@ -136,8 +137,9 @@ pers_events_files<-list.files(events_tmp, "pers_events")
 if(length(pers_events_files)>0){
   pers_events<-lapply(paste0(events_tmp, pers_events_files), readRDS)
   pers_events<-do.call(rbind,pers_events)
+  pers_events<-as.data.table(pers_events)
   pers_events[,pers_events:=1]
-  study_population<-merge(study_population,pers_events, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
+  study_population<-merge.data.table(study_population,pers_events, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
   rm(pers_events)
 } else {
   study_population[,pers_events:=NA] 
@@ -147,8 +149,9 @@ pers_mo_files<-list.files(mo_tmp, "pers_mo")
 if(length(pers_mo_files)>0){
   pers_mo<-lapply(paste0(mo_tmp, pers_mo_files), readRDS)
   pers_mo<-do.call(rbind,pers_mo)
+  pers_mo<-as.data.table(pers_mo)
   pers_mo[,pers_mo:=1]
-  study_population<-merge(study_population,pers_mo, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
+  study_population<-merge.data.table(study_population,pers_mo, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
   rm(pers_mo)
 } else {
   study_population[,pers_mo:=NA] 
@@ -158,8 +161,9 @@ pers_so_files<-list.files(so_tmp, "pers_so")
 if(length(pers_so_files)>0){
   pers_so<-lapply(paste0(so_tmp, pers_so_files), readRDS)
   pers_so<-do.call(rbind,pers_so)
+  pers_so<-as.data.table(pers_so)
   pers_so[,pers_so:=1]
-  study_population<-merge(study_population,pers_so, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
+  study_population<-merge.data.table(study_population,pers_so, by=c("person_id","birth_date","start_follow_up","end_follow_up","sex_at_instance_creation"), all.x = T)
   rm(pers_so)
 } else {
   study_population[,pers_so:=NA] 
@@ -213,6 +217,7 @@ if(study_population[,.N]>0){
                                   print = F, 
                                   check_overlap = F)
     
+    ps_all_diag<-as.data.table(ps_all_diag)
     names(ps_all_diag)<-c("person_id", "sex", "age_band","year","person_years")
     saveRDS(ps_all_diag,paste0(diag_tmp, size_ind, "_py_diagnosis.rds"))
     rm(ps_all_diag)
@@ -226,6 +231,7 @@ py_fl<-list.files(diag_tmp, "py_diagnosis.rds")
 if(length(py_fl)>0){
   py_diag<-lapply(paste0(diag_tmp,py_fl), readRDS)  
   py_diag<-do.call(rbind,py_diag)
+  py_diag<-as.data.table(py_diag)
 }
 
 ###################
@@ -296,6 +302,7 @@ rm(description)
 #tab20
 ##################
 tab20<-rbind(tab20_events, tab20_mo, tab20_so)
+tab20<-as.data.table(tab20)
 rm(tab20_events,tab20_mo,tab20_so)
 #combine results if same meaning+year combination exists
 tab20<-tab20[,lapply(.SD,sum), .SDcols=c("no_records", "no_empty_code"), by=.(meaning,year)]
@@ -361,6 +368,7 @@ duplicated_event_dates<-data.table(event_definition=names(diagnoses_files),origi
 for (condition_ind in 1:length(diagnoses_files)){
   diag_file<-lapply(paste0(populations_dir,"DIAGNOSES/", diagnoses_files[[condition_ind]]), readRDS)
   diag_file<-do.call(rbind,diag_file)
+  diag_file<-as.data.table(diag_file)
   #remove all records at the same day for the same individual
   diag_file[,pers_date:=paste0(person_id,"_", event_date)]
   orig_no_rows<-diag_file[,.N]
@@ -474,7 +482,7 @@ for (condition_ind in 1:length(diagnoses_files)){
                                Age_bands = agebands_rates,
                                print = F, 
                                check_overlap = F)
-      
+      output<-as.data.table(output)
       
     } else {
       outcomes_list<-unique(diag_file[,condition])
@@ -499,6 +507,7 @@ for (condition_ind in 1:length(diagnoses_files)){
                                Age_bands = agebands_rates,
                                print = F, 
                                check_overlap = F)
+      output<-as.data.table(output)
     }
     
     output[,Persontime:=NULL]
@@ -534,6 +543,7 @@ for (condition_ind in 1:length(diagnoses_files)){
     names(output)<-c("sex", "year", "age_band", "person_years","no_records") 
     #Add person time from other people in the study population
     output<-rbind(output,py_other)
+    output<-as.data.table(output)
     rm(py_other)
     #sum the person time
     output<-output[,lapply(.SD, sum), by=c("sex","year","age_band"), .SDcols=c("no_records","person_years")]
@@ -545,10 +555,12 @@ for (condition_ind in 1:length(diagnoses_files)){
   
   #Load person time for all people with no diagnosis
   no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
+  no_diag_py<-as.data.table(no_diag_py)
   no_diag_py[,no_records:=0]
   no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
   #combine py
   output<-rbind(output,no_diag_py)
+  output<-as.data.table(output)
   rm(no_diag_py)
   output<-output[,lapply(.SD, sum), by=c("event_definition", "sex","year","age_band"), .SDcols=c("no_records","person_years")]
   output<-output[,person_years:=round(person_years/365.25,3)]
@@ -566,6 +578,7 @@ rm(diagnoses_files)
   tab21_files<-list.files(diag_tmp,"_tab21")
   tab21<-lapply(paste0(diag_tmp, tab21_files), readRDS)
   tab21<-do.call(rbind, tab21)
+  tab21<-as.data.table(tab21)
   setcolorder(tab21, c("event_definition","meaning","year", "truncated_code", "vocabulary", "no_records", "total_records"))
   tab21<-data.table(tab21, data_access_provider= data_access_provider_name, data_source=data_source_name)
   
@@ -633,6 +646,7 @@ rm(diagnoses_files)
   diagnoses_files<-list.files(diag_tmp, "rates_rec")
   tab22<-lapply(paste0(diag_tmp, diagnoses_files), readRDS)
   tab22<-do.call(rbind, tab22)
+  tab22<-as.data.table(tab22)
   
   #combine counts by year and sex
   tab22_counts_year_sex<-tab22[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records", "person_years")]
@@ -764,6 +778,7 @@ prior_so_fl<-list.files(mo_tmp, "_so_prior")
 if(length(prior_events_fl)>0){
 prior_events<-lapply(paste0(events_tmp, prior_events_fl), readRDS)
 prior_events<-do.call(rbind,prior_events)
+prior_events<-as.data.table(prior_events)
 
 #remove files
 for(i in 1:length(prior_events_fl)){
@@ -774,6 +789,7 @@ prior_events<- NULL
 if(length(prior_mo_fl)>0){
   prior_mo<-lapply(paste0(mo_tmp, prior_mo_fl), readRDS)
   prior_mo<-do.call(rbind,prior_mo)
+  prior_mo<-as.data.table(prior_mo)
   
   for(i in 1:length(prior_mo_fl)){
     unlink(paste0(mo_tmp,prior_mo_fl[[i]]))
@@ -785,6 +801,7 @@ if(length(prior_mo_fl)>0){
 if(length(prior_so_fl)>0){
   prior_so<-lapply(paste0(so_tmp, prior_so_fl), readRDS)
   prior_so<-do.call(rbind,prior_so)
+  prior_so<-as.data.table(prior_so)
   
   for(i in 1:length(prior_so_fl)){
     unlink(paste0(so_tmp,prior_so_fl[[i]]))
@@ -796,7 +813,8 @@ if(length(prior_so_fl)>0){
  
 rm(prior_events_fl,prior_mo_fl,prior_so_fl)
 
-prior<-rbind(prior_events,prior_mo,prior_so) 
+prior<-rbind(prior_events,prior_mo,prior_so)
+prior<-as.data.table(prior)
 if(!is.null(prior)){
   prior[,comb:=paste(person_id,prior,condition)]
   prior<-prior[!duplicated(comb)]
@@ -811,6 +829,7 @@ remove_subj<-list()
 for (condition_ind in 1:length(diagnoses_files)){
   diag_file<-lapply(paste0(populations_dir,"DIAGNOSES/", diagnoses_files[[condition_ind]]), readRDS)
   diag_file<-do.call(rbind,diag_file)
+  diag_file<-as.data.table(diag_file)
   
   if(!is.null(prior)){
   ids_remove<-prior[condition==names(diagnoses_files)[condition_ind],person_id]
@@ -853,11 +872,12 @@ for (condition_ind in 1:length(diagnoses_files)){
                            print = F, 
                            check_overlap = F)
   
-  
+  output<-as.data.table(output)
   output[,Persontime:=NULL]
   names(output)<-c("sex", "year", "age_band", "person_years","no_records") 
   #Add person time from other people in the study population
   output<-rbind(output,py_other)
+  output<-as.data.table(output)
   rm(py_other)
   #sum the person time
   output<-output[,lapply(.SD, sum), by=c("sex","year","age_band"), .SDcols=c("no_records","person_years")]
@@ -865,10 +885,12 @@ for (condition_ind in 1:length(diagnoses_files)){
   
   #Load person time for all people with no diagnosis
   no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
+  no_diag_py<-as.data.table(no_diag_py)
   no_diag_py[,no_records:=0]
   no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
   #combine py
   output<-rbind(output,no_diag_py)
+  output<-as.data.table(output)
   rm(no_diag_py)
   output<-output[,lapply(.SD, sum), by=c("event_definition", "sex","year","age_band"), .SDcols=c("no_records","person_years")]
   output<-output[,person_years:=round(person_years/365.25,3)]
@@ -898,6 +920,7 @@ if(subpopulations_present=="Yes"){
 diagnoses_files<-list.files(diag_tmp, "rates_first")
 tab23<-lapply(paste0(diag_tmp, diagnoses_files), readRDS)
 tab23<-do.call(rbind, tab23)
+tab23<-as.data.table(tab23)
 
 #combine counts by year and sex
 tab23_counts_year_sex<-tab23[,lapply(.SD,sum), by=c("event_definition","year", "sex"), .SDcols=c("no_records", "person_years")]
