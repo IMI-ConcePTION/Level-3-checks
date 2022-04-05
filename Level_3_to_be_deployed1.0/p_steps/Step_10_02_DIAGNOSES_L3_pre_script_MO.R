@@ -44,7 +44,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
   w<-1
   for (y in 1:length(actual_tables$MEDICAL_OBSERVATIONS)){
     #Load the table
-    df<-fread(paste(path_dir, actual_tables$MEDICAL_OBSERVATIONS[y], sep=""), stringsAsFactors = FALSE)
+    df<-fread(paste(path_dir, actual_tables$MEDICAL_OBSERVATIONS[y], sep=""), stringsAsFactors = FALSE, colClasses = "character")
     df<-df[,c("person_id", "mo_date", "mo_code", "mo_record_vocabulary", "mo_meaning")]
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] #make sure missing data is read appropriately
     setnames(df,"mo_meaning","meaning")
