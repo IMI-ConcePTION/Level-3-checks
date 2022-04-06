@@ -124,8 +124,8 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     mo_study_population_my[[w]]<-df[is.na(obs_out),.N, by=.(meaning,year)] #number of records in the study population by meaning and year
     empty_mo_code.my[[w]]<-df[is.na(event_code) & is.na(obs_out), .N, by=.(meaning,year)] #number of records with missing mo code when date disp/presc is present
     #############################
-   if("no_event_id" %in% names(df)){
-     df[,no_event_id:=NULL]
+   if("no_mo_id" %in% names(df)){
+     df[,no_mo_id:=NULL]
    }
     ##################################################################
     #match codes based on coding system and code: algorithm start with, rcd, snomed
