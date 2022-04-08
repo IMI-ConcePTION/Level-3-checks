@@ -554,14 +554,19 @@ for (condition_ind in 1:length(diagnoses_files)){
   }
   
   #Load person time for all people with no diagnosis
-  no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
-  no_diag_py<-as.data.table(no_diag_py)
-  no_diag_py[,no_records:=0]
-  no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
-  #combine py
-  output<-rbind(output,no_diag_py)
-  output<-as.data.table(output)
-  rm(no_diag_py)
+  no_diag_py_fl<-list.files(diag_tmp, "no_id_py.rds")
+  if(length(no_diag_py_fl)>0){
+    no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
+    no_diag_py<-as.data.table(no_diag_py)
+    no_diag_py[,no_records:=0]
+    no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
+    #combine py
+    output<-rbind(output,no_diag_py)
+    output<-as.data.table(output)
+    rm(no_diag_py)
+  }
+  rm(no_diag_py_fl)
+  
   output<-output[,lapply(.SD, sum), by=c("event_definition", "sex","year","age_band"), .SDcols=c("no_records","person_years")]
   output<-output[,person_years:=round(person_years/365.25,3)]
   
@@ -884,14 +889,19 @@ for (condition_ind in 1:length(diagnoses_files)){
   output[,event_definition:=names(diagnoses_files)[condition_ind]]
   
   #Load person time for all people with no diagnosis
-  no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
-  no_diag_py<-as.data.table(no_diag_py)
-  no_diag_py[,no_records:=0]
-  no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
-  #combine py
-  output<-rbind(output,no_diag_py)
-  output<-as.data.table(output)
-  rm(no_diag_py)
+  no_diag_py_fl<-list.files(diag_tmp, "no_id_py.rds")
+  if(length(no_diag_py_fl)>0){
+    no_diag_py<-readRDS(paste0(diag_tmp, "no_id_py.rds"))
+    no_diag_py<-as.data.table(no_diag_py)
+    no_diag_py[,no_records:=0]
+    no_diag_py[,event_definition:=names(diagnoses_files)[condition_ind]]
+    #combine py
+    output<-rbind(output,no_diag_py)
+    output<-as.data.table(output)
+    rm(no_diag_py)
+  }
+  rm(no_diag_py_fl)
+  
   output<-output[,lapply(.SD, sum), by=c("event_definition", "sex","year","age_band"), .SDcols=c("no_records","person_years")]
   output<-output[,person_years:=round(person_years/365.25,3)]
 

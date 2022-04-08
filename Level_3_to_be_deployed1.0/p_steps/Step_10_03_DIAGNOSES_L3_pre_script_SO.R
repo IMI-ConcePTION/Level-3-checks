@@ -494,6 +494,7 @@ if(length(actual_tables$SURVEY_OBSERVATIONS)>0){
     rm(so_not_id)
   } else {
     stdpop_not_so<-0
+    study_population[,no_so_id:=1]
   }
   rm(stdpop_not_so_files)
   

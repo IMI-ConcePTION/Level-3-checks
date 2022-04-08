@@ -503,6 +503,7 @@ if(length(actual_tables$EVENTS)>0){
     rm(events_not_id)
   } else {
     stdpop_not_events<-0
+    study_population[,no_event_id:=1]
   }
   rm(stdpop_not_events_files)
   

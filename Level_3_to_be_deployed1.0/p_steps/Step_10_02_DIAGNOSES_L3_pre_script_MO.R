@@ -496,6 +496,7 @@ if(length(actual_tables$MEDICAL_OBSERVATIONS)>0){
     rm(mo_not_id)
   } else {
     stdpop_not_mo<-0
+    study_population[,no_mo_id:=1]
   }
   rm(stdpop_not_mo_files)
   ##############################################################################
